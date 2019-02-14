@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>JTSage::DateBox - DurationFlipBox</title>
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <link rel="stylesheet" href="http://cdn.jtsage.com/jtsage-datebox/4.0.0/jtsage-datebox-4.0.0.jqm.min.css" />
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script type="text/javascript" src="http://dev.jtsage.com/DateBox/js/doc.js"></script>
+    <script type="text/javascript" src="http://cdn.jtsage.com/jtsage-datebox/4.0.0/jtsage-datebox-4.0.0.jqm.js"></script>
+    <script type="text/javascript" src="http://cdn.jtsage.com/jtsage-datebox/i18n/jtsage-datebox.lang.utf8.js"></script>
+    <script type="text/javascript">
+    jQuery.extend(jQuery.mobile,
+    {
+      ajaxEnabled: false
+    });
+    </script>
+    <script type="text/javascript">
+    jQuery.extend(jQuery.jtsage.datebox.prototype.options,
+    {
+      'useLang': 'en'
+    });
+    </script>
+    <style>
+    .ui-datebox-container {
+      margin-right: auto;
+      margin-left: auto;
+    }
+    </style>
+  </head>
+  <body>
+    <div data-role="page" id="main">
+      <div data-role="header" data-position="fixed">
+        <h1>JTSage<span style="color:#C3593C">DateBox</span></h1>
+      </div>
+      <div class="ui-content" role="main">
+        <div class="row">
+          <div class="col-sm-8" style="width: 75%">
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label><small>override</small>"<a href="http://dev.jtsage.com/DateBox/api/durationFormat"><b>durationFormat</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="overrideDurationFormat" value="" />
+                <span class="help-block">Format for the control to return to the input</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/durationStep"><b>durationStep</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="durationStep" value="1" />
+                <span class="help-block">Stepper for the least precise duration unit</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/maxDur"><b>maxDur</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="maxDur" value="false" />
+                <span class="help-block">Maximum amount of duration allowed, in seconds</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/minDur"><b>minDur</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="minDur" value="false" />
+                <span class="help-block">Minimum amount of duration allowed, in seconds</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/themeButton"><b>themeButton</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="themeButton" value="default" />
+                <span class="help-block">Theme for the +/- Buttons</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/themeCancelButton"><b>themeCancelButton</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="themeCancelButton" value="default" />
+                <span class="help-block">Theme for the "cancel" Button</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/themeClearButton"><b>themeClearButton</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="themeClearButton" value="default" />
+                <span class="help-block">Theme for the "clear" Button</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/themeInput"><b>themeInput</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="themeInput" value="" />
+                <span class="help-block">Theme for the "clear" Button</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/themeSetButton"><b>themeSetButton</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="themeSetButton" value="default" />
+                <span class="help-block">Theme for the "set" Button</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/useCancelButton"><b>useCancelButton</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <select class="form-control demopick" data-link="db" data-opt="useCancelButton">
+                  <option value="false">False</option>
+                  <option value="true">True</option>
+                </select>
+                <span class="help-block">Show the "clear input" button</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/useClearButton"><b>useClearButton</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <select class="form-control demopick" data-link="db" data-opt="useClearButton">
+                  <option value="false">False</option>
+                  <option value="true">True</option>
+                </select>
+                <span class="help-block">Show the "clear input" button</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/useCollapsedBut"><b>useCollapsedBut</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <select class="form-control demopick" data-link="db" data-opt="useCollapsedBut">
+                  <option value="false">False</option>
+                  <option value="true">True</option>
+                </select>
+                <span class="help-block">Attempt to show all buttons on one line</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/useLang"><b>useLang</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <input class="form-control demopick" data-link="db" data-opt="useLang" value="en" />
+                <span class="help-block">ISO Language code to use.</span>
+              </div>
+            </div>
+            <div class="ui-field-contain row">
+              <div class="col-xs-3">
+                <label>"<a href="http://dev.jtsage.com/DateBox/api/useSetButton"><b>useSetButton</b></a>"</label>
+              </div>
+              <div class="col-xs-9">
+                <select class="form-control demopick" data-link="db" data-opt="useSetButton">
+                  <option value="false">False</option>
+                  <option value="true" selected="selected">True</option>
+                </select>
+                <span class="help-block">Show the "set" button</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-4" style="position:fixed; right:0; width:25%; top:100px">
+            <div class="ui-field-contain">
+              <label for="db">DurationFlipBox</label>
+              <input class="form-control" id="db" type="text" data-role="datebox" 
+			data-options="{'mode':'durationflipbox','useInline':true,'useInlineAlign':'center'}" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-role="footer" data-position="fixed">
+        <h1>DateBox: the full featured Date and Time Picker</h1>
+        <div data-role="navbar">
+          <ul>
+            <li><a href="https://github.com/jtsage/jquery-mobile-datebox">GitHub</a>
+            </li>
+            <li><a href="http://stackoverflow.com/questions/tagged/datebox">Help</a>
+            </li>
+            <li><a href="http://dev.jtsage.com/forums/">Forum</a>
+            </li>
+            <li><a href="http://crowdin.net/project/jquery-mobile-datebox">i18n</a>
+            </li>
+            <li><a href="mailto:jtsage+datebox@gmail.com">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- page -->
+  </body>
+</html>

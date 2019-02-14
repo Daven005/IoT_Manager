@@ -1,0 +1,15 @@
+div(style="padding-right:20px")
+  ul(class="dropdown-menu dropdown-menu-skin")
+    - for (var i=0; i<m.length; i++)
+        li
+          a(href=m[i].ref)=m[i].name
+          - if (typeof(m[i].subMenu) != 'undefined')
+            ul
+              - for (var j=0; j<m[i].subMenu.length; j++)
+                li
+                  a(href=m[i].subMenu[j].ref)=m[i].subMenu[j].name
+                  - if (typeof(m[i].subMenu[j].subMenu) != 'undefined')
+                    ul
+                      - for (var k=0; k<m[i].subMenu[j].subMenu.length; k++)
+                        li
+                          a(href=m[i].subMenu[j].subMenu[k].ref)=m[i].subMenu[j].subMenu[k].name

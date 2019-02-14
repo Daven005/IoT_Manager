@@ -1,0 +1,55 @@
+doctype html
+head
+  title Test TLc
+  include header
+style.
+  .lit {border-color: red}
+  .unlit {border-color: blue}
+body
+  #menu
+  h2 Check PIR
+  if (toilet == 0)
+    - var toiletClass = 'unlit'
+  else
+    - var toiletClass = 'lit'
+  if (utility == 0)
+    - var utilityClass = 'unlit'
+  else
+    - var utilityClass = 'lit'
+  if (state == 'Dark')
+    - var darkClass = 'lit'
+  else
+    - var darkClass = 'unlit'
+  if (state == 'Auto')
+    - var autoClass = 'lit'
+  else
+    - var autoClass = 'unlit'
+  if (state == 'Light')
+    - var lightClass = 'lit'
+  else
+    - var lightClass = 'unlit'
+  form(action='/tlc/testPIR', method='get')
+    div(style="float: left; padding: 2px") 
+      table
+        tr
+          th Sun
+          th Toilet
+          th Utility
+        tbody
+          tr
+            td
+              input(name="Action" value="Dark" type="submit" class=darkClass)
+            td
+              input(name="Action" value="Toilet On" type="submit" class=toiletClass)
+            td
+              input(name="Action" value="Utility On" type="submit" class=utilityClass)
+          tr
+            td
+              input(name="Action" value="Auto" type="submit" class=autoClass)
+            td
+              input(name="Action" value="Toilet Off" type="submit")
+            td
+              input(name="Action" value="Utility Off" type="submit")
+          tr
+            td
+              input(name="Action" value="Light" type="submit" class=lightClass)

@@ -1,0 +1,55 @@
+doctype html
+head
+  title Control Settings
+  include header
+
+body
+  #menu
+  h2 Control Settings
+  if err
+    .error
+      != err
+  form(action='/Manage/Settings',method='get')
+    label Choose device:
+      select(name="device")
+        option(value="All") All
+        each val, i in devices
+          if (selectedDevice == devices[i].DeviceID)
+            option(value=devices[i].DeviceID selected)= devices[i].Name+':'+devices[i].Location
+          else
+            option(value=devices[i].DeviceID)= devices[i].Name+':'+devices[i].Location
+    input(type="submit" name= "Action" value="Select")
+  table
+    thead
+      tr
+        each val, index in map[0]
+          case index
+            when "DeviceID"
+              span
+            default
+              th=index
+    tbody
+      - var idx = 0
+      each val, i in map
+        form(action='/Manage/Settings',method='get')
+          tr
+            each val, j in map[i]
+              case j
+                when "Value"
+                  td
+                    input(type="text", size="4", name=j, value=val)
+                when "valueName"
+                  td
+                    input(type="text", name=j, value=val)
+                when  "DeviceID"
+                  input(type="hidden", name=j, value=val)
+                when "ID"
+                  td
+                    input(type="hidden", name=j, value=val)
+                    | #{val}
+                default  
+                  td=val
+            td
+              input(type="submit" name= "Action" value="Update")
+              input(type="hidden" name="row" value=idx)
+        - idx++

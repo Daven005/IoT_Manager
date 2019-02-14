@@ -1,0 +1,42 @@
+include ./mobileMenu.jade
+doctype html
+head
+  title Control Socket
+  meta(name="viewport" content="width=device-width, initial-scale=0.9")
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+  script(src='/views/jtsage-datebox.min.js')
+  link(rel='stylesheet' href='/views/jtsage-datebox.min.css')
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+  script(src='/views/heatingMobile.js')
+style.
+  @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
+  @media all and (max-width: 36em) { th { display:none} }
+  .inline {float: left}
+  .btn { font-size: 2em; color: #1FDF4E; font-weight: bold; padding:5px; width: 40%}
+  td, .ui-table-reflow,  .ui-table td { text-align: center; border-style: none; border-color: cyan }
+  
+body
+  div(data-role="page" data-theme="b")
+    div(data-role="header" data-position="fixed")
+      h1 Activate
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext") Menu
+    div(data-role="main" class="ui-content")
+      form(action='/Signal/Socket', method='get' data-ajax="false")
+        div.inline.btn="Socket 2"
+        input(data-inline="true" name="s2" value="ON" type="submit")
+        input(data-inline="true" name="s2" value="OFF" type="submit")
+        div(style="clear: both")
+        div.inline.btn="Socket 3"
+        input(data-inline="true" name="s3" value="ON" type="submit")
+        input(data-inline="true" name="s3" value="OFF" type="submit")
+        div(style="clear: both")
+        div.inline.btn="Extension"
+        input(data-inline="true" name="ext1" value="ON" type="submit")
+        input(data-inline="true" name="ext1" value="OFF" type="submit")
+        div(style="clear: both")
+        div.inline.btn="Sonoff 2"
+        input(data-inline="true" name="son2" value="ON" type="submit")
+        input(data-inline="true" name="son2" value="OFF" type="submit")
+    +menu(loggedIn)
+

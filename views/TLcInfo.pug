@@ -1,0 +1,42 @@
+doctype html
+head
+  title TLc Info
+  include header
+
+body
+  #menu
+  h2 TLc Info
+  if err
+    .error
+      != err
+  table
+    thead
+      tr
+        each val, index in map[0]
+          th=index
+    tbody
+      each val, tlcIdx in map
+        if (map[tlcIdx].online)
+          form(action='/tlc/info',method='get')
+            tr
+              each val, field in map[tlcIdx]
+                case field
+                  when "errors"
+                    - if (map[tlcIdx].errors.length > 0) {
+                      td
+                        table
+                          thead
+                            tr
+                              each val, index in map[tlcIdx].errors[0]
+                                th=index
+                          tbody
+                            each errInfo, errIdx in map[tlcIdx].errors
+                              tr
+                                each val, idx in errInfo
+                                  td=val
+                    - }
+                  default
+                    td=val
+              td
+                input(type="submit" name="action" value="Clear")
+                input(type="hidden" id="tlc" name="tlc" value=map[tlcIdx].Name)

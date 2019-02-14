@@ -1,0 +1,41 @@
+doctype html
+head
+  title TLc Channels
+  include header
+  script.
+    $(document).on("change", '.slider', function() {
+      var rqData = {tlc: $(this).siblings('.tlc').val(), 
+          area: $(this).siblings('.area').val(), 
+          name: $(this).siblings('.channelName').val(), 
+          value: $(this).val()}
+      $(this).siblings('div').text($(this).val());
+      $.ajax({
+        url: '/hollies/lightingChannel',
+        cache: false,
+        data: rqData, 
+        success: function(data,status) {
+          $(this).siblings('div').text(''); //alert(data+status);
+        }
+      });
+    });
+  style.
+    td {text-align: right;font-size: 120%;}
+    input.slider {width: 250px}
+body
+  #menu
+  h2 TLc Channels
+  if err
+    .error
+      != err
+  table
+    tbody
+      each val, channel in map
+        tr
+          td
+            label(for="setting")=map[channel].tlc+':'+map[channel].area+'-'+map[channel].name
+            input(type="range" name="setting" value=map[channel].value min="0" max="255" class="slider")
+            input(type="hidden" class="tlc" name="tlc" value=map[channel].tlc)
+            input(type="hidden" class="area" name="area" value=map[channel].area)
+            input(type="hidden" class="channelName" name="channelName" value=map[channel].name)
+            div(id=map[channel].name)
+  

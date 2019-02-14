@@ -1,0 +1,105 @@
+mixin status(deviceState)
+  if typeof(deviceState) == 'undefined'
+    - st = 'color:red'
+    - tt = 'Device not yet visible'
+  else
+    if deviceState.online
+      - st = 'color:green'
+      - tt = 'Online since '+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version
+      if typeof(deviceState.rssi) != 'undefined'
+        - tt = tt + " RSSI:" + deviceState.rssi
+      if typeof(deviceState.channel) != 'undefined'
+        - tt = tt + " Channel:" + deviceState.channel
+      if typeof(deviceState.attempts) != 'undefined'
+        - tt = tt + " Attempts:" + deviceState.attempts
+      if typeof(deviceState.ipAddress) != 'undefined'
+        - tt = tt + " IP:" + deviceState.ipAddress
+      if typeof(deviceState.AP) != 'undefined'
+        - tt = tt + " AP:" + deviceState.AP
+    else
+      - st = 'background-color:red'
+      - tt = 'Offline since'+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version
+      if typeof(deviceState.ipAddress) != 'undefined'
+        - tt = tt + " IP:" + deviceState.ipAddress
+      if typeof(deviceState.AP) != 'undefined'
+        - tt = tt + " AP:" + deviceState.AP
+
+
+doctype html
+head
+  title Names
+  include header
+  style.
+    .tooltip {display: inline; position: relative;}
+    .tooltip:hover:after {background: #333;background: rgba(0,0,0,.8);border-radius: 5px;bottom: 26px;color: #fff;content: attr(title);left: 20%;padding: 5px 15px;position: absolute;z-index: 98;width: 220px;}
+    .tooltip:hover:before {border: solid;border-color: #333 transparent;border-width: 6px 6px 0px 6px;bottom: 20px;content: "";left: 50%;position: absolute;z-index: 99;}
+    .vertical {-moz-transform: rotate(-90deg); -webkit-transform: rotate(-90deg);)
+  script.
+    $(document).ready(function(){
+      $(".sensorList tr:not(.accordion)").hide();
+      $(".sensorList tr:first-child").show();    
+      $(".sensorList tr.accordion").click(function(){
+          $(this).nextUntil("tr.accordion").fadeToggle(100);
+      });
+    })
+body
+  #menu
+  .main
+    if err
+      .error
+        != err
+    div(style="text-align: right; font-size:small;")="(Select both Del and DelDev to delete everything for that device}"
+    table(style="background-color: #e0e0e0" class="sensorList")
+      thead
+        tr
+          each val, index in map[0]
+            th=index
+          th(class="vertical") Del
+          th(class="vertical") Del<br>Dev
+      tbody
+        - var idx = 0
+        - var lastDeviceID = ""
+        - var st
+        - var tt
+        each val, i in map
+          if lastDeviceID != map[i].DeviceID
+            - lastDeviceID = map[i].DeviceID
+            +status(devices[map[i].DeviceID])
+            tr(style="background-color: #c0c0c0" class="accordion")
+              td=map[i].Location
+              td(colspan='2')=map[i].DeviceName
+              td(style=st)
+                a(title=tt class='tooltip')=map[i].DeviceID
+              td(colspan="9")
+          form(action='/Manage/Sensors',method='get')
+            tr(id='row'+i)
+              each val, j in map[i]
+                case j
+                  when "Mapping"
+                  when "Updates"
+                  when "Inputs"
+                  when "Outputs"
+                  when "deleteAfter"
+                    td
+                      input(type="text", size="3"  name=j, value=val)
+                  when "SensorType"
+                    td=val
+                  when  "DeviceID"
+                    +status(devices[val])
+                    td(style=st)
+                      a(title=tt class='tooltip')=val
+                      input(type="hidden", name=j, value=val)
+                  when "SensorID"
+                    td=val
+                      input(type="hidden", name=j, value=val)
+                  default  
+                    td
+                      input(type="text", size="20"  name=j, value=val)
+              td
+                input(type="checkbox" name="del" value="yes")
+              td
+                input(type="checkbox" name="delDev" value="yes")
+              td
+                input(type="submit" value="Update")
+                input(type="hidden" name="row" value=idx)
+          - idx++

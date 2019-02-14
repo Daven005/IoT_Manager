@@ -1,0 +1,30 @@
+meta(name="viewport" content="width=device-width, initial-scale=0.8")
+script(src='/views/jquery-2.2.1.min.js')
+script(src='/views/dropdown-menu.js')
+link(rel='stylesheet' href='/views/dropdown-menu.css')
+link(rel='stylesheet' href='/views/dropdown-menu-skin.css')
+style.
+  body { font-family: Helvetica, san-serif; }
+  .main { float: left; padding-left: 10px}
+  table {border-collapse: collapse; border:1px solid gray; text-align: center;}
+  td {padding-left: 4px; padding-right: 4px; padding-top: 0px; border:1px solid gray;}
+  th {padding: 3px; border:1px solid gray;}
+  td {font-size: 9pt}
+  th {font-size: 12pt}
+  .inline {display:in-line}
+  input {text-align: center;}
+  .error {color: red}
+  #menu {float:left}
+  #menu .dropdown-menu li {width: 95%}
+
+script.
+  $(function() {
+     $.ajax({url: "/menu", success: function(result){
+      try {
+        $("#menu").html(result);    
+        $('#menu .dropdown-menu').dropdown_menu(
+          {sub_indicators: true, vertical: true, close_delay: 500}
+        );
+      } catch(ex) { alert(ex); }
+    }});
+  });

@@ -1,0 +1,47 @@
+doctype html
+head
+  title Override Input
+  include header
+
+body
+  #menu
+  h2 Override Input
+  if err
+    .error
+      != err
+  table
+    thead
+      tr
+        each val, index in map[0]
+          case index
+            when "DeviceID"
+              span
+            default
+              th=index
+    tbody
+      - var idx = 0
+      each val, i in map
+        form(action='/Override/Input',method='get')
+          tr
+            each val, j in map[i]
+              case j
+                when "Value"
+                  td
+                    input(type="radio" name="Value" value="1")
+                    | ON
+                    input(type="radio" name="Value" value="0" checked)
+                    | OFF
+                when "Input"
+                  td
+                    select(name="Input")
+                      each val in [0, 1, 2, 3, 4, 5, 6 ]
+                        option #{val}
+                when  "DeviceID"
+                  input(type="hidden", name=j, value=val)
+                default  
+                  td=val
+            td
+              input(type="submit" name="action" value="Set")
+              input(type="submit" name="action" value="Clear")
+              input(type="hidden" name="row" value=idx)
+        - idx++

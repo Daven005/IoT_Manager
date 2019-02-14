@@ -1,0 +1,51 @@
+mixin hour(defaultHour)
+  - if (typeof defaultHour == 'undefined') defaultHour = 0
+  select(name="startHour")
+    - for (i=0; i<24; i++) {
+      option(value=i selected=defaultHour==i) #{i}
+    - }
+
+include ./mobileMenu.jade  
+doctype html
+head
+  title IoT Graph
+  meta(name="viewport" content="width=device-width, initial-scale=0.9")
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+  script(src='/views/jtsage-datebox.min.js')
+  script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.dateAxisRenderer.min.js")
+  script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.cursor.min.js")
+  script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.barRenderer.min.js")
+  script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.canvasTextRenderer.min.js")
+  script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.canvasAxisTickRenderer.min.js")
+  script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.highlighter.min.js")
+  script(src="//cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/js/standalone/selectize.min.js")
+  link(rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css")
+  link(rel="stylesheet" href="//cdn.jsdelivr.net/jqplot/1.0.8/jquery.jqplot.min.css")
+  link(rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/css/selectize.default.css")
+  script(src='/views/graph.js')
+  link(rel='stylesheet' href='/views/jtsage-datebox.min.css')
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+style.
+  @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
+  @media all and (max-width: 36em) { th { display:none} }
+  .inline {float: left}
+  .btn { font-size: 2em; color: #1FDF4E; font-weight: bold; padding:10px;}
+  td, .ui-table-reflow,  .ui-table td { text-align: center; border-style: none; border-color: cyan }
+  .ui-page .ui-header  { background: #cc1111 !important; }
+  div.bottom {position: absolute; bottom: 0px;}
+  div.clear {clear: both;}
+  div#chart {width: 600px; height: 600px;}
+  div.error {font-color: red}
+  
+body
+  div(data-role="page" data-theme="b")
+    div(data-role="header" data-position="fixed")
+      h1 IoT Graph
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext")
+    div(data-role="main" class="ui-content")
+      div(class="ui-grid-b")
+        div.clear#chart1(style='color:red' oncontextmenu='return false;')
+    +menu(loggedIn)  script(src='/views/jquery-ui.min.js')
+
+  

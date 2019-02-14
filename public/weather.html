@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html><head>
+<title>Weather</title>
+<meta charset="UTF-8">
+<style>
+td {padding-right: 10px}
+table {border: solid 1px}
+thead.th {border: solid 1px}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+function b(){
+
+    var apiKey = 'd96112f3c0445ea90a5b675d4872fde6';
+    var url = 'https://api.forecast.io/forecast/';
+    var lati = 50.82656702724442;
+    var longi = -1.340523851589267;
+    var data;
+
+    $.getJSON(url + apiKey + "/" + lati + "," + longi + "?units=uk&callback=?", function(data) {
+      //console.log(data);
+      $('#weather').html('and the temperature is: ' + data.currently.temperature);
+	var i; var str;
+	str = '<thead><th>Time</th><th>Rain</th><th>Prob</th></thead>';	
+	for (i=0; i<60; i++) {
+		var myDate = new Date(data.minutely.data[i].time*1000);
+		str = str + '<tr><td>'+myDate.getMinutes() + '</td><td>' 
+			+ data.minutely.data[i].precipIntensity + '</td><td>' 
+			+ data.minutely.data[i].precipProbability+'</tr></td>';
+	}
+	$('#ByMinute').html(str);
+
+	str = '<thead><th>Time</th><th>Temp</th><th>Wind Spd</th><th>Wind Dir</th><th>Cloud</th><th>Rain</th><th>Prob</th></thead>';	
+
+	for (i=0; i<24; i++) {
+		var myDate = new Date(data.hourly.data[i].time*1000);
+		str = str + '<tr><td>'+myDate.getHours() + '</td><td>'
+		str = str + data.hourly.data[i].temperature + '</td><td>'
+		str = str + data.hourly.data[i].windSpeed + '</td><td>'
+		str = str + data.hourly.data[i].windBearing + '</td><td>'
+		str = str + data.hourly.data[i].cloudCover + '</td><td>'
+		str = str + data.hourly.data[i].precipIntensity + '</td><td>'
+		str = str + data.hourly.data[i].precipProbability+'</td></tr>';
+	}
+	$('#Hourly').html(str);
+	
+	var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+	str = '<thead><th>Day</th><th>Temp Max</th><th>Wind</th><th>Cloud</th><th>Rain</th><th>Prob</th></thead>';	
+	for (i=0; i<=7; i++) {
+		var myDate = new Date(data.daily.data[i].time*1000);
+		str = str + '<tr><td>'+days[myDate.getDay()] + '</td><td>'
+		str = str + data.daily.data[i].temperatureMax + '</td><td>'
+		str = str + data.daily.data[i].windSpeed + '</td><td>'
+		str = str + data.daily.data[i].cloudCover + '</td><td>'
+		str = str + data.daily.data[i].precipIntensity + '</td><td>'
+		str = str + data.daily.data[i].precipProbability+'</td></tr>';
+	}
+	$('#Daily').html(str);	
+    });
+}
+</script>
+</head>
+    <body>
+    <p id="weather">Here's the weather:<p>
+    <div style="float:left; padding: 5px"><h3>60 Minutes</h3><table id="ByMinute"></table></div>
+    <div style="float:left; padding: 5px"><h3>24 Hours</h3><table id="Hourly"></table></div>
+    <div style="float:left; padding: 5px"><h3>7 Days</h3><table id="Daily"></table></div>
+    <button onclick="b()">Update</button>
+    </body>
+</html>

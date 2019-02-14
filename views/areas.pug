@@ -1,0 +1,46 @@
+doctype html
+head
+  title Show TLc Areas
+  include header
+style.
+  .lit {border-color: red}
+  .unlit {border-color: blue}
+  
+mixin AreaDropdown(id)
+  select(name="areaID")
+    each val, idx in areas
+      if (id == areas[idx].ID)
+        option(value=areas[idx].ID selected) #{areas[idx].Name}
+      else
+        option(value=areas[idx].ID) #{areas[idx].Name}
+body
+  #menu
+  h2 TLc Areas
+  form(action='/tlc/areas', method='get')
+    div Update Scenes from TLcs
+    input(name="update" value="Update" type="submit")
+  br
+  br
+  if (scenes)
+    if (!scenes.error)
+      table
+        tr
+          th TLc
+          th Scene
+          th Area
+        each val, index in scenes
+          tr
+            td #{scenes[index].TLc}
+            td #{scenes[index].Scene}
+            td 
+              form(action='/tlc/areas', method='get')
+                +AreaDropdown(scenes[index].Area)
+                if (scenes[index].InUse)
+                  input(type="checkbox", name="InUse", value="1" checked)
+                else
+                  input(type="checkbox", name="InUse", value="1")
+                input(type="hidden", name="TLc" value=scenes[index].TLc)
+                input(type="hidden", name="Scene" value=scenes[index].Scene)
+                input(name="set" value="Set" type="submit")
+    else
+      div Error

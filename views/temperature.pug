@@ -1,0 +1,45 @@
+doctype html
+head
+  title Override Temperature
+  include header
+
+body
+  #menu
+  h2 Override Temperature
+  if err
+    .error
+      != err
+  table
+    thead
+      tr
+        each val, index in map[0]
+          case index
+            when "T"
+              span
+            when "value"
+              th="Temperature"
+            default
+              th=index
+    tbody
+      - var idx = 0
+      each val, i in map
+        form(action='/Override/Temperature',method='get')
+          tr
+            each val, j in map[i]
+              case j
+                when  "DeviceID"
+                when  "SensorID"
+                  td=val
+                    input(type="hidden", name=j, value=val)
+                when "T"
+                  span
+                when "value"
+                  td
+                    input(type="text" name="Temperature" value=val size="5")
+                default  
+                  td=val
+            td
+              input(type="submit" name="action" value="Set")
+              input(type="submit" name="action" value="Clear")
+              input(type="hidden" name="row" value=idx)
+        - idx++

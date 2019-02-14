@@ -1,0 +1,39 @@
+mixin colours()
+  - if (typeof(locals.colours) == 'undefined') {
+     - locals.colours = [0,"ffffff","ffffff","ffffff","ffffff"]
+  - }
+  fieldset
+    legend= "Colours"
+    table: tbody: tr
+      - for (var i = 0; i < locals.colours.length; ++i) {
+      td
+        - if (typeof(locals.colours[i]) != 'undefined')
+          input(class="color {hash:true, caps:false, pickerMode:'HVS'}" name="map" class="map" value=locals.colours[i] size="4")
+        - else 
+          input(class="color {caps:false, pickerMode:'HVS'}" name="map" class="map" value="0" size="2")
+      - }
+
+doctype html
+head
+  title Make Message
+  include header
+  script(src='/views/jscolor.js')
+
+body
+  #menu
+  h2 Make Message
+  if err
+    .error
+      != err
+  form(action='/message',method='get')
+    label Choose device:
+      select(name="device")
+        option(value="All") "All"
+        each val, i in devices
+          - if (selectedDevice == devices[i].deviceID)
+            option(value=devices[i].deviceID selected)= devices[i].Name (devices[i].Location)"
+          - else
+            option(value=devices[i].deviceID)= devices[i].Name (devices[i].Location)"
+    input(type="text" name="message" size="50" value=lastMessage)
+    +colours()
+    input(type="submit" name= "Action" value="Send")

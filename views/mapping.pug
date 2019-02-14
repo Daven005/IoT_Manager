@@ -1,0 +1,24 @@
+doctype html
+head
+  title Update Mapping
+  style.
+    table {display: table; border-collapse: separate; border-spacing: 5px; border-color: gray;text-align: center;}
+    input {text-align: center;}
+  include ./header.jade
+
+body
+  #menu
+  h2 Update Mapping
+  if err
+    .error
+      != err
+  table
+    thead
+      tr
+        each valh, indexh in map[0]
+          th=indexh
+    tbody
+      each val, index in map
+        tr
+          each vald, indexd in map[index] 
+            td #{vald}

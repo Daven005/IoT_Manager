@@ -1,0 +1,63 @@
+doctype html
+head
+  title Mobile Groups
+  meta(name="viewport" content="width=device-width, initial-scale=0.9")
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+  script(src='/views/jtsage-datebox.min.js')
+  link(rel='stylesheet' href='/views/jtsage-datebox.min.css')
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+  script(src='/views/heatingMobile.js')
+
+style.
+  @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
+  @media all and (max-width: 36em) { th { display:none} }
+  .inline {float: left}
+  .OverrideName { font-size: 1.5em; color: #1FDF4E; font-weight: bold; }
+  td, .ui-table-reflow,  .ui-table td { text-align: center; border-style: none; border-color: cyan }
+  
+body
+  div(data-role="page" data-theme="b")
+    div(data-role="header" data-position="fixed")
+      h1 Group Overrides
+      a(href='/Heating/mobileOverrides' class="ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-left ui-icon-grid") Individual
+    div(data-role="main" class="ui-content")
+      - console.log("group: %j", group)
+      each val, i in group
+        form(action='/Heating/Mobile',method='get' data-ajax="false" form='form'+i id='form'+i)
+          input(type="hidden" name="ID" value=group[i].oID)
+      h3 Set Group of Overrides
+        table#group
+          thead
+            tr
+              th Name
+              th Temp
+              th Day
+              th Start
+              th Duration
+              th Active
+              th Repeat
+          tbody
+            each val, i in group
+              form(action='/Heating/mobileGroups',method='get')
+                tr.row(id=i)
+                  td
+                    | #{group[i].name}
+                    input(type="hidden" name="Name" value=group[i].name size="8")
+                  td
+                    input(type="text" name="temperature" value=group[i].temperature size="2")
+                  td
+                    div.name#dayName #{group[i].dayName}
+                    input(type="hidden" id="day" name="day" value=group[i].day)
+                    div(class="daysdropdown")
+                       | &#9661;
+                  td.col10
+                    input(type="text" name="start" form='form'+i value=group[i].start data-role="datebox" data-options='{"mode":"timeflipbox", "overrideTimeOrder":["h","i"]"}')
+                  td.col10
+                    input(type="text" name="duration" form="form"+i value=group[i].duration data-role="datebox" data-options='{"mode":"durationflipbox", "overrideTimeOutput": "%k:%M", "showInitialValue": true, "overrideDurationOrder":["h","i"], "durationStep":"15"}')
+                  td
+                    input(type="checkbox" name="active" value="yes")
+                  td
+                    input(type="checkbox" name="dontClear" value="yes")
+                  td
+                    input(type="submit" name="Action" value="Set Group")

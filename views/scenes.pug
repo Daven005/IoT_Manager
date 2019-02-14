@@ -1,0 +1,35 @@
+doctype html
+head
+  title Show TLc Scenes
+  include header
+style.
+  .lit {border-color: red}
+  .unlit {border-color: blue}
+body
+  #menu
+  h2 TLc Scenes
+  form(action='/tlc/scenes', method='get')
+    if (tlcs)
+      div(style="float: left; padding: 2px; align-items: left;")
+        table
+          tr
+            th TLc
+          each val, index in tlcs
+            if (val.online)
+              tr
+                td(align="left")
+                  label="Show Scenes for"
+                td(align="left")
+                  input(name="Show" value=tlcs[index].Name type="submit")
+    if (scenes)
+      if (!scenes.error)
+        div(style="float: left; padding: 2px; text-align: left;")
+          table
+            tr
+              th Scenes
+            each val, index in scenes
+              tr
+                td 
+                  input(name="Scene" value=scenes[index].Name type="submit" style="width: 120px")
+      else
+        div Error

@@ -1,0 +1,52 @@
+doctype html
+head
+  title Errors
+  include header
+
+body
+  #menu
+  h2 Errors
+  if err
+    .error
+      != err
+  div
+    if map[0]
+      table
+        thead
+          tr
+            each val, index in map[0]
+              case index
+                when "error"
+                when "count"
+                when "device"
+                when "last"
+                  th
+                    a(href="/errors?Action=Sort&Column=#{index}&Direction=Asc") #{index} &uarr;
+                    | &nbsp;
+                    a(href="/errors?Action=Sort&Column=#{index}&Direction=Desc") &darr;
+                default
+                  th=index
+        tbody
+          - var idx = 0
+          each val, i in map
+            form(action='/errors', method='get')
+              tr
+                each val, j in map[i]
+                  case j
+                    when "first"
+                    when "last"
+                      - var d = moment(val).format('DD/MM/YYYY HH:mm')
+                      td #{d}
+                    default
+                      td !{val}
+                td
+                  input(type="submit" name="Action" value="Delete")
+                  input(type="hidden" name="row" value=idx)
+            - idx++
+    br
+    form(action='/errors', method='get')
+      input(type="submit" name="Action" value="Read")
+      |&nbsp;- 
+      input(type="submit" name="Action" value="Save")
+      |&nbsp;- 
+      input(type="submit" name="Action" value="DeleteAll")

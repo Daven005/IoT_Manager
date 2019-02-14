@@ -1,0 +1,62 @@
+doctype html
+head
+  title Manage Data
+  include header
+  style.
+    .tooltip {display: inline; position: relative;}
+    .tooltip:hover:after {background: #333;background: rgba(0,0,0,.8);border-radius: 5px;bottom: 26px;color: #fff;content: attr(title);left: 20%;padding: 5px 15px;position: absolute;z-index: 98;width: 220px;}
+    .tooltip:hover:before {border: solid;border-color: #333 transparent;border-width: 6px 6px 0px 6px;bottom: 20px;content: "";left: 50%;position: absolute;z-index: 99;}
+    td {padding: 3px}
+body
+  #menu
+  h2 Device & Sensor Information
+  if err
+    .error
+      != err
+  - console.log("ttttt");
+  table(style="background-color: #e0e0e0")
+    thead
+      tr
+        each val, index in map[0]
+          th=index
+        th >Month
+        th >Week
+        th All
+        th Device
+    tbody
+      - var idx = 0
+      each val, i in map
+        form(action='/Manage/Devices',method='get')
+          tr(id='row'+i)
+            each val, j in map[i]
+              case j
+                when  "DeviceID"
+                  if typeof(devices[val]) == 'undefined'
+                    - var st = 'color:red'
+                    - var tt = 'Device not yet visible'
+                  else
+                    if devices[val].online
+                      - var st = 'color:green'
+                      - var tt = 'Online since '+moment(devices[val].firstSet).format("HH:mm DD/MM/YY")+' V:'+devices[val].version
+                      if typeof(devices[val].rssi) != 'undefined'
+                        - tt = tt + "RSSI: " + devices[val].rssi
+                    else
+                      - var st = 'background-color:red'
+                      - var tt = 'Offline since'+moment(devices[val].firstSet).format("HH:mm DD/MM/YY")+' V:'+devices[val].version
+                  td(style=st)
+                    a(title=tt class='tooltip')=val+'___'
+                    input(type="hidden", name=j, value=val)
+                when "Earliest"
+                  td=moment(val).format("DD/MM/YY HH:mm")
+                default  
+                  td=val
+            td
+              input(type="checkbox" name="delMonth" value="yes")
+            td
+              input(type="checkbox" name="delWeek" value="yes")
+            td
+              input(type="checkbox" name="delAll" value="yes")
+            td
+              input(type="submit" value="Delete")
+              input(type="hidden" name="row" value=idx)
+        - idx++

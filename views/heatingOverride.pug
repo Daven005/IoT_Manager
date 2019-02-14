@@ -1,0 +1,118 @@
+doctype html
+head
+  title Heating Overrides
+  include header
+  script(src='/views/jquery-ui.min.js')
+  script(src='/views/jquery.timepicker.min.js')
+  link(rel="stylesheet" href="/views/jquery.timepicker.min.css")
+  link(rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css")
+  script(src='/views/heatingOverride.js')
+  - // script(src='/views/jquery.mobile-1.4.5.min.js')
+  - // link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+
+style.
+  .dropdown {float:right; background-color:orange; border-left:5px;border:1px solid gray; }
+  .daysdropdown {float:right; background-color:LightBlue; border-left:5px;border:1px solid gray; }
+  .timeDefault {float:right; background-color:LightGreen; border-left:10px;border:1px solid gray; padding-lef: 10px}
+  .name {float:left; padding-right: 5px}
+  .updated {background-color: cyan}
+  
+body
+  #menu
+  div.main
+    h2 Heating Overrides
+    #Dialog
+      select(id="select" name="select")
+    if err
+      .error
+        != err
+    - // (data-role="table" data-mode="reflow" class="ui-responsive")
+    table#zones
+      thead
+        tr
+          th Name
+          th Zone
+          th Temp
+          th Day
+          th Start Time
+          th Duration
+          th Active
+          th Repeat
+      tbody
+        - var ckd
+        each val, i in map
+          form(action='/Heating/Override',method='get')
+            tr.row(id=i)
+              - var c = setHue(map[i].TemperatureMin, map[i].TemperatureMax, map[i].temperature);
+              td
+                input(type="text" name="Name" value=map[i].oName size="8")
+              td#zoneName_td
+                div.name#zoneName #{map[i].zoneName}
+                input(type="hidden" id="zoneID" name="zoneID" value=map[i].zoneID)
+                div(class="dropdown")
+                   | &#9661;
+              td(tMax=map[i].TemperatureMax tMin=map[i].TemperatureMin style="background-color: #{c}; border-radius: 5px")
+                input(type="text" name="temperature" value=map[i].temperature size="2" onchange='updateBackground(this)')
+              td
+                div.name#dayName #{map[i].dayName}
+                input(type="hidden" id="day" name="day" value=map[i].day)
+                div(class="daysdropdown")
+                   | &#9661;
+              td
+                input(type="text" name="start" id="time{i}" class="timepicker" value=map[i].start size="9")
+                div(ondblclick="setTimeNow(this)" class="timeDefault")
+                   | &#9661;
+              td
+                input(type="text" name="duration" class="durationpicker" value=map[i].duration size="9")
+              td
+                if (map[i].active == 1)
+                  input(type="checkbox" name="active" value="yes" checked)
+                else
+                  input(type="checkbox" name="active" value="yes")
+              td
+                if (map[i].dontClear == 1)
+                  input(type="checkbox" name="dontClear" value="yes" checked)
+                else
+                  input(type="checkbox" name="dontClear" value="yes")
+              td
+                if (map[i].ex)
+                  input(type="submit" name="Action" value="Update")
+                  input(type="submit" name="Action" value="Delete")
+                  input(type="hidden" name="ID" value=map[i].oID)
+                else
+                  input(type="submit" name="Action" value="Add")
+    h3 Set Group of Overrides
+    table#group
+      thead
+        tr
+          th Name
+          th Temp
+          th Day
+          th Start
+          th Duration
+          th Active
+          th Repeat
+      tbody
+        each val, i in group
+          form(action='/Heating/Override',method='get')
+            tr.row(id=i)
+              td
+                | #{group[i].name}
+                input(type="hidden" name="Name" value=group[i].name size="8")
+              td
+                input(type="text" name="temperature" value=group[i].temperature size="2")
+              td
+                div.name#dayName #{group[i].dayName}
+                input(type="hidden" id="day" name="day" value=group[i].day)
+                div(class="daysdropdown")
+                   | &#9661;
+              td
+                input(type="text" name="start" class="timepicker" value=group[i].start size="9")
+              td
+                input(type="text" name="duration" class="durationpicker" value=group[i].duration size="9")
+              td
+                input(type="checkbox" name="active" value="yes")
+              td
+                input(type="checkbox" name="dontClear" value="yes")
+              td
+                input(type="submit" name="Action" value="Set Group")

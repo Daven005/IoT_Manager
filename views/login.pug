@@ -1,0 +1,17 @@
+doctype html
+head
+  title Login
+  include header
+
+body
+  #menu
+  h2 Login
+  if err
+    .error
+      != err
+  form(action='/loginResponse', method='get' data-ajax="false")       
+    label(for="User") User:
+    input(name="User" id="User" value="" type="text")
+    label(for="Pwd") Password:
+    input(data-clear-btn="true" name="Pwd" id="Pwd" value="" type="text")
+    input(data-inline="true" name="Action" value="Login" type="submit")

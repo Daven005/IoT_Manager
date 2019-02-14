@@ -1,0 +1,137 @@
+doctype html
+head
+  title Heating Zones
+  include header
+  script(src='/views/jquery-ui.min.js')
+  script(src='/views/jquery.timepicker.min.js')
+  link(rel="stylesheet" href="/views/jquery.timepicker.min.css")
+  link(rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css")
+  script(src='/views/heating.js')
+
+style.
+  .dropdown {float:right; background-color:orange; border-left:5px;border:1px solid gray; }
+  .daysdropdown {float:right; background-color:LightBlue; border-left:5px;border:1px solid gray; }
+  .name {float:left; padding-right: 5px}
+  .updated {background-color: cyan}
+  
+body
+  #menu
+  .main
+    h2 Heating Zones
+    #Dialog
+      select(id="select" name="select")
+    if err
+      .error
+        != err
+    table#zones
+      thead
+        tr
+          th="Zone"
+          th="Master"
+          th="Min"
+          th="Max"
+          th="Now"
+          th
+            | Temperature <br> Device
+          th
+            | Temperature <br> Sensor
+          th
+            | Control <br> Device
+          th
+            | Control <br> Sensor
+      tbody
+        each val, i in map
+          form(action='/heating',method='get')
+            tr.row(id=val.ID)
+              - var d = (val.overrideOn) ? "red" : (val.demand) ? "orange" : "cyan";
+              td
+                input(type="text" name="Name" value=val.Name size="10" style="background-color:  #{d}")
+                |  #{val.ID}
+              td
+                input(type="text" name="MasterZone" value=val.MasterZone size="1")
+                if (val.IsMaster)
+                  input(type="checkbox", name="IsMaster" checked)
+                else
+                  input(type="checkbox", name="IsMaster")
+              td
+                input(type="text" name="TemperatureMin" value=val.TemperatureMin size="1")
+              td
+                input(type="text" name="TemperatureMax" value=val.TemperatureMax size="1")
+              - var c = 'hsl('+setHue(val.TemperatureMin, val.TemperatureMax, val.currentTemperature)+',75%,50%)';
+              - var t = val.currentTemperature
+              - if (val.IsMaster) { c = '#fff'; t = '-'}
+              td(style="background-color:  #{c}" title="Target: #{val.targetTemp}") 
+                | #{t}
+              td#TDname_td
+                div.name#TDname #{val.TDlocation}-#{val.TDname}
+                input(type="hidden" id="TemperatureDeviceID" name="TemperatureDeviceID" value=val.TemperatureDeviceID)
+                div(class="dropdown")
+                   | &#9661;
+              td#TSname_td
+                div.name#TSname #{val.TSname}
+                input(type="hidden" id="TemperatureSensorID" name="TemperatureSensorID" value=val.TemperatureSensorID)
+                div(class="dropdown")
+                   | &#9661;
+              td#CDname_td
+                div.name#CDname #{val.CDlocation}-#{val.CDname}
+                input(type="hidden" id="ControlDeviceID" name="ControlDeviceID" value=val.ControlDeviceID)
+                div(class="dropdown")
+                   | &#9661;
+              td#CSname_td
+                div.name#CSname #{val.CSname}
+                input(type="hidden" id="ControlSensorID" name="ControlSensorID" value=val.ControlSensorID)
+                div(class="dropdown")
+                   | &#9661;
+              td
+                input(type="submit" name="Action" value="Update")
+                input(type="submit" name="Action" value="Duplicate")
+                input(type="submit" name="Action" value="Delete")
+                input(type="submit" name="Action" value="Show Programme")
+                input(type="hidden" name="ID" value=val.ID)
+    if (programme)
+      h3 Programme for #{zone.name}
+      table#Programmes
+        thead
+          tr
+            each val, index in programme[0]
+              case index
+                when "Name"
+                when "Start"
+                when "Temperature"
+                when "preset"
+                  th=index
+          tbody
+            if (programme.length > 0)
+              each val, i in programme
+                form(action='/heating',method='get')
+                  tr.programme(id=i)
+                    each val, j in programme[i]
+                      case j
+                        when "Action"
+                          td.Actions
+                            input(type="submit" name="Action" value=val)
+                            if (val == "Update Programme")
+                              input(type="submit" name="Action" value="Delete Programme")
+                            input(type="hidden" id="zoneID" name="zoneID" value=zone.ID)
+                            input(type="hidden" id="rowID" name="rowID" value=i)
+                            input(type="hidden" id="oldStart" name="oldStart" value=programme[i].Start)
+                            input(type="hidden" id="oldDays" name="oldDays" value=programme[i].days)
+                        when "Name"
+                          td#dayName_td
+                            div.name#dayName #{val}
+                            input(type="hidden" id="days" name="days" value=programme[i].days)
+                            div(class="daysdropdown")
+                               | &#9661;
+                        when "Start"
+                          td
+                            input(type="text" name=j class="timepicker" value=val size="10")
+                        when "Temperature"
+                          - var c = 'hsl('+setHue(val.TemperatureMin, val.TemperatureMax, val.target)+',75%,50%)';
+                          td(tMax=map[zone.row].TemperatureMax tMin=map[zone.row].TemperatureMin style="background-color: #{c}")
+                            input(type="text" name=j value=val size="2" onchange='updateBackground(this)')
+                        when "preset"
+                          td
+                            if (programme[i].preset)
+                              input(type="checkbox" name=j value="yes" checked)
+                            else
+                              input(type="checkbox" name=j value="yes")

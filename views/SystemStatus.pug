@@ -1,0 +1,44 @@
+mixin status(deviceState)
+  if typeof(deviceState) == 'undefined'
+    - st = 'color:red'
+  else
+    if deviceState.online
+      - st = 'color:green'
+    else
+      - st = 'background-color:red'
+
+include ./mobileMenu.jade  
+doctype html
+head
+  title System Status
+  meta(name="viewport" content="width=device-width, initial-scale=0.9")
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+  script(src='/views/jtsage-datebox.min.js')
+  link(rel='stylesheet' href='/views/jtsage-datebox.min.css')
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+style.
+  @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
+  @media all and (max-width: 36em) { th { display:none} }
+  .inline {float: left}
+  .btn { font-size: 2em; color: #1FDF4E; font-weight: bold; padding:10px;}
+  td, .ui-table-reflow,  .ui-table td { text-align: center; border-style: none; border-color: cyan }
+  .ui-page .ui-header  { background: #cc1111 !important; }
+  .ui-block-a { width: 100% !important; }
+  
+body
+  - console.log(dev[map[0]])
+  div(data-role="page" data-theme="b")
+    div(data-role="header" data-position="fixed")
+      h1 System Status
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext")
+    div(data-role="main" class="ui-content")
+      div(class="ui-grid-b")
+        - var st
+        - var tn
+        each val, i in map
+          - tn = map[i].location+' '+map[i].Name
+          +status(dev[map[i].deviceID])
+          div(class="ui-block-a")
+            div(class="ui-bar ui-bar-b" style="padding: 0px; font-size: 0.5em;#{st}") !{tn}
+    +menu(loggedIn)

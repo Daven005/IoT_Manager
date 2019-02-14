@@ -1,0 +1,15 @@
+doctype html
+head
+  title Temperatures
+  include ./header.jade
+body
+  h2 Temperatures
+  table
+    thead
+      tr
+        each val, index in map
+          th=index
+    tbody
+      tr
+        each val in map
+          td=val

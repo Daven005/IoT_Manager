@@ -1,0 +1,47 @@
+include ./mobileMenu.jade
+doctype html
+head
+  title #{type} Log
+  meta(name="viewport" content="width=device-width, initial-scale=0.9")
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+style.
+  @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
+  @media all and (max-width: 36em) { th { display:none} }
+  .inline {float: left}
+  .btn { font-size: 2em; color: #1FDF4E; font-weight: bold; padding:10px;}
+  td, .ui-table-reflow,  .ui-table td { text-align: center; border-style: none; border-color: cyan }
+  .ui-page .ui-header  { background: #cc1111 !important; }
+  
+body
+  div(data-role="page" data-theme="b")
+    div(data-role="header" data-position="fixed")
+      h1 #{type} Log
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext")
+    div(data-role="main" class="ui-content")
+      div(class="ui-grid-b")
+        div(class="ui-block-a")
+          div(class="ui-bar ui-bar-a" style="height:20px") #{type}
+        div(class="ui-block-b")
+          div(class="ui-bar ui-bar-a" style="height:20px") Info
+        div(class="ui-block-c")
+          div(class="ui-bar ui-bar-a" style="height:20px") Count
+      div(class="ui-grid-b")
+        each val, i in map
+          div(class="ui-grid-b")
+            div(class="ui-block-a")
+              if (type == 'Error')
+                div(class="ui-bar ui-bar-b" style="height:20px")=val.error
+              else
+                div(class="ui-bar ui-bar-b" style="height:20px")=val.alarm
+            div(class="ui-block-b")
+              div(class="ui-bar ui-bar-a" style="height:20px")=val.info
+            div(class="ui-block-c")
+              div(class="ui-bar ui-bar-a" style="height:20px")=val.count
+            div(class="ui-block-b")
+              div(class="ui-bar ui-bar-c" style="height:40px; width:100%")=val.device
+            div(class="ui-block-c")
+              div(class="ui-bar ui-bar-c" style="height:40px;")=val.lastUpdated
+    +menu(loggedIn)
+    

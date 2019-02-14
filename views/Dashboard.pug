@@ -1,0 +1,43 @@
+include ./mobileMenu.jade  
+doctype html
+head
+  title Dashboard for #{device} in #{location}
+  meta(name="viewport" content="width=device-width, initial-scale=0.9")
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+  script(src='/views/jtsage-datebox.min.js')
+  link(rel='stylesheet' href='/views/jtsage-datebox.min.css')
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+style.
+  @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
+  @media all and (max-width: 36em) { th { display:none} }
+  .inline {float: left}
+  .btn { font-size: 2em; color: #1FDF4E; font-weight: bold; padding:10px;}
+  td, .ui-table-reflow,  .ui-table td { text-align: center; border-style: none; border-color: cyan }
+  .ui-page .ui-header  { background: #cc1111 !important; }
+  .ui-block-a { width: 20% !important; }
+  .ui-block-b { width: 50% !important; }
+  .ui-block-c { width: 30% !important; }
+  
+body
+  div(data-role="page" data-theme="b")
+    div(data-role="header" data-position="fixed")
+      h1 Dashboard for #{device} in #{location}
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext")
+    div(data-role="main" class="ui-content")
+      div(class="ui-grid-b")
+        - var lastName=""
+        each val, i in map
+          if (lastName != val.sensorName)
+            div(class="ui-block-a")
+              div(class="ui-bar ui-bar-b" style="height:20px")=val.Type
+            div(class="ui-block-b")
+              div(class="ui-bar ui-bar-a" style="height:20px")=val.sensorName
+            div(class="ui-block-c")
+              - var scaled = Math.round(val.value*val.ScaleFactor * 100)/100
+              div(class="ui-bar ui-bar-a" style="height:20px") #{scaled} #{val.units}
+            - lastName = val.sensorName
+      form(action='/Dashboard', method='get' data-ajax="false")       
+        input(data-inline="true" name="device" value=device type="submit")
+        input(type="hidden" name="location" value=location)
+    +menu(loggedIn)

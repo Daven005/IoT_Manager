@@ -1,0 +1,47 @@
+include ./mobileMenu.jade  
+doctype html
+head
+  title Light Scenes
+  meta(name="viewport" content="width=device-width, initial-scale=1.0")
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+style.
+  @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
+  @media all and (max-width: 36em) { th { display:none} }
+  .inline {float: left}
+  .btn { font-size: 2em; color: #1FDF4E; font-weight: bold; padding:10px;}
+  .ui-header  { background: #cc1111 !important; }
+  .ui-block-a { width: 30% !important; }
+  .ui-block-b { width: 40% !important; }
+  .ui-block-c { width: 30% !important; }
+  .scene { display: inline-block; position: relative; width: 170px;}
+  #h1-large { font-size: 1.1em; margin-left: 15% }
+  
+body
+  div(data-role="page" data-theme="b")
+    div(data-role="header" data-position="fixed")
+      h1#h1-large Lights
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext")
+    div(data-role="main" class="ui-content" data-url="/tlc/scenes" )
+      each val_a, idx_a in areas
+        each val_s, idx_s in scenes
+          if (scenes[idx_s].Area == areas[idx_a].ID)
+            - var formID = 'form'+idx_a+'_'+idx_s
+            form(method='get' data-ajax="true" form=formID id=formID)
+
+      div(data-role="collapsible-set" data-mini="true" data-theme="a" data-content-theme="a")
+        each val, idx_a in areas
+          div(data-role="collapsible" data-theme="d" data-content-theme="d")
+            h3 #{areas[idx_a].Name}
+            if (scenes)
+              each val, idx_s in scenes
+                if (scenes[idx_s].Area == areas[idx_a].ID)
+                  - var formID = 'form'+idx_a+'_'+idx_s
+                  div(style="float: left; padding: 2px; text-align: left;")
+                    input(type="hidden" name="TLc" value=scenes[idx_s].TLc form=formID)
+                    input(type="hidden" name="Area" value=areas[idx_a].ID form=formID)
+                    input(type="hidden" name="Form" value=formID form=formID)
+                    button(name="Scene" form=formID value=scenes[idx_s].Scene type="submit" class="ui-btn ui-corner-all" data-corners="true") #{scenes[idx_s].Scene}
+            div(style="clear:both")
+    +menu

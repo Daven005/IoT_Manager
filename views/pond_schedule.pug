@@ -1,0 +1,55 @@
+doctype html
+head
+  title Pond Schedule
+  include header
+  script(src='/views/jquery-ui.min.js')
+  script(src='/views/jquery.timepicker.min.js')
+  link(rel="stylesheet" href="/views/jquery.timepicker.min.css")
+  link(rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css")
+
+style.
+  .dropdown {float:right; background-color:orange; border-left:5px;border:1px solid gray; }
+  .daysdropdown {float:right; background-color:LightBlue; border-left:5px;border:1px solid gray; }
+  .name {float:left; padding-right: 5px}
+  .updated {background-color: cyan}
+
+mixin dropdown(OP, outputs)
+  select(name="outputID")
+    each output in outputs
+      if (output.sensorID == OP)
+        option(value=output.sensorID selected) #{output.Name}
+      else
+        option(value=output.sensorID) #{output.Name}
+body
+  #menu
+  div.main
+    h2 Pond Schedule
+    if err
+      .error
+        != err
+    table
+      thead
+        tr
+          th Name
+          th Start
+          th State
+      tbody
+        each schd in schedule
+          form(action='/Pond/schedule',method='get')
+            tr
+              td
+                +dropdown(schd.outputID, outputs)
+              td
+                input(type="text" name="start" class="timepicker" value=schd.startTime size="9")
+              td
+                if (schd.active == 1)
+                  input(type="checkbox" name="active" value="yes" checked)
+                else
+                  input(type="checkbox" name="active" value="yes")
+              td
+                if (schd.ex)
+                  input(type="submit" name="Action" value="Update")
+                  input(type="submit" name="Action" value="Delete")
+                  input(type="hidden" name="ID" value=schd.ID)
+                else
+                  input(type="submit" name="Action" value="Add")

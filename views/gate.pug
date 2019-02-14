@@ -1,0 +1,18 @@
+doctype html
+head
+  title Gate Monitor
+  include header
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.6.3/svg.min.js")
+  script(src="/views/gate.js")
+  style.
+    button { margin: 10px }
+    #drawing { background-color: cyan; margin: 10px; max-width: 500px; float: left; }
+body
+  #menu
+  h2 Gate Monitor
+  if err
+    .error
+      != err
+  button#action Go
+  div#drawing
+  

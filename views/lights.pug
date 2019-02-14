@@ -1,0 +1,213 @@
+mixin colours()
+  if (typeof(locals.colours) == 'undefined' || typeof(locals.colours.map) == 'undefined') 
+     - locals.colours = {}
+     - locals.colours.map = [0,"ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff"]
+  - console.log("L: %j", locals)
+  form(action='/lights/colours', method='post' enctype='application/json')
+    fieldset
+      legend= "Colours"
+      table: tbody: tr
+        td
+          input(type="hidden" name="map" id="map0", value="0")
+        - for (var i = 1; i < locals.colours.map.length; ++i) {
+        td
+          - if (typeof(locals.colours.map[i]) != 'undefined')
+            input(class="color {caps:false, pickerMode:'HVS'}" id='map'+i name="map" class="map" value=locals.colours.map[i] size="4")
+          - else 
+            input(class="color {caps:false, pickerMode:'HVS'}" id='map'+i name="map" class="map" value="0" size="4")
+          div=i
+        - }
+        td
+          input(type="submit" name="Action" value="+")
+          input(type="submit" name="Action" value="-")
+      input(type="submit" name="Action" value="Save")
+      input(type="submit" name="Action" value="Transmit")
+
+mixin patterns()
+  - if (typeof(locals.patterns) == 'undefined') 
+    - locals.patterns = []
+  - if (typeof(locals.patterns[0]) == 'undefined')
+    - locals.patterns[frameID] = {frame: 0, start: 0, LED: []}
+  fieldset
+    legend= "Patterns"  
+    div
+      - for (var i=0; i<locals.patterns.length; i++)
+        +pattern(i)
+      form(action='/lights/patterns', method='post' enctype='application/json')
+        input(type="submit" name="Action" value="Add Pattern")
+        input(type="submit" name="Action" value="Remove Pattern")
+
+mixin pattern(frameID)
+  - var fsID = 'fs'+frameID
+  - if (typeof(locals.patterns) == 'undefined') 
+    - locals.patterns = []
+  - if (typeof(locals.patterns[frameID]) == 'undefined')
+    - locals.patterns[frameID] = {"start": 0, "LED": []}
+  - locals.patterns[frameID].frame = frameID
+
+  form(action='/lights/pattern', method='post' enctype='application/json')
+    fieldset
+      legend= "Frame "+(frameID+1)
+      div
+        input(type="hidden" name="frame" value=frameID)
+        label=" Start position: "
+        - if (typeof(locals.patterns[frameID].start) == 'undefined')
+          input(name="start" value="0" size="2")
+        - else
+          input(name="start" value=locals.patterns[frameID].start size="2")
+        label= " Reverse: "
+        - if (typeof(locals.patterns[frameID].reverse) == 'undefined') {
+          input(type="checkbox" name="reverse")
+        - } else if (locals.patterns[frameID].reverse == 'on') {
+          input(type="checkbox" name="reverse" checked)
+        - } else {
+          input(type="checkbox" name="reverse")
+        - }
+      table: tbody
+        input(type="hidden" id="selectedLED-#{frameID}" name="selectedLED" value="-1")
+        tr
+          - var ledStart = frameID*100+1
+          - for (var i = ledStart; i < ledStart+25; ++i) 
+            td
+              - if (typeof(locals.patterns[frameID].LED[i-ledStart]) != 'undefined')
+                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value=patterns[frameID].LED[i-ledStart] size="1" style="background-color: #{'#'+colours.map[patterns[frameID].LED[i-ledStart]]}")
+              - else
+                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value="0" size="1")
+
+        tr
+          - for (var i = ledStart+25; i < ledStart+50; ++i) 
+            td
+              - if (typeof(locals.patterns[frameID].LED[i-ledStart]) != 'undefined')
+                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value=patterns[frameID].LED[i-ledStart] size="1" style="background-color: #{'#'+colours.map[patterns[frameID].LED[i-ledStart]]}")
+              - else
+                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value="0" size="1")
+                  
+      input(type="submit" name="Action" value="Save")
+      input(type="submit" name="Action" value="Transmit")
+      input(type="submit" name="Action" value="Insert")
+      input(type="submit" name="Action" value="Delete")
+      input(type="submit" name="Action" value="Copy")
+      - if (typeof(locals.copy) != 'undefined')
+        input(type="submit" name="Action" value="Paste")
+
+mixin showplaylist()
+  - if (typeof(locals.playlist) == 'undefined')
+    - locals.playlist = {repeat: -1, time: 5000}
+  - if (typeof(locals.playlist.frames) == 'undefined')
+    - locals.playlist.frames = [0,0]       
+  - var fc = locals.playlist.frames.length
+
+  form(action='/lights/playlist', method='post' enctype='application/json')
+    fieldset
+      legend= "Play List"
+      div
+        label=" Repeat: "
+        - if (typeof(locals.playlist.repeat) != 'undefined')
+          input(name="repeat" value=locals.playlist.repeat size="1")
+        - else
+          input(name="repeat" value="0" size="1")
+        label=" Frame Duration: "
+        - if (typeof(locals.playlist.time) != 'undefined')
+          input(name="time" value=locals.playlist.time size="4")
+        - else
+          input(name="time" value="5000" size="4")
+        label=" Start: "
+        - if (typeof(locals.playlist.starttime) != 'undefined')
+          input(name="starttime" value=locals.playlist.starttime size="4")
+        - else
+          input(name="starttime" value="20" size="4")
+        label=" Finish: "
+        - if (typeof(locals.playlist.stoptime) != 'undefined')
+          input(name="stoptime" value=locals.playlist.stoptime size="4")
+        - else
+          input(name="stoptime" value="23" size="4")
+      table: tbody: tr
+        td
+          input(type="hidden", name="frames" value="0" size="1")
+        - for (var i = 1; i < fc; i++) {
+          td
+            input(name="frames" value=locals.playlist.frames[i] size="1")
+        - }
+        td
+          input(type="submit" name="Action" value="+")
+          input(type="submit" name="Action" value="-")
+      input(type="submit" name="Action" value="Save")
+      input(type="submit" name="Action" value="Transmit")
+
+mixin setTarget()
+  form(action='/lights', method='post' enctype='application/json')
+    label="Target: "
+      input(type="text" name="target" value=locals.target)
+    label="MQTT"
+      - if (locals.transmit == "MQTT")
+        input(type="radio" name="transmit" value="MQTT" checked)
+      - else
+        input(type="radio" name="transmit" value="MQTT")
+    label="HTTP"
+      - if (locals.transmit == "HTTP")
+        input(type="radio" name="transmit" value="HTTP" checked)
+      - else
+        input(type="radio" name="transmit" value="HTTP")      
+    input(type="submit" name="Action" value="Set Target")
+
+doctype html
+head
+  title Lights
+  script(src='/views/jscolor.js')
+  include header
+  script.
+    $(function() {
+      $("#test").click( function() {
+        var d = !{JSON.stringify(colours)};
+        alert(JSON.stringify(d));
+        $.ajax({url: "http://192.168.1.77:80/test", 
+          type: 'post',
+          data: JSON.stringify(d),
+          datatype: 'json',
+          //jsonpCallback:"cb",                   
+          crossDomain:true, 
+          timeout: 1000,
+          success: function(result){ alert("OK: "+result);}, 
+          error: function(xhr, textStatus, errorThrown){ alert('request failed: '+errorThrown);}
+        })
+      })
+      $('.led').on('input',function(){
+      try {
+        var colour = '#'+document.getElementById('map'+this.value).value;
+        this.style['background-color'] = colour;
+      } catch(e) {this.style['background-color'] = '#ffffff';}
+      })
+      $('.led').focus(function(){
+        this.style['border-color'] = '#ff0000'
+        $('input[name=selectedLED]').val(this.id)
+        
+      })
+      $('.led').blur(function(){
+        this.style['border-color'] = '#ffffff'
+      })
+      $('.map').on('change',function(){
+        try {
+          var newColour = this.value;
+          var id = this.id;
+          $('.led').each(function(index, element) {
+            if (id == 'map'+element.value) {
+              element.setAttribute('style', 'background-color:#'+newColour);
+            }
+          })
+        } catch(ex) {alert(ex);}
+    })})
+
+body
+  #menu
+  h2 Lights (#{locals.fileName})
+  if err
+    .error
+      != err
+  +setTarget()
+  +colours()
+  +patterns()
+  +showplaylist()
+  form(action='/lights', method='post' enctype='application/json')
+    input(type="text" name="file")
+    input(type="submit" name="Action" value="Save As")
+    input(type="submit" name="Action" value="Transmit All")

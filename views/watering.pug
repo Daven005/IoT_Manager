@@ -1,0 +1,17 @@
+include ./mobileMenu.jade  
+doctype html
+head
+  title Hollies Watering
+  link(rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
+  link(rel="stylesheet" href="/views/watering.css")
+  script(src="https://code.jquery.com/jquery-1.12.4.js")
+  script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
+  script(src="http:/views/watering.js")
+body
+  div(id="heading") Watering Times
+  div(id="panel") xxx
+  p
+    button(onclick="updateBtn()") Update
+    button(onclick="restoreBtn()") Restore Previous
+    button(onclick="newZoneBtn()") New Programme
+  p(id="status")

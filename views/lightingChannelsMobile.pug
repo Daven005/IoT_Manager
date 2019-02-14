@@ -1,0 +1,62 @@
+include ./mobileMenu.jade
+doctype html
+head
+  title Lighting Channels
+  meta(name="viewport" content="width=device-width, initial-scale=1")
+  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+  script(src='/views/jquery-2.2.1.min.js')
+  script(src='/views/jquery.mobile-1.4.5.min.js')
+
+script.
+  
+  function updateChannel(el) {
+    var form = $(el).attr('form');
+    var rqData = {tlc: $('#'+form).children('.tlc').val(), 
+        area: $('#'+form).children('.area').val(), 
+        name: $('#'+form).children('.name').val(), 
+        value: $(el).val()}
+    //$(el).siblings('div').text($(el).val());
+    $.ajax({
+      url: '/hollies/lightingChannel',
+      cache: false,
+      data: rqData, 
+      success: function(data,status) {
+        $(this).siblings('div').text(''); 
+        //alert(data+status);
+      }
+    });
+  }
+style.
+  @media all and (min-width: 60em) {           
+    .col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 50%} 
+  }
+  .ui-header  { background: #cc1111 !important; }
+  .ui-block-a { width: 30% !important; }
+  .ui-block-b { width: 40% !important; }
+  .ui-block-c { width: 30% !important; }
+  .inline {float: left}
+  #h1-large { font-size: 1.1em; margin-left: 15% }
+  
+body
+  div.ui-responsive-panel(data-role="page" data-theme="b" data-dom-cache="false")
+    div(data-role="header" data-position="fixed")
+      h1#h1-large Lighting Channels
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
+    div(data-role="main" class="ui-content" data-url="/Heating/mobileOverrides")
+      each val, i in map
+        - // console.log(val)
+        form(method='get' data-ajax="false" form='form'+i id='form'+i)
+          input(type="hidden" name="tlc" class="tlc" value=val.tlc)
+          input(type="hidden" name="area" class="area" value=val.area)
+          input(type="hidden" name="name" class="name" value=val.name)
+          input(type="hidden" name="value" class="value" value=val.value)
+      div.col20(data-role="collapsible-set" data-theme="a" data-content-theme="a")
+        each val, i in map
+          - var clpsd = true;
+          - //if (val.zoneID.toString() == zone.zoneID) { clpsd = 'false'; } else { clpsd = 'true';}
+          div(data-role="collapsible" data-theme="d" data-content-theme="d" data-collapsed=clpsd)
+            h3 #{val.area} #{val.name}
+            div(style="background-color: #{c}; border-radius: 10px; text-align: center") Level
+              input(type="range" name="level" id="lightingLevel" form='form'+i value=val.value
+                min="0" max="255" onchange="updateChannel(this)")
+  +menu

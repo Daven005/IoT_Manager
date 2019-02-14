@@ -1,0 +1,1 @@
+[{"name":"Strawberries","start":32,"end":62,"output":3,"checkRain":false},{"name":"Hanging Baskets","start":47,"end":89,"output":2,"checkRain":true},{"name":"Pots","start":69,"end":75,"output":1,"checkRain":false},{"name":"Trough","start":56,"end":75,"output":4,"checkRain":false}]

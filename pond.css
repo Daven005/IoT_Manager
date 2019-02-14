@@ -1,0 +1,40 @@
+  @media all and (min-width: 50em) and (min-height: 30em) {           
+    .col10 { width: 135px} 
+  }
+  @media all and (max-width: 30em) {
+    .col10 { width: 135px }
+  }
+  .ui-header  { background: #cc1111 !important; }
+  .ui-block-a { width: 30% !important; }
+  .ui-block-b { width: 40% !important; }
+  .ui-block-c { width: 30% !important; }
+  .inline {display: inline-block}
+  #h1-large { font-size: 1.0em; margin-left: 15% }
+  .tempBox {
+    float: none; padding: 0px 10px 10px 10px; margin: 0; background-color: #110; border-radius: 10%;
+  }
+  .overridebox {
+    padding: 10px 10px 10px 10px; margin: 2px; text-align: center; background-color: #330; border-radius: 10%;
+  }
+  .dial { 
+    font-size: 1.5em; width: 100px; height: 100px; padding: 10px 5px 5px 0; 
+    color: black; text-align: center; 
+    border: 5px solid;
+    border-radius: 10%;
+  }
+  .on { border-color: red; }
+  .off { border-color: #cccccc; }
+  .set { border-style: dotted; }
+  .overrideset { background-color: #880; }
+  .overrideoff { background-color: #330; }
+  .view {width: 95%; margin:0 auto; height: 100%; display: inline-block; text-align: center}
+  .view1 {width: 95%; margin:0 auto; background-color: cyan; height: 100%; display: inline-block; text-align: center}
+  .name {width: 100px; text-align: center}
+  .imgBtn {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    border-radius: 10%;
+    border: none;
+  }

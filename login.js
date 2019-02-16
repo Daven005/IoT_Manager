@@ -1,6 +1,6 @@
 var utils = require('./utils');
-const user = "admin1";
-const pwd = "j123";
+const user = config.login.user;
+const pwd = config.login.pwd;
 
 exports.doLogin = function(request, response) {
   if (request.query.logout == 1) {

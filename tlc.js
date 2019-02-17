@@ -24,10 +24,10 @@ exports.getAllDeviceInfo = getAllDeviceInfo;
 
 const scene = { 
     boiler:   {id: "S0", TLc: "Hollies-F", on: "Boiler On",   raise: "Boiler On",  off: "Boiler Off",  lower: "Boiler Off"  }, 
-    lounge:   {id: "S1", TLc: "Hollies-4", on: "Living On",   raise: "Living On",  off: "Living Off",  lower: "Watching TV" }, 
+    lounge:   {id: "S1", TLc: "Hollies-L", on: "Living On",   raise: "Living On",  off: "Living Off",  lower: "Watching TV" }, 
     family:   {id: "S2", TLc: "Hollies-F", on: "Family On",   raise: "Family On",  off: "Family Off",  lower: "Family Low"  },
-    hall:     {id: "S3", TLc: "Hollies-4", on: "Hall On",     raise: "Hall On",    off: "Hall Off",    lower:"Hall Dim PIR" },
-    office:   {id: "S4", TLc: "Hollies-4", on: "Office On",   raise: "Office On",  off: "Office Off",  lower:"Office Dim"   },
+    hall:     {id: "S3", TLc: "Hollies-L", on: "Hall On",     raise: "Hall On",    off: "Hall Off",    lower:"Hall Dim PIR" },
+    office:   {id: "S4", TLc: "Hollies-L", on: "Office On",   raise: "Office On",  off: "Office Off",  lower:"Office Dim"   },
     toilet:   {id: "S5", TLc: "Hollies-F", on: "Toilet On" ,  raise: "Toilet On",  off: "Toilet Off",  lower: "Toilet Off"  }, 
     utility:  {id: "S6", TLc: "Hollies-F", on: "Utility On",  raise: "Utility On", off: "Utility Off", lower: "Utility Off" }, 
 };

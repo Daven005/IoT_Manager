@@ -111,7 +111,7 @@ function consoleIn(d) {
 }
   
 app.set('views', './views');
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 app.use(express.static(__dirname));
 app.use('views', express.static(path.join(__dirname, '/views')));
 app.use(bodyParser.json()); // support json encoded bodies

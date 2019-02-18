@@ -224,7 +224,7 @@ function send(tlc, str) {
   var bfr = new Buffer.from(str);
   var tlcObj = getTLc(tlc)
   if (tlcObj) {
-	  var ip tlcObj.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');
+	  var ip = tlcObj.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');
 	  console.log("%s=>%s %s", tlc, str, ip);
 	  udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, ip, function(err, bytes) {
 		if (err) {

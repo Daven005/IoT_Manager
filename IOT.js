@@ -161,7 +161,7 @@ client.subscribe('/Raw/#');
 client.publish('/Raw/Hollies000000/info', '{"Name": "Weather", "Location": "Outside"}');
 
 var processHeating = require('./processHeating');
-processHeating.load(true);
+processHeating.load();
 console.log("Heating started");
 setInterval(processHeating.check, 1*60*990); // Just under 1 minute
 

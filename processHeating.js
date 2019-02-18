@@ -4,18 +4,15 @@ var overrides = [];
 
 exports.load = load;
 
-function load(doCheck) { // doCheck after loading is complete
+function load() {
   var errorStr = "";
   var sqlstr = "SELECT * FROM heatingzones"
   db.query(sqlstr, function(err, result) {
     if (err) {
-      console.log(err);
-      console.log(sqlstr);
-      errorStr = err.message;
-      result = [];
+      console.log(errorStr = err.message); result = [];
     }
     zones = [];
-    result.forEach(function(r) {
+    result.forEach((r) => {
       r.overrideOn = false;
       r.demand = false;
       r.programme = [];
@@ -24,30 +21,19 @@ function load(doCheck) { // doCheck after loading is complete
     sqlstr = "SELECT * FROM heatingprogrammes ORDER BY days, start DESC"
     db.query(sqlstr, function(err, result) {
       if (err) {
-        console.log(err);
-        console.log(sqlstr);
-        errorStr = err.message;
-        result = [];
+        console.log(errorStr = err.message); result = [];
       }
-      result.forEach(function(r) {
-        zones[r.zoneID].programme.push(r);
-      });
-      // console.log("Heating zones: %j", zones);
-      sqlstr = "SELECT * FROM heatingoverrides"
+      result.forEach((r) => zones[r.zoneID].programme.push(r));
+      sqlstr = "SELECT * FROM heatingoverrides ORDER BY priority DESC"
       db.query(sqlstr, function(err, result) {
         if (err) {
-          console.log(err);
-          console.log(sqlstr);
-          result = [];
+          console.log(errorStr = err.message); result = [];
         }
         overrides = [];
-        result.forEach(function(r) {
-          overrides[r.ID] = r;
-        });
-        if (doCheck) {
-          // console.log("O->%j", overrides);
-          check();
-        }
+        result.forEach((r) => overrides.push(r));
+        check();
+        console.log("Heating zones: %j", zones);
+        console.log("O->%j", overrides);
       });
     });
   });
@@ -86,7 +72,9 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
         checkZoneHeat(z, new Date(dateStr+" 23:59:00"), dateStr, previousDow);
     } else {
       var currentTemperature = deviceState.getLatestTemperature(z.TemperatureDeviceID, z.TemperatureSensorID);
+      var overrideName;
       overrides.forEach(checkOverrides);
+      z.overrideName = overrideName;
       z.demand = (currentTemperature < targetTemp);
       z.targetTemp = targetTemp;
     }
@@ -113,8 +101,11 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
         if (o.active) {
           if (log) console.log("override: %j", o);
           if (checkOverrideWithinTime()) {
-            targetTemp = o.temperature;
-            z.overrideOn = true;
+            if (!overrideName) {
+              targetTemp = o.temperature;
+              z.overrideOn = true;
+              overrideName = o.Name;
+            }
           } else {
             z.overrideOn = false;
             if (!o.dontClear && checkOverrideAfterEnd()) {

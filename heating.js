@@ -131,7 +131,7 @@ exports.mobileOverrides = function (request, response) {
     if (request.query.Action == "Set") {
       if (login.check(request, response)) {
         updateOverride(request);
-        processHeating.load(true);
+        processHeating.load();
       }
     } else {
       reload(request.query.zoneID);
@@ -194,7 +194,7 @@ exports.mobileGroups = function (request, response) {
         } else {
           reload();
         }
-        processHeating.load(true);
+        processHeating.load();
       }
       break;
     default:
@@ -216,7 +216,7 @@ exports.setEmergencyOverride = function (duration, temperature) {
   ]);
   db.query(sqlstr, function (err, result) {
     if (err) { console.log("set Emergency Group %j", err); }
-    processHeating.load(true);
+    processHeating.load();
   });
 }
 
@@ -226,7 +226,7 @@ exports.clearEmergencyOverride = function () {
     + "WHERE Name = 'Emergency'";
   db.query(sqlstr, function (err, result) {
     if (err) { console.log("clear Emgergency Group %j", err); }
-    processHeating.load(true);
+    processHeating.load();
   });
 }
 
@@ -389,7 +389,7 @@ exports.override = function (request, response) {
       } else {
         reload();
       }
-      processHeating.load(true);
+      processHeating.load();
       break;
     case "Delete":
       console.log("Delete override %d", request.query.ID);
@@ -398,7 +398,7 @@ exports.override = function (request, response) {
       } else {
         reload();
       }
-      processHeating.load(true);
+      processHeating.load();
       break;
     case "Add":
       if (request.query.ID != 0) {
@@ -406,7 +406,7 @@ exports.override = function (request, response) {
       } else {
         reload();
       }
-      processHeating.load(true);
+      processHeating.load();
       break;
     case "Set Group":
       if (request.query.Name) {
@@ -414,7 +414,7 @@ exports.override = function (request, response) {
       } else {
         reload();
       }
-      processHeating.load(true);
+      processHeating.load();
       break;
     default:
       reload();
@@ -438,7 +438,7 @@ exports.setOverride = function (device, override) { // Override message from Rad
             utils.notify("Remote override fail", 'Alarm', device, err.message + ". " + override);
           }
         } else {
-          processHeating.load(true); // Update all flags and current heating
+          processHeating.load(); // Update all flags and current heating
         }
       });
     }
@@ -665,7 +665,7 @@ exports.voiceOverrides = function (request, response) {
           console.log("OR error: %j %j", sqlstr, err);
           info.err = "Can't set override";
         } else {
-          processHeating.load(true); // Update all flags and current heating
+          processHeating.load(); // Update all flags and current heating
         }
         overrideSetResponse(info);
       });
@@ -829,7 +829,7 @@ exports.manage = function (request, response) {
         } else {
           reload();
         }
-        processHeating.load(true);
+        processHeating.load();
       }
       break;
     case "Delete":
@@ -839,7 +839,7 @@ exports.manage = function (request, response) {
         } else {
           reload();
         }
-        processHeating.load(true);
+        processHeating.load();
       }
       break;
     case "Duplicate":
@@ -849,7 +849,7 @@ exports.manage = function (request, response) {
         } else {
           reload();
         }
-        processHeating.load(true);
+        processHeating.load();
       }
       break;
     case "Show Programme":
@@ -862,7 +862,7 @@ exports.manage = function (request, response) {
         } else {
           reload(request.query.zoneID);
         }
-        processHeating.load(true);
+        processHeating.load();
       }
       break;
     case "Add Programme":
@@ -872,7 +872,7 @@ exports.manage = function (request, response) {
         } else {
           reload(request.query.zoneID);
         }
-        processHeating.load(true);
+        processHeating.load();
       }
       break;
     case "Delete Programme":
@@ -882,16 +882,16 @@ exports.manage = function (request, response) {
         } else {
           reload(request.query.zoneID);
         }
-        processHeating.load(true);
+        processHeating.load();
       }
       break;
     case "Reload Control":
       reload();
-      processHeating.load(true);
+      processHeating.load();
       break;
     default:
       reload();
-      processHeating.load(true);
+      processHeating.load();
   }
 }
 
@@ -961,7 +961,7 @@ exports.externalSetOverride = function (request, response) {
           // console.log(sqlstr);
         }
       } else {
-        processHeating.load(true); // Update all flags and current heating
+        processHeating.load(); // Update all flags and current heating
       }
     });
   }

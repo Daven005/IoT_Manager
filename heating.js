@@ -260,7 +260,7 @@ exports.override = function(request, response) {
     var zoneName = "";
     var zoneRow = 0;
     var sqlstr = "SELECT zoneID, heatingoverrides.ID AS oID, heatingzones.Name AS zoneName, "
-      +"heatingoverrides.Name AS oName,  TemperatureMax, TemperatureMin, "
+      +"heatingoverrides.Name AS oName,  heatingoverrides.priority AS priority,  TemperatureMax, TemperatureMin, "
       +"heatingoverrides.day, daysofweek.Name AS dayName, "
       +"heatingoverrides.`start`, duration, temperature, dontClear, active, TRUE AS ex "
       +"FROM heatingoverrides "
@@ -276,7 +276,9 @@ exports.override = function(request, response) {
       }
       result.push({oName: 'New', zoneID: 0, zoneName: 'None', day: 10, dayName: 'Anyday', 
         start: '12:00:00', duration: '1:00:00', temperature: 21, repeat: 0, active:0, ex: false});
-      sqlstr = "SELECT heatingoverrides.Name AS name, max(temperature) AS temperature, day, daysofweek.Name AS dayName, "
+      sqlstr = "SELECT heatingoverrides.Name AS name, "
+          +"max(temperature) AS temperature, max(priority) AS priority, "
+          +"day, daysofweek.Name AS dayName, "
           +"min(heatingoverrides.start) as start, min(heatingoverrides.duration) as duration "
           +"from heatingoverrides inner join daysofweek on daysofweek.ID = heatingoverrides.day "
           +"GROUP BY name";

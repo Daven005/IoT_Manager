@@ -130,7 +130,7 @@ app.use(session({
 }));
   
 app_mobile.set('views', './views');
-app_mobile.set('view engine', 'jade');
+app_mobile.set('view engine', 'pug');
 app_mobile.use(express.static(__dirname));
 app_mobile.use('views', express.static(path.join(__dirname, '/views')));
 app_mobile.use(bodyParser.json()); // support json encoded bodies

@@ -498,10 +498,11 @@ function reloadZones(zone, request, response, render) {
         z.currentTemperature = t;
       else
         z.currentTemperature = 0;
-      processHeating.set
+      // ?????? processHeating.set
       z.demand = processHeating.zoneDemand(z.ID);
       z.targetTemp = processHeating.zoneTargetTemp(z.ID);
       z.overrideOn = processHeating.zoneOverrideOn(z.ID);
+      z.overrideName = processHeating.zoneOverrideName(z.ID);
     });
     if (zone) {
       result.forEach(function (r, row) {

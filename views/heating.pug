@@ -44,8 +44,9 @@ body
           form(action='/heating',method='get')
             tr.row(id=val.ID)
               - var d = (val.overrideOn) ? "red" : (val.demand) ? "orange" : "cyan";
-              td
-                input(type="text" name="Name" value=val.Name size="10" style="background-color:  #{d}")
+              - var tt = (val.overrideName) ? `tip="${val.overrideName}"` : '';
+              td(title=val.overrideName)
+                input(type="text" name="Name" value=val.Name size="10" style=`background-color:${d}`)
                 |  #{val.ID}
               td
                 input(type="text" name="MasterZone" value=val.MasterZone size="1")
@@ -60,28 +61,23 @@ body
               - var c = 'hsl('+setHue(val.TemperatureMin, val.TemperatureMax, val.currentTemperature)+',75%,50%)';
               - var t = val.currentTemperature
               - if (val.IsMaster) { c = '#fff'; t = '-'}
-              td(style="background-color:  #{c}" title="Target: #{val.targetTemp}") 
-                | #{t}
+              td(style=`background-color:${c}` title=`Target: ${val.targetTemp}`)= t
               td#TDname_td
                 div.name#TDname #{val.TDlocation}-#{val.TDname}
                 input(type="hidden" id="TemperatureDeviceID" name="TemperatureDeviceID" value=val.TemperatureDeviceID)
-                div(class="dropdown")
-                   | &#9661;
+                div(class="dropdown") &#9661;
               td#TSname_td
                 div.name#TSname #{val.TSname}
                 input(type="hidden" id="TemperatureSensorID" name="TemperatureSensorID" value=val.TemperatureSensorID)
-                div(class="dropdown")
-                   | &#9661;
+                div(class="dropdown") &#9661;
               td#CDname_td
                 div.name#CDname #{val.CDlocation}-#{val.CDname}
                 input(type="hidden" id="ControlDeviceID" name="ControlDeviceID" value=val.ControlDeviceID)
-                div(class="dropdown")
-                   | &#9661;
+                div(class="dropdown") &#9661;
               td#CSname_td
                 div.name#CSname #{val.CSname}
                 input(type="hidden" id="ControlSensorID" name="ControlSensorID" value=val.ControlSensorID)
-                div(class="dropdown")
-                   | &#9661;
+                div(class="dropdown") &#9661;
               td
                 input(type="submit" name="Action" value="Update")
                 input(type="submit" name="Action" value="Duplicate")
@@ -120,14 +116,13 @@ body
                           td#dayName_td
                             div.name#dayName #{val}
                             input(type="hidden" id="days" name="days" value=programme[i].days)
-                            div(class="daysdropdown")
-                               | &#9661;
+                            div(class="daysdropdown") &#9661;
                         when "Start"
                           td
                             input(type="text" name=j class="timepicker" value=val size="10")
                         when "Temperature"
                           - var c = 'hsl('+setHue(val.TemperatureMin, val.TemperatureMax, val.target)+',75%,50%)';
-                          td(tMax=map[zone.row].TemperatureMax tMin=map[zone.row].TemperatureMin style="background-color: #{c}")
+                          td(tMax=map[zone.row].TemperatureMax tMin=map[zone.row].TemperatureMin style=`background-color: ${c}`)
                             input(type="text" name=j value=val size="2" onchange='updateBackground(this)')
                         when "preset"
                           td

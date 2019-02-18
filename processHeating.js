@@ -101,7 +101,7 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
         if (o.active) {
           if (log) console.log("override: %j", o);
           if (checkOverrideWithinTime()) {
-            if (!overrideName) {
+            if (!overrideName) { // Not already found a higher prority override
               targetTemp = o.temperature;
               z.overrideOn = true;
               overrideName = o.Name;
@@ -125,14 +125,14 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
       function checkOverrideWithinTime() {
         var start = new Date(dateStr + ' ' + o.start);
         var duration = getDuration();
-        if (duration == 0 || duration >= (24*60-1)*60*1000) return true; // 00:00 or 23:59
+        if (duration >= (24*60)*60*1000) return true; // 00:00 or 23:59
         return (start <= timeNow && timeNow <= (start.getTime()+duration));
       }
       
       function checkOverrideAfterEnd() {
         var start = new Date(dateStr + ' ' + o.start);
         var duration = getDuration();
-        if (duration == 0 || duration >= (24*60-1)*60*1000) return true; // 00:00 or 23:59
+        if (duration >= (24*60)*60*1000) return true; // 00:00 or 23:59
         return timeNow >= (start.getTime()+duration);
       }
     }
@@ -220,6 +220,7 @@ exports.zoneDemand = zoneDemand;
 exports.zoneTargetTemp = zoneTargetTemp;
 exports.zoneCurrentTemp = zoneCurrentTemp;
 exports.zoneOverrideOn = zoneOverrideOn;
+exports.zoneOverrideName = zoneOverrideName;
 
 function zoneDemand(id) {
   if (zones[id])
@@ -242,8 +243,12 @@ function zoneTargetTemp(id) {
   return zones[id].targetTemp;
 }
 
-function zoneOverrideOn(id, name) { // Set when ANY override is active for this zone
+function zoneOverrideOn(id) { // Set when ANY override is active for this zone
   return zones[id].overrideOn;
+}
+
+function zoneOverrideName(id) { 
+  return zones[id].overrideName;
 }
 
 exports.zoneInfoByName = function(name, callback) {

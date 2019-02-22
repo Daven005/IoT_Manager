@@ -1,6 +1,7 @@
 "use strict";
 var processHeating = require('./processHeating');
 var login = require('./login');
+const EXTERNAL_NAME = 'Alexa';
 
 exports.temperatureDevice = function (request, response) {
   var sqlstr = "SELECT devices.Location, devices.DeviceID, devices.name FROM devices "
@@ -329,7 +330,7 @@ exports.override = function (request, response) {
   function insertOverride(request) {
     var sqlstr = "INSERT heatingoverrides  "
       + "(Name, priority, zoneID, day, Temperature, start, duration, active, dontClear) "
-      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     sqlstr = sql.format(sqlstr, [
       request.query.Name,
       request.query.priority,
@@ -903,68 +904,47 @@ exports.temperatureDials = function (request, response) {
 exports.getAllDeviceInfo = getAllDeviceInfo;
 
 function getAllDeviceInfo(request, response) {
-  var sqlstr = "SELECT zoneID, heatingoverrides.ID AS oID, heatingzones.Name AS zoneName, "
-    + "heatingzones.MasterZone, heatingzones.IsMaster, "
-    + "heatingzones.TemperatureDeviceID, heatingzones.TemperatureSensorID, "
-    + "heatingoverrides.Name AS groupName, TemperatureMax, TemperatureMin, "
-    + "heatingoverrides.day, daysofweek.Name AS dayName, "
-    + "heatingoverrides.`start`, duration, temperature, dontClear, active "
-    + "FROM heatingoverrides "
-    + "INNER JOIN heatingzones ON heatingoverrides.zoneID = heatingzones.ID "
-    + "INNER JOIN daysofweek ON heatingoverrides.day = daysofweek.ID "
-    + "WHERE heatingoverrides.Name = 'Mobile' "
-  if (request.query.overrideID) {
-    sqlstr += " AND heatingoverrides.ID = ? "
-    sqlstr = sql.format(sqlstr, [request.query.overrideID]);
+  var info;
+  if (request.query.zoneID) {
+    info = mapZone(processHeating.allZones().find((z) => (z) ? z.ID == request.query.zoneID : false));
+  } else {
+    info = processHeating.allZones().map((z) => mapZone(z)).filter((z) => (z) ? true : false);
   }
-  sqlstr = sqlstr + " ORDER BY zoneName";
-  // console.log(sqlstr);
-  db.query(sqlstr, function (err, result) {
-    if (err) {
-      console.log("zones %j", err);
-    }
-    var info = result.map(function (z) {
-      var y = {};
-      y.ID = z.zoneID;
-      y.Name = z.zoneName;
-      y.overrideID = z.oID
-      y.MasterZone = z.MasterZone;
-      y.IsMaster = z.IsMaster;
-      var t = deviceState.getLatestTemperature(z.TemperatureDeviceID, z.TemperatureSensorID);
-      if (t)
-        y.currentTemperature = t;
-      else
-        y.currentTemperature = 0;
-      processHeating.set
-      y.demand = processHeating.zoneDemand(z.zoneID);
-      y.targetTemp = processHeating.zoneTargetTemp(z.zoneID);
-      y.overrideOn = processHeating.zoneOverrideOn(z.zoneID);
-      // console.log(y);
-      return y;
-    });
-    response.setHeader('Content-Type', 'application/json');
-    response.end(JSON.stringify(info));
-  });
+  response.setHeader('Content-Type', 'application/json');
+  response.end(JSON.stringify(info));
+  console.log(`getAllDeviceInfo ${JSON.stringify(info.targetTemp)}`);
+  function mapZone(z) {
+    if (!z) return null;
+    var y = Object.assign({}, z);
+    delete y.programme; // Not needed
+    y.isChangeable = processHeating.allOverrides().some((o) => o.zoneID == z.ID && o.Name == EXTERNAL_NAME);
+    var t = deviceState.getLatestTemperature(z.TemperatureDeviceID, z.TemperatureSensorID);
+    y.currentTemperature = (t) ? t : 0;
+    return y;
+  }
 }
-
+ 
 exports.externalSetOverride = function (request, response) {
-  if ((0 < request.query.hour && request.query.hour < 24)
+  console.log(`externalSetOverride ${JSON.stringify(request.query)}`);
+  if ((0 <= request.query.hour && request.query.hour < 24)
     && (5 <= request.query.temperature && request.query.temperature <= 30)) {
-    // NB The override must have the GroupName 'mobile' and the day as 'AnyDay' (10)
+    // NB The override must have the GroupName <EXTERNAL_NAME> and the day as 'AnyDay' (10)
+    // This assumes only 1 override with that GroupName for the specified zone
+    // If hour == 0 clear active flag
     var sqlstr = "UPDATE heatingOverrides " +
-      "SET start = NOW(), duration = '?:0', temperature = ?, active = 1 " +
-      "WHERE ID = ? AND Name = 'Mobile' AND day = 10";
-    sqlstr = sql.format(sqlstr, [parseInt(request.query.hour), parseInt(request.query.temperature), request.query.overrideID]);
-    db.query(sqlstr, function (err, result) {
+      "SET start = NOW(), duration = '?:0', temperature = ?, active = ? " +
+      `WHERE zoneID = ? AND Name = '${EXTERNAL_NAME}' AND day = 10`;
+    sqlstr = sql.format(sqlstr, [parseInt(request.query.hour), parseInt(request.query.temperature), 
+                          (request.query.hour > 0) ? 1 : 0, parseInt(request.query.zoneID)]);
+     db.query(sqlstr, function (err, result) {
       if (err) {
         if (alarmLog.set(2001, err.code, request.query.overrideID)) { // New
           utils.notify("Remote override fail", 'Alarm', request.query.overrideID, err.message);
-          // console.log(sqlstr);
         }
       } else {
         processHeating.load(); // Update all flags and current heating
+        setTimeout(() => getAllDeviceInfo(request, response), 2000);
       }
     });
   }
-  getAllDeviceInfo(request, response);
 }

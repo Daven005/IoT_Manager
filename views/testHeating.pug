@@ -9,3 +9,5 @@ body
     label(for="command") Command
     input(type="text" name="command")
     input(type="submit" value="Go")
+  pre
+    | #{JSON.stringify(show, null, 2)}

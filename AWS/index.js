@@ -1,7 +1,7 @@
 'use strict';
 var http = require("http");
 var querystring = require('querystring');
-const debug = false;
+const debug = true;
 const dynDNS = "mooo.com";
 
 function log(title, msg) {
@@ -97,13 +97,30 @@ function decodeLightingDevices(obj) {
             proactivelyReported: false,
             retrievable: false
         }
-    }];
-    var sceneCapablities = [{
+    },
+    {
         type: "AlexaInterface",
-        interface: "Alexa.SceneController",
+        interface: "Alexa.PowerLevelController",
         version: "3",
-        supportsDeactivation: false,
-        proactivelyReported: false
+        properties: {
+            supported: [{
+                name: "powerLevel"
+            }],
+            proactivelyReported: false,
+            retrievable: false
+        }
+    },
+    {
+        type: "AlexaInterface",
+        interface: "Alexa.BrightnessController",
+        version: "3",
+        properties: {
+            supported: [{
+                name: "brightness"
+            }],
+            proactivelyReported: false,
+            retrievable: false
+        }
     }];
     for (var name in obj) {
         let zones = obj[name];
@@ -114,22 +131,10 @@ function decodeLightingDevices(obj) {
         endpoint.manufacturerName = 'touchLight';
         endpoint.displayCategories = ['LIGHT'];
         endpoint.cookie = zones;
+        endpoint.cookie.level = '100'; // Assume ON
         endpoint.capabilities = capablities;
         devices.push(endpoint);
-
-        if (zones.off != zones.lower) {
-            endpoint = {};
-            endpoint.displayCategories = ['ACTIVITY_TRIGGR'];
-            endpoint.endpointId = zones.id + '_scene';
-            endpoint.friendlyName = name + ' dim scene';
-            endpoint.description = "touchLight scene";
-            endpoint.manufacturerName = 'touchLight';
-            endpoint.cookie = zones;
-            endpoint.capabilities = sceneCapablities;
-            devices.push(endpoint);
-        }
     }
-
     return devices;
 }
 
@@ -181,14 +186,26 @@ function doHttp(path, callback) {
     });
 }
 
-function actionLighting(request, tlc, scene, callback, value) {
+function actionLighting(request, tlc, scene, callback, state, value) {
     doHttp('/tlc/setScene?' + querystring.stringify({ TLc: tlc, Scene: scene }), function (obj) {
         var date = new Date();
         var context = {
             properties: [{
                 namespace: 'Alexa.PowerController',
                 name: "powerState",
+                value: state,
+                timeOfSample: date,
+                uncertaintyInMilliseconds: 500
+            }, {
+                namespace: 'Alexa.PowerLevelController',
+                name: "powerLevel",
                 value: value,
+                timeOfSample: date,
+                uncertaintyInMilliseconds: 500
+            }, {
+                namespace: 'Alexa.BrightnessController',
+                name: "brightness",
+                brightness: value,
                 timeOfSample: date,
                 uncertaintyInMilliseconds: 500
             }]
@@ -197,7 +214,7 @@ function actionLighting(request, tlc, scene, callback, value) {
         header.name = "Response";
         header.namespace = 'Alexa';
         var response = { context: context, event: { header: header, endpoint: request.endpoint, payload: {} } };
-        log('DEBUG', `action Response: ${JSON.stringify(response)}`);
+        log('DEBUG', `actionLighting Response: ${JSON.stringify(response)}`);
         callback(null, response);
     });
 }
@@ -315,66 +332,33 @@ function handleControl(request, callback) {
 
     switch (request.header.name) {
         case 'TurnOn':
-            actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.on, callback, 'ON');
+            setLightingLevel(100, 0);
             break;
         case 'TurnOff':
-            actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.off, callback, 'OFF');
+            setLightingLevel(0, 0);
             break;
-        case "SetBrightness": {
-            const brightness = request.payload.brightness.value;
-            if (brightness) {
-                if (brightness < 10) {
-                    actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.off, callback, 'OFF');
-                }
-                else if (brightness > 90) {
-                    actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.on, callback, 'ON');
-                }
-                else {
-                    actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.off, callback, 'OFF');
-                }
-            }
-            else {
-                const payload = { faultingParameter: `percentageState: ${brightness}` };
-                callback(null, generateResponse('UnexpectedInformationReceivedError', "Alexa.BrightnessController", payload));
-            }
-        }
+        case 'AdjustBrightness':
+            setLightingLevel(request.endpoint.cookie.level, request.payload.brightnessDelta);
             break;
-        case 'SetTargetTemperature': {
-            const temperature = request.payload.targetSetpoint.value;
-            if (temperature) {
-                let tMin = parseInt(request.endpoint.cookie.TemperatureMin);
-                let tMax = parseInt(request.endpoint.cookie.TemperatureMax);
-                if (tMin <= temperature && temperature <= tMax) {
-                    actionHeating(request, temperature, 1, callback);
-                } else {
-                    temperatureOutOfRange(temperature);
-                }
-            }
-            else {
-                const payload = { faultingParameter: `value: ${temperature}` };
-                callback(null, generateResponse('UnexpectedInformationReceivedError', "Alexa.ThermostatController", payload));
-            }
-        }
+        case "SetBrightness":
+            setLightingLevel(request.payload.brightness, 0);
             break;
-        case 'AdjustTargetTemperature': {
-            const temperatureDelta = request.payload.targetSetpointDelta.value;
-            const temperature = parseInt(request.endpoint.cookie.targetTemp) + temperatureDelta;
-            let tMin = parseInt(request.endpoint.cookie.TemperatureMin);
-            let tMax = parseInt(request.endpoint.cookie.TemperatureMax);
-            if (tMin <= temperature && temperature <= tMax) {
-                actionHeating(request, temperature, 1, callback);
-            } else {
-                temperatureOutOfRange(temperature);
-            }
-        }
+        case 'SetPowerLevel':
+            setLightingLevel(request.payload.powerLevelel, 0)
+            break;
+        case 'SetTargetTemperature':
+            setHeatingLevel(request.payload.targetSetpoint.value, 0);
+            break;
+        case 'AdjustTargetTemperature':
+            setHeatingLevel(request.payload.targetSetpoint.value, request.payload.targetSetpointDelta.value);
             break;
         case 'SetThermostatMode':
             switch (request.payload.thermostatMode.value) {
                 case 'AUTO':
-                    actionHeating(request, parseInt(request.endpoint.cookie.targetTemp), 0, callback);
+                    actionHeating(request, parseInt(request.endpoint.cookie.targetTemp, 10), 0, callback);
                     break;
                 case 'HEAT':
-                    actionHeating(request, parseInt(request.endpoint.cookie.targetTemp), 1, callback);
+                    actionHeating(request, parseInt(request.endpoint.cookie.targetTemp, 10), 1, callback);
                     break;
                 default:
                     log('ERROR', `No supported SetThermostatMode name: ${request.payload.thermostatMode.value}`);
@@ -387,6 +371,36 @@ function handleControl(request, callback) {
         default: {
             log('ERROR', `No supported directive name: ${request.header.name}`);
             callback(null, generateResponse('UnsupportedOperationError', 'Alexa', {}));
+        }
+    }
+
+    function setHeatingLevel(temperature, delta) {
+        if (typeof temperature == 'string') temperature = parseInt(temperature, 10);
+        if (typeof delta == 'string') level = parseInt(delta, 10);
+        let tMin = parseInt(request.endpoint.cookie.TemperatureMin, 10);
+        let tMax = parseInt(request.endpoint.cookie.TemperatureMax, 10);
+        if (tMin <= temperature && temperature <= tMax) {
+            actionHeating(request, temperature, 1, callback);
+        }
+        else {
+            temperatureOutOfRange(temperature);
+        }
+    }
+
+    function setLightingLevel(level, delta) {
+        if (typeof level == 'string') level = parseInt(level, 10);
+        if (typeof delta == 'string') level = parseInt(delta, 10);
+        if (level < 0) level = 0;
+        if (level > 100) level = 100;
+        request.endpoint.cookie.level = level.toString(); // Will be copied to response
+        if (level < 10) {
+            actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.off, callback, 'OFF', level);
+        }
+        else if (level > 90) {
+            actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.on, callback, 'ON', level);
+        }
+        else {
+            actionLighting(request, request.endpoint.cookie.TLc, request.endpoint.cookie.lower, callback, 'ON', level);
         }
     }
 

@@ -1,6 +1,6 @@
 var handler = require('./index').handler;
 
-let request = {
+let heatingRequest = {
     "directive": {
         "header": {
             "namespace": "Alexa.ThermostatController",
@@ -47,6 +47,36 @@ let request = {
         }
     }
 };
+let lightingRequest = {
+    "directive": {
+        "header": {
+            "namespace": "Alexa.BrightnessController",
+            "name": "AdjustBrightness",
+            "payloadVersion": "3",
+            "messageId": "f3077737-b50d-4a62-b2e8-1f92b279805f",
+            "correlationToken": "AAAAAAAAAQDAOes3NAbjA6qNDv1s5kBxDAIAAAAAAABhU6V7c3PkO5V/F7/ugAbUYKvUIe1WoBYBrntsGsB64QYuEBJCpkBTBE9l7ydB/PVI9/QX1dvm/hUXrAzfohMqVOCLK9JITyTOAOYu1aIq4Q0CkdOQb16q0oJwn3zq36lVjDyJWl7fqe+OYxUEne9OPMQT3XmsKdxEQY5lEqeG18NX679h/G5lLVfAHUgukPGmgwccEGT1DF+EdQxVVwDlCh/9LetAi8LvVNBsH0P5Dp2cPP02DmNQVZw2lMtTtZ+Y5gRNxta0IaiyNMEZcoU/HlDj1/5Pmw0MqAe5OE13nl3xN7VRy2/i2eouklCpqX4OW7rhzy65q4vXe55EU9J5sRMTRMwme3Kp/OmItijKs9hRQjd/fKdqEYo4LsHuD+SuzlzTvxOmBKoLP7tWvAqtH29pxiLK8ZZD40gnem+z1qiOOceJTTz2lCF2IaKbOeUlxzkwIcuB14S2wfuTQMh9KdoZ3lJmuashZ0uBsIezhvOBio/ADQPXraH29TvY1+5f0HlJtl0y9k32DdwsZOPHJHg7gtGRNg+kVq9nrYTiO+8Eqqx3Vlna0KyIFWPNP7hUrxPlqIPFjVSd5ldpHn8yE4mbiJoRysmTIGIAhkoZCLbOynrrW3nHvoswV2GMiTS9kxiI7n04TrUh888Pt98rYDhySL4UDLcklDSk2XbcTUu6r8FmCwIjnctj+Q=="
+        },
+        "endpoint": {
+            "scope": {
+                "type": "BearerToken",
+                "token": "Atza|IwEBIILhUYvbUyHUPldtH0Byxc1rjKY3bJXGjORQGLnhHozvBmmS6oydLDEt4KNrvWyuGtRWXGNLQiMLYtwK6tmo6k2Qorygpm_XymNFK4S6K8uFDkUe99LwZ83vyrQxdAjoGe15X1-fIULWaVKbyNgTXMczN7S5JQYhx4873vWWH39Mn2g7Y7AfzA4yu0U_Z2ANKhWDWOD8USr1fggx9W6gi2-Z_x0t9iLciuI6mDDR6ejUZ1qFlYJrVpu-ZXmqQ66YvlT-WFPVEiiaayuJWo7pIurtTBTWrfkfCGJzFnQEIw0XVKN9mD5zP2Jm31ZOgI9YoCXhSxOqB0QvsJnh1NaDUVw3_0Z-HjiNz8btFJ0iQL3JWo8CraEShrqxyTaqX_l6ACtoHZI44XXkDxn8iXimDipe2VCwgLxVGVhFMClHjumvAMTP1hXvUIx_2EiTRUOHQtUfuDhwd3eMvzyNuEUXkNn2Mv-sbU67qSsgV3-n3Ys7BqZiLSPizKk7uH_iBC01NmU"
+            },
+            "endpointId": "S4",
+            "cookie": {
+                "lower": "Office Dim",
+                "raise": "Office On",
+                "TLc": "Hollies-L",
+                "id": "S4",
+                "off": "Office Off",
+                "on": "Office On",
+                "level": 0
+            }
+        },
+        "payload": {
+            "brightnessDelta": -25
+        }
+    }
+};
 let context = {};
 function cb(err, response) {
     console.log("*******************************************");
@@ -58,14 +88,14 @@ function cb(err, response) {
         console.log(JSON.stringify(response, null, 2));
 }
 
-request.directive.payload.targetSetpoint.value = 5;
-handler(request, context, cb);
-request.directive.payload.targetSetpoint.value = 12;
-handler(request, context, cb);
-request.directive.payload.targetSetpoint.value = 30;
-handler(request, context, cb);
+heatingRequest.directive.payload.targetSetpoint.value = 5;
+handler(heatingRequest, context, cb);
+heatingRequest.directive.payload.targetSetpoint.value = 12;
+handler(heatingRequest, context, cb);
+heatingRequest.directive.payload.targetSetpoint.value = 30;
+handler(heatingRequest, context, cb);
 
-request = {
+heatingRequest = {
     directive: {
         header: {
             namespace: "Alexa.ThermostatController",
@@ -113,6 +143,8 @@ request = {
     }
 }
 
-handler(request, context, cb);
-request.directive.payload.targetSetpointDelta.value = -5;
-handler(request, context, cb);
+handler(heatingRequest, context, cb);
+heatingRequest.directive.payload.targetSetpointDelta.value = -5;
+handler(heatingRequest, context, cb);
+
+handler(lightingRequest, context, cb);

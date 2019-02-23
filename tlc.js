@@ -30,6 +30,7 @@ const scene = {
     office:   {id: "S4", TLc: "Hollies-L", on: "Office On",   raise: "Office On",  off: "Office Off",  lower:"Office Dim"   },
     toilet:   {id: "S5", TLc: "Hollies-F", on: "Toilet On" ,  raise: "Toilet On",  off: "Toilet Off",  lower: "Toilet Off"  }, 
     utility:  {id: "S6", TLc: "Hollies-F", on: "Utility On",  raise: "Utility On", off: "Utility Off", lower: "Utility Off" }, 
+    garage:   {id: "S7", TLc: "Hollies-G", on: "Bench On",    raise: "Shelves On", off: "All Off",     lower: "Bench Off"   }
 };
 
 function checkTLcs() {

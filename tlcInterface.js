@@ -5,9 +5,12 @@ var http = require('http');
 
 var udpServer = dgram.createSocket('udp4');
 var TLcList = config.TLc.list;
+var scenes = [];
 
 var enqTimer = null;
 var enqBroadcastCb = null;
+var updateScenesCb = null;
+var updateChannelValuesCb = null;
 var broadcastAddress;
 var refreshCompleteCb;
 var controlState = 'Auto';
@@ -23,6 +26,8 @@ exports.refresh = refresh;
 exports.list = list;
 exports.state = state;
 exports.checkTLcs = checkTLcs;
+exports.updateScenes = updateScenes;
+
 
 udpServer.on('message', udpServerMessageFunc);
 
@@ -30,8 +35,12 @@ function enqTimeoutCb() {
   TLcList.forEach(function (t) { // Deal with TLcs going offline
     if (!t.online) t.ip = null;
   });
-  if (enqBroadcastCb) enqBroadcastCb();
-  enqBroadcastCb = null;
+  if (enqBroadcastCb) {
+    console.log(`TLcs: ${JSON.stringify(TLcList, null, 2)}`)
+    updateScenes(enqBroadcastCb);
+    // enqBroadcastCb();
+    // enqBroadcastCb = null;
+  }
 }
 
 function udpServerMessageFunc(message, remote) {
@@ -40,12 +49,12 @@ function udpServerMessageFunc(message, remote) {
   if (response.TLc) {
     var tlc = getTLc(response.TLc);
     if (tlc) {
-      tlc.IPaddress = response.IPaddress;
-      tlc.Version = response.Version.Major.toString()+'.'+response.Version.Minor.toString();
+      tlc.IPaddress = response.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');;
+      tlc.Version = response.Version.Major.toString() + '.' + response.Version.Minor.toString();
       tlc.online = true;
       tlc.errors = [];
       if (response.Errors) {
-        response.Errors.forEach( (err) => { tlc.errors.push(err); });
+        response.Errors.forEach((err) => { tlc.errors.push(err); });
       }
       if (enqTimer) {
         clearTimeout(enqTimer);
@@ -55,7 +64,7 @@ function udpServerMessageFunc(message, remote) {
       console.log("TLc %j not in TLcList", response.TLc);
     }
   } else if (response.OSC) {
-    console.log(remote.address + ':' + remote.port +' - ' + message);
+    console.log(remote.address + ':' + remote.port + ' - ' + message);
     var parts = response.OSC[0].split('-');
     if (parts[1] == 'Fader') {
       if (refreshCompleteCb) {
@@ -69,10 +78,10 @@ function udpServerMessageFunc(message, remote) {
 
 function broadcast(address, str) {
   var bfr = new Buffer.from(str);
-  
+
   console.log("tlc:-> %s", str);
   udpServer.setBroadcast(true);
-  udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, address, function(err, bytes) {
+  udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, address, function (err, bytes) {
     if (err) {
       console.log("Broadcast error: %j", err);
     }
@@ -81,16 +90,16 @@ function broadcast(address, str) {
 
 function init(initDone) {
   enqBroadcastCb = initDone;
-  freeport(function(err, port) {
-    network.get_interfaces_list(function(err, list) {
+  freeport(function (err, port) {
+    network.get_interfaces_list(function (err, list) {
       var i;
-      for (i=0; i<list.length; i++) {
+      for (i = 0; i < list.length; i++) {
         if (list[i].type == 'Wired') {
           udpServer.bind(port, list[i].ip_address, function () {
             var address = udpServer.address();
             var p = address.address.split('.');
-            broadcastAddress = p[0]+'.'+p[1]+'.'+p[2]+'.255';
-            
+            broadcastAddress = p[0] + '.' + p[1] + '.' + p[2] + '.255';
+
             console.log('UDP udpServer listening on ' + address.address + ":" + address.port);
             broadcast(broadcastAddress, '{"enq":"TLc"}');
             enqTimer = setTimeout(enqBroadcastCb, 1000); // Allow longer time for initial response
@@ -104,32 +113,42 @@ function init(initDone) {
 }
 
 function checkTLcs(cb) {
-	if (enqBroadcastCb) return; // Already doing it
-	enqBroadcastCb = cb;
-	TLcList.forEach(function (t) {
-		t.online = false;
-	});
-	broadcast(broadcastAddress, '{"enq":"TLc"}');
+  if (enqBroadcastCb) return; // Already doing it
+  enqBroadcastCb = cb;
+  TLcList.forEach(function (t) {
+    t.online = false;
+  });
+  broadcast(broadcastAddress, '{"enq":"TLc"}');
 }
 
-function rqInfo(tlc, info, cb, param) {
+function rqInfo(tlcName, info, cb, param) {
   var options = {
     timeout: 1000,
-    host: getTLc(tlc).IPaddress,
+    host: "",
     port: config.TLc.http_port,
   };
+  if (getTLc(tlcName))
+    options.host = getTLc(tlcName).IPaddress;
+  else {
+    var obj = {
+      error: true,
+      info: `${tlcName} not online`
+    };
+    cb(obj);
+    return;
+  }
 
-  options.path = '/'+info+'?serialNo='+getTLc(tlc).serNo
+  options.path = '/' + info + '?serialNo=' + getTLc(tlcName).serNo
   if (param) {
-    options.path += '&'+param;
+    options.path += '&' + param;
   }
   // console.log("rqInfo: %j", options);
-  var req = http.get(options, function(res) {
+  var req = http.get(options, function (res) {
     var data = '';
-    res.on('data', function(chunk) {
+    res.on('data', function (chunk) {
       data += chunk;
     });
-    res.on('end', function() {
+    res.on('end', function () {
       var obj = {};
       try {
         obj.data = JSON.parse(data); // Must be in try/catch
@@ -137,36 +156,185 @@ function rqInfo(tlc, info, cb, param) {
           obj.error = false;
         } else {
           obj.error = true;
-          obj.info = "Rq returned false, info: "+data;
+          obj.info = `Rq ${info} returned false, info: ${data}`;
           //console.log("rqInfo Error %j, options %j", obj, options);
         }
-      } catch(ex) {
+      } catch (ex) {
         obj.error = true;
-        obj.info = "Bad JSON: "+data;
+        obj.info = "Bad JSON: " + data;
         //console.log("rqInfo catch %s %j", data, options);
       }
       obj.reqInfo = info;
-      obj.tlc = tlc;
+      obj.tlc = tlcName;
       cb(obj);
     });
   });
-  req.on('error', function(e) {
+  req.on('error', function (e) {
     console.log("rqInfo error: %j", e);
-    cb({error: true, info: e.message, reqInfo: info, tl: tlc});
+    cb({ error: true, info: e.message, reqInfo: info, tlc: tlcName });
     if (!enqBroadcastCb) { // No enqBroadcastCb in progress
-		checkTLcs(function() {
-			console.log("Rechecked TLc IP addresses");
-		});
-	}
+      checkTLcs(function () {
+        console.log("Rechecked TLc IP addresses");
+      });
+    }
   });
+}
+
+exports.test = function (request, response) {
+  updateScenes(() => {
+    response.setHeader('Content-Type', 'application/json');
+    response.end(scenes);
+  });
+}
+
+function updateScenes(cb) {
+  let tlcCount = TLcList.length;
+  TLcList.forEach(function (tlc) {
+    // e.g. channels {"ID":5,"AreaID":0,"Name":"Bay green"},
+    // e.g. areas {"ID":1,"Name":"Hall","LastScene":19},
+    // e.g. channelvalues [255,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,255,255,0,255,255,0,255,0,0,0,0,0,255,255,255]
+    const MAXAREAS = 20;
+    const MAXCHANNELS = 50;
+    let areaNames = [];
+    let channels = [];
+    let channelValues = [];
+
+    for (let i = 0; i < MAXAREAS; i++) areaNames.push('-');
+    for (let i = 0; i < MAXCHANNELS; i++) channels.push({});
+
+    const getTLcData = function (url) {
+      return new Promise((resolve, reject) => {
+        rqInfo(tlc.Name, url, (result) => {
+          if (result.error)
+            reject(result.info);
+          else {
+            resolve(result.data);
+          }
+        });
+      });
+    }
+
+    if (tlc.online) {
+      getTLcData('areas')
+        .then(_areas => {
+          _areas.forEach(a => { areaNames[a.ID] = a.Name; });
+          return getTLcData('channelValues');
+        })
+        .then(_values => {
+          channelValues = _values;
+          return getTLcData('channels');
+        })
+        .then(_channels => {
+          _channels.forEach((c) => {
+            channels[c.ID].areaName = areaNames[c.AreaID];
+            channels[c.ID].channelName = c.Name;
+            channels[c.ID].currentValue = channelValues[c.ID];
+          });
+          return getTLcData('scenes');
+        })
+        .then(tlcScenes => {
+          tlcScenes.forEach((scene) => { updateScene(tlc.Name, scene); });
+          return getTLcData('sceneChannels');
+        })
+        .then(tclSceneChannels => {
+          tclSceneChannels.forEach(sc => { updateSceneChannels(tlc.Name, sc); });
+          console.log(scenes.length);
+          if (--tlcCount == 0) {
+            if(cb) cb();
+          }
+        })
+        .catch(e => console.log(e));
+    } else {
+      console.log(`TLc ${tlc.Name} is offline`)
+    }
+
+    // e.g. scenes {"ID":1, "Name": "Reading", "FadeIn":20, "Duration":0, "FadeOut":0, "FadePrev":false, "NextScene":255, "StartTime":"42:30"},
+    function updateScene(tlcName, scene) {
+      if (idx = scenes.findIndex((sc) => { return sc.tlcName == tlcName && scene.ID == sc.ID }) >= 0) {
+        scenes[idx].Name = sc.Name; // That's all that might have changed that nwe want
+      } else {
+        scenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
+      }
+    }
+
+    // e.g. sceneChannels {"SceneID":1,"Channel":{"ID":2,"Max":2,"value":250}}
+    function updateSceneChannels(tlcName, sceneChannel) {
+      try {
+        let sceneIdx = scenes.findIndex(scene => { return scene.tlcName == tlcName && scene.ID == sceneChannel.SceneID });
+        if (sceneIdx >= 0) {
+          // console.log(`updateSceneChannels: %d %j`, sceneIdx, sceneChannel);
+          // Add to scene.channels[] => {ID, targetValue, currentValue, areaName, channelName}
+          let scene = scenes[sceneIdx];
+          // Note sceneChannel has range of channels ID->Max
+          for (let channelID = sceneChannel.Channel.ID; channelID <= sceneChannel.Channel.Max; channelID++) {
+            let sceneChannelIdx = scene.channels.findIndex(channel => { return channel.ID == channelID; });
+            if (sceneChannelIdx >= 0) { // Found exisiting 
+              scene.channels[sceneChannelIdx].targetValue = sceneChannel.Channel.value;
+              scene.channels[sceneChannelIdx].currentValue = channels[channelID].currentValue;
+            } else { // New
+              scene.channels.push({
+                ID: channelID, targetValue: sceneChannel.Channel.value, currentValue: channels[channelID].currentValue,
+                areaName: channels[channelID].areaName, channelName: channels[channelID].channelName
+              });
+            }
+          }
+        } else {
+          console.log(`(${sceneIdx}) Scene inconsistancy tcl: ${tlcName} no scene for ${JSON.stringify(sceneChannel)}`);
+        }
+      } catch (ex) {
+        console.log('Error in updateSceneChannels: ', ex.message)
+      }
+    }
+  });
+}
+
+exports.getAreaChannels = function (areaName, sceneName, cb) {
+  const getTLcData = function (tlcName, url) {
+    return new Promise((resolve, reject) => {
+      rqInfo(tlcName, url, (result) => {
+        if (result.error)
+          reject(result);
+        else {
+          resolve(result);
+        }
+      });
+    });
+  }
+
+  var allTLcChannels = [];
+  var channelInfo = [];
+  TLcList.forEach(function (tlc) {
+    allTLcChannels.push(getTLcData(tlc.Name, 'channelvalues'));
+  });
+
+  Promise.all(allTLcChannels)
+    .then(result => {
+      console.log(result);
+      scenes.forEach(scene => {
+        if (scene.Name == sceneName || sceneName == null) {
+          scene.channels.forEach(channel => {
+            if (channel.areaName == areaName || areaName == null) {
+              channelInfo.push(
+                {tlc: scene.tlcName, scene: scene.Name, channel: channel.channelName, id: channel.ID, 
+                  value: channel.currentValue, target: channel.targetValue});
+            }
+          });
+        }
+      });
+      cb(channelInfo);
+    })
+    .catch(reason => {
+      console.log(reason)
+      cb(reason);
+    });
 }
 
 function control(state) {
   switch (state) {
-  case "Auto":
-  case "Dark":
-  case "Light":
-    controlState = state;
+    case "Auto":
+    case "Dark":
+    case "Light":
+      controlState = state;
   }
 }
 
@@ -178,72 +346,69 @@ function isLight() {
   var times;
   var now = new Date();
   switch (controlState) {
-  case "Auto":
-    times = sunCalc.getTimes(now, config.latitude, config.longitude);
-    if (now >= times.sunset || now <= times.sunrise) {
+    case "Auto":
+      times = sunCalc.getTimes(now, config.latitude, config.longitude);
+      if (now >= times.sunset || now <= times.sunrise) {
+        return false;
+      }
+      return true;
+    case "Dark":
       return false;
-    }
-    return true;
-  case "Dark":
-    return false;
-  case "Light":
-    return true;
+    case "Light":
+      return true;
   }
   return true;
 }
 
-function trigger(tlc, area, channel, state, filter) {
+function trigger(tlcName, area, channel, state, filter) {
   var msg;
   var val = (state == 'on') ? 255 : 0;
   if (filter) {
     if (isLight()) return;
   }
   msg = `{"OSC":["${area}-Fader","${channel}"],"args":[${val}]}`
-  send(tlc, msg);
+  send(tlcName, msg);
 }
 
-function setChannel(tlc, area, channel, val) {
+function setChannel(tlcName, area, channel, val) {
   var msg;
-  if (val<0) val = 0;
-  if (val>255) val = 255;
+  if (val < 0) val = 0;
+  if (val > 255) val = 255;
   msg = `{"OSC":["${area}-Fader","${channel}"],"args":[${val}]}`
-  send(tlc, msg);
+  send(tlcName, msg);
 }
 
-function showScene(tlc, scene) {
-  send(tlc, `{"OSC":["Area-Scene","${scene}"],"args":[1]}`);
+function showScene(tlcName, scene) {
+  send(tlcName, `{"OSC":["Area-Scene","${scene}"],"args":[1]}`);
 };
 
-function refresh(tlc, area, channel, cb) {
-  console.log("refresh: %j %s-%s", tlc, area, channel);
+function refresh(tlcName, area, channel, cb) {
+  console.log("refresh: %j %s-%s", tlcName, area, channel);
   refreshCompleteCb = cb;
-  send(tlc, `{"OSC":["Refresh Fader-${area}","${channel}"],"args":[1]}`);
+  send(tlcName, `{"OSC":["Refresh Fader-${area}","${channel}"],"args":[1]}`);
 };
 
-function send(tlc, str) {
+function send(tlcName, str) {
   var bfr = new Buffer.from(str);
-  var tlcObj = getTLc(tlc)
+  console.log("Send %j ===> %s", tlcName, str);
+  var tlcObj = getTLc(tlcName)
   if (tlcObj) {
-	  var ip tlcObj.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');
-	  console.log("%s=>%s %s", tlc, str, ip);
-	  udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, ip, function(err, bytes) {
-		if (err) {
-		  console.log("tlc send error: %j", err);
-		}
-	  });
+    var ip = tlcObj.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');
+    console.log("%s=>%s %s", tlcName, str, ip);
+    udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, ip, function (err, bytes) {
+      if (err) {
+        console.log("tlc send error: %j", err);
+      }
+    });
   } else {
-	  console.log("TLc %j not online", tlc);
-  }	
+    console.log("TLc %j is not online", tlcName);
+  }
 }
 
-function getTLc(tlc) {
-  var i;
-  for (i=0; i< TLcList.length; i++) {
-    if (TLcList[i].Name == tlc) {
-      return TLcList[i];
-    }
-  }
-  console.log("%j is not defined", tlc);
+function getTLc(tlcName) {
+  tlc = TLcList.find((t) => { return t.Name == tlcName });
+  if (tlc) return tlc;
+  console.log(`*** ${tlcName} is not defined`);
   return undefined;
 }
 

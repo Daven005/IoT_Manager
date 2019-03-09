@@ -8,11 +8,12 @@ tlc_if.init(tlcReady);
 var currentTLc;
 
 exports.testPIR = testPIR;
+exports.test = test;
 exports.showScenes = showScenes;
 exports.setScene = setScene;
 exports.setChannels = setChannels;
 exports.showMobileScenes = showMobileScenes;
-exports.decode = decode;
+exports.decodeMHRV = decodeMHRV;
 exports.areas = areas;
 exports.checkTLcs = checkTLcs;
 exports.setSceneDecode = setSceneDecode;
@@ -30,6 +31,7 @@ const scene = {
     office:   {id: "S4", TLc: "Hollies-L", on: "Office On",   raise: "Office On",  off: "Office Off",  lower:"Office Dim"   },
     toilet:   {id: "S5", TLc: "Hollies-F", on: "Toilet On" ,  raise: "Toilet On",  off: "Toilet Off",  lower: "Toilet Off"  }, 
     utility:  {id: "S6", TLc: "Hollies-F", on: "Utility On",  raise: "Utility On", off: "Utility Off", lower: "Utility Off" }, 
+    garage:   {id: "S7", TLc: "Hollies-G", on: "Bench On",    raise: "Shelves On", off: "All Off",     lower: "Bench Off"   }
 };
 
 function checkTLcs() {
@@ -103,6 +105,10 @@ function testPIR(request, response) {
     }
   }
   reloadPIR(response, {tlcs: tlc_if.list(), state: tlc_if.state()});
+}
+
+function test(request, response) {
+  tlc_if.test(request, response);
 }
 
 function reloadScenes(response, params) {
@@ -274,15 +280,14 @@ function showMobileScenes(request, response) {
   }
 }
 
-function decode(topic, payload) {
-  var topicParts = topic.toString().split("/");
-  switch (topicParts[4]) {
+function decodeMHRV(action, payload) {
+  switch (action) {
   case "Toilet Light PIR On":
-    console.log("%j => %s", topicParts, payload);
+    console.log("%j => %s", action, payload);
     tlc_if.trigger('Hollies-F', 'Toilet', 'Toilet', (payload=='1') ? 'on' : 'off', true);
     break;
   case "Utility Light PIR On":  
-    console.log("%j => %s", topicParts, payload);
+    console.log("%j => %s", action, payload);
     tlc_if.trigger('Hollies-F', 'Utility', 'Utility', (payload=='1') ? 'on' : 'off', false);
     break;
   }
@@ -378,6 +383,10 @@ function areas(request, response) {
       reloadAreas(response, 'areas');
     }
   }
+}
+
+exports.areaChannels = function(request, response) {
+
 }
 
 function getLightingChannel(request, response) {

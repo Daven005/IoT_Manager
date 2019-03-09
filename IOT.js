@@ -111,7 +111,7 @@ function consoleIn(d) {
 }
   
 app.set('views', './views');
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 app.use(express.static(__dirname));
 app.use('views', express.static(path.join(__dirname, '/views')));
 app.use(bodyParser.json()); // support json encoded bodies
@@ -130,7 +130,7 @@ app.use(session({
 }));
   
 app_mobile.set('views', './views');
-app_mobile.set('view engine', 'jade');
+app_mobile.set('view engine', 'pug');
 app_mobile.use(express.static(__dirname));
 app_mobile.use('views', express.static(path.join(__dirname, '/views')));
 app_mobile.use(bodyParser.json()); // support json encoded bodies
@@ -161,7 +161,7 @@ client.subscribe('/Raw/#');
 client.publish('/Raw/Hollies000000/info', '{"Name": "Weather", "Location": "Outside"}');
 
 var processHeating = require('./processHeating');
-processHeating.load(true);
+processHeating.load();
 console.log("Heating started");
 setInterval(processHeating.check, 1*60*990); // Just under 1 minute
 
@@ -182,7 +182,7 @@ monitor.checkNetwork();
 setInterval(monitor.checkNetwork, 5*60*1000);
 
 var message = require('./message'); // Decode MQTT messages
-client.on('message', message.decode);
+client.on('message', message.decodeMessage);
 
 app.use(express.static(path.join(__dirname + 'public'))); //Serves resources from public folder
 var graph = require('./graph');
@@ -270,7 +270,9 @@ app.get('/tlc/setScene', tlc.setScene);
 app.post('/tlc/setChannels', tlc.setChannels);
 app_mobile.get('/tlc/scenes', tlc.showMobileScenes);
 app.get('/tlc/areas', tlc.areas);
+app.get('/tlc/areaChannels', tlc.areaChannels);
 app.get('/tlc/info', tlc.info);
+app.get('/tlc/test', tlc.test);
 
 app.post('/hollies/setScene', tlc.setSceneDecode);
 app.post('/hollies/getZoneInfo', heating.zoneInfoByName);
@@ -305,6 +307,8 @@ app.get("/", defaultPage);
 app.get("/index*", defaultPage);;
 app.get("/default*", defaultPage);
 app_mobile.get("/", defaultMobilePage);
+
+app.get ("/SystemCheck", (request, response) => { response.end("OK");});
 
 function defaultPage(request, response) {
   response.render("intro", {loggedIn: request.loggedIn});

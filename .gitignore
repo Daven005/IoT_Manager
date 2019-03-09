@@ -1,5 +1,5 @@
 pi-config.js
 jquery*
 jtsage*
-node_modules/*
+node_modules/
 

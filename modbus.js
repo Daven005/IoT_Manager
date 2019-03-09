@@ -188,33 +188,38 @@ function startModbus() {
 
 	modbusClient.on('data', function(data){
 	  //console.log(data);
-	  var resp = responseCommonInverter.fields;
-	  responseCommonInverter._setBuff(data);
-	  switch (resp.transID & 0xff) {
-	  case RQ_COMMON_INVERTER:
-		inverterInfo = makeInfoString(resp);
-		rqModbus(registerStartMeterCommon, RQ_COMMON_METER, 70);
-		break;
-	  case RQ_COMMON_METER:
-		resp = responseCommonMeter.fields
-		responseCommonMeter._setBuff(data);
-		meterInfo = makeInfoString(resp);
-		rqData();
-		break;
-	  case RQ_DATA_INVERTER:
-		if (transaction == (resp.transID >> 8)) {
-		  inverterData = decodeInverterData(data);
-		  printData("Inverter", inverterData);
-		} else {
-		  console.log("Duplicate transaction %d:%d", resp.transID & 8, resp.transID >> 8);
-		}
-		break;
-	  case RQ_DATA_METER:
-		meterData = decodeMeterData(data);
-		break;
-	  default:
-		console.log("?? %d", resp.transID);
-	  }
+	  try {
+  	  var resp = responseCommonInverter.fields;
+  	  responseCommonInverter._setBuff(data);
+  	  switch (resp.transID & 0xff) {
+  	  case RQ_COMMON_INVERTER:
+  		inverterInfo = makeInfoString(resp);
+  		rqModbus(registerStartMeterCommon, RQ_COMMON_METER, 70);
+  		break;
+  	  case RQ_COMMON_METER:
+  		resp = responseCommonMeter.fields
+  		responseCommonMeter._setBuff(data);
+  		meterInfo = makeInfoString(resp);
+  		rqData();
+  		break;
+  	  case RQ_DATA_INVERTER:
+  		if (transaction == (resp.transID >> 8)) {
+  		  inverterData = decodeInverterData(data);
+  		  printData("Inverter", inverterData);
+  		} else {
+  		  console.log("Duplicate transaction %d:%d", resp.transID & 8, resp.transID >> 8);
+  		}
+  		break;
+  	  case RQ_DATA_METER:
+  		meterData = decodeMeterData(data);
+  		break;
+  	  default:
+  		console.log("Modbus transID?? %d", resp.transID);
+  	  }
+    } catch(ex) {
+      console.log("Modbus Struct error %s", ex.message);
+      console.log(data);
+    }
 	});
 
 	modbusClient.on('error', function(err){

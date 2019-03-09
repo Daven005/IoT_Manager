@@ -2,20 +2,19 @@
 var zones = [];
 var overrides = [];
 
+exports.allZones = function() { return zones;}
+exports .allOverrides = function() {return overrides;}
+
 exports.load = load;
 
-function load(doCheck) { // doCheck after loading is complete
-  var errorStr = "";
+function load(callback) {
   var sqlstr = "SELECT * FROM heatingzones"
   db.query(sqlstr, function(err, result) {
     if (err) {
-      console.log(err);
-      console.log(sqlstr);
-      errorStr = err.message;
-      result = [];
+      console.log(errorStr = err.message); result = [];
     }
     zones = [];
-    result.forEach(function(r) {
+    result.forEach((r) => {
       r.overrideOn = false;
       r.demand = false;
       r.programme = [];
@@ -24,30 +23,19 @@ function load(doCheck) { // doCheck after loading is complete
     sqlstr = "SELECT * FROM heatingprogrammes ORDER BY days, start DESC"
     db.query(sqlstr, function(err, result) {
       if (err) {
-        console.log(err);
-        console.log(sqlstr);
-        errorStr = err.message;
-        result = [];
+        console.log(errorStr = err.message); result = [];
       }
-      result.forEach(function(r) {
-        zones[r.zoneID].programme.push(r);
-      });
-      // console.log("Heating zones: %j", zones);
-      sqlstr = "SELECT * FROM heatingoverrides"
+      result.forEach((r) => zones[r.zoneID].programme.push(r));
+      sqlstr = "SELECT * FROM heatingoverrides ORDER BY priority DESC"
       db.query(sqlstr, function(err, result) {
         if (err) {
-          console.log(err);
-          console.log(sqlstr);
-          result = [];
+          console.log(errorStr = err.message); result = [];
         }
         overrides = [];
-        result.forEach(function(r) {
-          overrides[r.ID] = r;
-        });
-        if (doCheck) {
-          // console.log("O->%j", overrides);
-          check();
-        }
+        result.forEach((r) => overrides.push(r));
+        check(callback);
+        // console.log("Heating zones: %j", zones);
+        // console.log("O->%j", overrides);
       });
     });
   });
@@ -86,8 +74,11 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
         checkZoneHeat(z, new Date(dateStr+" 23:59:00"), dateStr, previousDow);
     } else {
       var currentTemperature = deviceState.getLatestTemperature(z.TemperatureDeviceID, z.TemperatureSensorID);
-      overrides.forEach(checkOverrides);
+      var overrideName = null;
+      overrides.forEach(checkOverride);
+      z.overrideName = overrideName;
       z.demand = (currentTemperature < targetTemp);
+      // console.log(`----> ${targetTemp}`);
       z.targetTemp = targetTemp;
     }
     return;
@@ -108,19 +99,21 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
       }
     }
     
-    function checkOverrides(o) {
+    function checkOverride(o) { // NB this is called with highest priority override first
       if (o.zoneID == z.ID) {
+        if (!overrideName) z.overrideID = o.ID; // Make sure lower priority overrides don't change the overrideID
         if (o.active) {
-          if (log) console.log("override: %j", o);
           if (checkOverrideWithinTime()) {
-            targetTemp = o.temperature;
-            z.overrideOn = true;
+            if (!overrideName) { // Not already found a higher prority override
+              targetTemp = o.temperature;
+              z.overrideOn = true;
+              overrideName = o.Name;
+            }
           } else {
             z.overrideOn = false;
             if (!o.dontClear && checkOverrideAfterEnd()) {
               o.active = false;
               clearActive(o.ID); // In case of restart
-              console.log("Override %d Active flag cleared", o.ID);
             }
           }
         }
@@ -134,14 +127,14 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
       function checkOverrideWithinTime() {
         var start = new Date(dateStr + ' ' + o.start);
         var duration = getDuration();
-        if (duration == 0 || duration >= (24*60-1)*60*1000) return true; // 00:00 or 23:59
+        if (duration >= (24*60)*60*1000) return true; // 00:00 or 23:59
         return (start <= timeNow && timeNow <= (start.getTime()+duration));
       }
       
       function checkOverrideAfterEnd() {
         var start = new Date(dateStr + ' ' + o.start);
         var duration = getDuration();
-        if (duration == 0 || duration >= (24*60-1)*60*1000) return true; // 00:00 or 23:59
+        if (duration >= (24*60)*60*1000) return true; // 00:00 or 23:59
         return timeNow >= (start.getTime()+duration);
       }
     }
@@ -174,10 +167,11 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
 
 exports.check = check;
 
-function check(t) {
+function check(callback, t) {
   var info = {dow:0,  prevDow:0,  nextDow:0,  timeNow:0,  dateStr:""};
   calcDates(t, info);
   checkZonesHeat(info.timeNow, info.dateStr, info.dow, info.previousDow, (typeof t != 'undefined'));
+  if (callback) callback();
 }
 
 exports.setOutput = setHeatingOutput;
@@ -192,7 +186,7 @@ function setHeatingOutput(Device, Sensor, demand) {
 	}
 	topic = `/Raw/${Device}/${Sensor}/set/output`;
     //console.log("Heating %s %j", topic, demand);
-    if (config.boiler.enabled) {
+  if (config.boiler.enabled) {
 		client.publish(topic, (demand) ? '1' : '0');
 	} else {
 		console.log("Heating: %s->%j", topic, demand);
@@ -200,15 +194,16 @@ function setHeatingOutput(Device, Sensor, demand) {
 }
 
 exports.test = function(request, response) {
+  var obj;
   console.log("Action %s Command: %s", request.query.action, request.query.command);
   switch (request.query.action) {
   case 'devices':
 	console.log(deviceState.show());
   case "load":
-    load(false);
+    load();
     break;
   case "zones":
-    console.log("Zones %j", zones);
+    console.log("Zones %j", obj = zones);
     break;
   case "overrides":
     var idx;
@@ -218,17 +213,19 @@ exports.test = function(request, response) {
         console.log("%j", overrides[idx]);
       }
     }
+    obj = overrides;
     break;
   default:
-    check(request.query.command);
+    check(null, request.query.command);
   }
-  response.render("testHeating", {});
+  response.render("testHeating", {show: obj});
 }
 
 exports.zoneDemand = zoneDemand;
 exports.zoneTargetTemp = zoneTargetTemp;
 exports.zoneCurrentTemp = zoneCurrentTemp;
 exports.zoneOverrideOn = zoneOverrideOn;
+exports.zoneOverrideName = zoneOverrideName;
 
 function zoneDemand(id) {
   if (zones[id])
@@ -251,8 +248,12 @@ function zoneTargetTemp(id) {
   return zones[id].targetTemp;
 }
 
-function zoneOverrideOn(id, name) { // Set when ANY override is active for this zone
+function zoneOverrideOn(id) { // Set when ANY override is active for this zone
   return zones[id].overrideOn;
+}
+
+function zoneOverrideName(id) { 
+  return zones[id].overrideName;
 }
 
 exports.zoneInfoByName = function(name, callback) {

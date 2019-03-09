@@ -31,6 +31,7 @@ body
       thead
         tr
           th Name
+          th Priority
           th Zone
           th Temp
           th Day
@@ -46,6 +47,8 @@ body
               - var c = setHue(map[i].TemperatureMin, map[i].TemperatureMax, map[i].temperature);
               td
                 input(type="text" name="Name" value=map[i].oName size="8")
+              td
+                input(type="text" name="priority" value=map[i].priority size="2")
               td#zoneName_td
                 div.name#zoneName #{map[i].zoneName}
                 input(type="hidden" id="zoneID" name="zoneID" value=map[i].zoneID)
@@ -86,6 +89,7 @@ body
       thead
         tr
           th Name
+          th Priority
           th Temp
           th Day
           th Start
@@ -99,6 +103,8 @@ body
               td
                 | #{group[i].name}
                 input(type="hidden" name="Name" value=group[i].name size="8")
+              td
+                input(type="text" name="priority" value=group[i].priority size="2")
               td
                 input(type="text" name="temperature" value=group[i].temperature size="2")
               td

@@ -1,0 +1,78 @@
+{
+"database": {
+	"host": "localhost",
+	"user":"iot",
+	"password":"josh16",
+	"database":"iot"
+},
+"login": {
+	"user": "admin1",
+	"pwd": "j123"
+},
+"modbus": {
+	"ip_address": "SolarEdge.hollies.net",
+	"port": 502,
+	"enabled": false
+},
+"pingAddresses": ["192.168.1.1", "192.168.1.2", "192.168.1.3", "192.168.1.4", "192.168.1.5", "google.com"],
+"TLc": {
+	"udp_port": 9071,
+	"http_port": 9073,
+	"list": [ 
+		{"Name": "Hollies-F", "serNo": "2810eb3e040000", "online": false, "Location": "Family"},
+		{"Name": "Hollies-L", "serNo": "28f34bb6040000", "online": false, "Location": "Lounge"},
+		{"Name": "Hollies-G", "serNo": "28ffd928681402", "online": false, "Location": "Garage"} 
+	]
+},
+"latitude": 50.82656702724442,
+"longitude": -1.340523851589267,
+"forecastIoAPI": "d96112f3c0445ea90a5b675d4872fde6",
+"browser": {
+	"mobilePort": 8091,
+	"desktopPort": 8090
+},
+"mqtt": {
+	"host":"mqtt:localhost",
+	"protocolVersion": 3,
+	"protocolId":"MQIsdp"
+},
+"pond": {
+	"controllerName": "Pond Relay Controller",
+	"controllerLocation": "Outside",
+	"enabled": true
+},
+"boiler": {
+	"controllerName": "Boiler Control",
+	"controllerLocation": "Boiler Rm",
+	"relaysName": "Boiler Relays",
+	"relaysLocation": "Boiler Rm",
+	"enabled": true	
+},
+"gate": {
+	"controllerName": "gate sensor",
+	"controllerLocation": "Outside",
+	"enabled": false	
+},
+"woodburner": {
+	"WBtopName": "Woodburner Top",
+	"WBtopDevice": "Temperature Monitor",
+	"WBtopLocation": "Lounge",
+	"TSbottomName": "TS Bottom",
+	"TSbottomDevice": "Boiler Control",
+	"TSbottomLocation": "Boiler Rm",
+	"supplyLocation": "Boiler Rm",
+	"supplyName": "Boiler Relays",
+	"supplyOp": "WB Supply",
+	"overheatOn": 84.0,
+	"overheatOff": 80.0,
+	"supplyOn": 60.0,
+	"supplyOff": 45.0,
+	"enabled": true	
+},
+"watering": {
+	"controllerLocation": "Outside",
+	"controllerName": "Watering Controller",
+	"likelyRainfall": 0.1,
+	"enabled": true
+}
+}

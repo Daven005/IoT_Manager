@@ -522,21 +522,21 @@ function reloadZones(zone, request, response, render) {
           console.log(sqlstr);
           errorStr += err.message;
           resultp = [];
-	}
-       resultp.push({days:10, Name: 'Anyday', Start: '12:00:00', Temperature: 21, preset: false, Action: 'Add Programme'});
-       respond({map: result, programme: resultp, zone: {ID: zone, name: zoneName, row: zoneRow}, err: errorStr});
-     });
+        }
+        resultp.push({ days: 10, Name: 'Anyday', Start: '12:00:00', Temperature: 21, preset: false, Action: 'Add Programme' });
+        respond({ map: result, programme: resultp, zone: { ID: zone, name: zoneName, row: zoneRow }, err: errorStr });
+      });
     } else {
       respond({ map: result, err: errorStr });
     }
- })
+  });
 }
 
-exports.zonesInfo = function(request, response) {
+exports.zonesInfo = function (request, response) {
   reloadZones(request.query.zoneID, request, response, 'json');
 }
 
-exports.zoneInfoByName = function(request, response) {
+exports.zoneInfoByName = function (request, response) {
   function gotInfo(info) {
     response.setHeader('Content-Type', 'application/json');
     if (info.err != "OK") response.status(400);

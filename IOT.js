@@ -182,7 +182,7 @@ monitor.checkNetwork();
 setInterval(monitor.checkNetwork, 5*60*1000);
 
 var message = require('./message'); // Decode MQTT messages
-client.on('message', message.decodeMessage);
+client.on('message', message.decode);
 
 app.use(express.static(path.join(__dirname + 'public'))); //Serves resources from public folder
 var graph = require('./graph');

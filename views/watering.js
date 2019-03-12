@@ -12,7 +12,7 @@ function reload() {
 		},
 		error: function(x, error, txt) {
 			var idx;
-			alert(txt);
+			alert(`Reload error: '${txt}'`);
 			for (idx=0; idx<4; idx++) addZone({}, idx);
 		}
 	});
@@ -42,7 +42,7 @@ function getOutputs() {
 			});
 		},
 		error: function(x, error, txt) {
-			alert(txt);
+			alert(`Update error: '${txt}'`);
 		}
 	});
 }
@@ -152,7 +152,7 @@ function updateBtn() {
 		dataType: "json/text",
 		contentType: "application/json",
 		complete: function(data, status) {
-			if (data.responseText != 'OK') alert(data.responseText);
+			if (data.responseText != 'OK') alert(`Bad response: '${data.responseText}'`);
  			reload();
    }
   });
@@ -163,7 +163,7 @@ function restoreBtn() {
 		url : "/Watering/restore",
 		type: "get",
 		complete: function(data, status) {
-			alert(data.responseText);
+			alert(`restoreBtn Bad response: '${data.responseText}'`);
  			reload();
 		}
   });

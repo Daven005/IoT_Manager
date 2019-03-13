@@ -1,0 +1,38 @@
+127.0.0.1	localhost:1 localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
+
+# Allow for fallback IoT Manager
+# iot is the working system, iot_bak the fallback system
+# Each system is either iot1 or iot2
+# It assumes that dhcdcp.conf has:
+#   hostname iot1/2
+#   static ip for working system as 192.168.1.100
+#   static ip for fallack system as 192.168.1.110
+
+127.0.0.1	iot1
+
+# These are the settings for the working system (iot1)
+#192.168.1.100   iot iot1
+#192.168.1.110   iot_bak iot2
+
+# These are the settings for the fallback system (iot1)
+192.168.1.100   iot iot2
+192.168.1.110   iot_bak iot1
+
+# Other Devices
+192.168.1.50	HP_printer
+192.168.1.99	IP_camera
+
+# WiFi Access Points
+192.168.1.1	EE-berry
+192.168.1.2	EE-berry-ex2
+192.168.1.3	EE-berry-G2
+192.168.1.4	EE-berry-ex4
+192.168.1.5	EE-berry-ex5
+
+# TLcs
+192.168.1.81    Hollies-L
+192.168.1.82    Hollies-F
+192.168.1.83    Hollies-G
+

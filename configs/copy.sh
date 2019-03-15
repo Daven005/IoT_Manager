@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 if [ -z "$1" ]; then
 echo "Usage: copy <wkg || fbk> <1 || 2> [all]"
 exit
@@ -15,6 +15,7 @@ if [ "$1" = "wkg" ] || [ "$1" = "fbk" ] ; then
         cp $C/hostname.$2 /etc/hostname
         cp $C/dnsmasq.$1.conf /etc/dnsmasq.conf
         cp $C/dhcpcd.$1.$2.conf /etc/dhcpcd.conf
+        cp $C/mosquitto.bridge.$1.conf /etc/mosquitton.conf.d
     else
         ERR="Bad IOT ($2) Should be 1 or 2"
     fi
@@ -36,6 +37,12 @@ if [ "$3" = "all" ] ; then
     cp $C/monitrc /etc/monit
     cp $C/mosquitto.conf /etc/mosquitto
 fi
-hostname -I
-hostname -A
+if [ "$4" = "reboot" ] ; then
+    reboot
+elif [ "$4" = "shutdown" ] ; then
+    shutdown now
+else
+    hostname -I
+    hostname -A
+fi
 exit

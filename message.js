@@ -4,6 +4,7 @@ var heating = require('./heating');
 var woodburner = require('./woodburner');
 var pond = require('./pond');
 var watering = require('./watering');
+var tlc = require('./tlc');
 
 function processValues(values) {
   try {
@@ -299,7 +300,7 @@ function processRawDeviceMessage(topicParts, payload) {
 		}
 	}
   } catch (ex) {
-    console.log("processRawDeviceMessage error: %j, topic %j, payload %s", ex, topicParts, payload);
+    console.log("processRawDeviceMessage error: %j, topic %j, payload %s", ex.message, topicParts, payload);
   }
 }
 
@@ -387,7 +388,7 @@ function publishAppInfo(DeviceID, SensorID, Value) {
           client.publish(topic, Value.toString());
           return result[0].SensorName;
         } catch (ex) {
-          console.log("Raw sensor error %s (DeviceID %s, SensorID %s, Value %j", ex, DeviceID, SensorID, Value);
+          console.log("Raw sensor error %s (DeviceID %s, SensorID %s, Value %j", ex.message, DeviceID, SensorID, Value);
         }
       }
    });
@@ -484,7 +485,7 @@ function processRawSensorMessage(topicParts, payload) {
     values.SensorID = topicParts[3];
     processSensorValues(values, val); 
   } catch(ex) {
-    console.log("processRawSensorMessage error: %j. Topic %j, Payload %j", ex, topicParts, payload);
+    console.log("processRawSensorMessage error: %j. Topic %j, Payload %j", ex.message, topicParts, payload);
   }
 }
 
@@ -523,7 +524,7 @@ function processDeviceResetMessage(values) {
         time.publish();
         weather.publish();
       } catch (ex) {
-        console.log("Reset problem %j values %j result %j", ex, values, result);
+        console.log("Reset problem %j values %j result %j", ex.message, values, result);
       }
     }
   });
@@ -539,7 +540,7 @@ function decodeMessage(topic, payload) {
         break;
       default:
         if (topicParts[3] == 'MHRV') {
-          tlc.decode(topic, payload);
+          tlc.decodeMHRV(topic, payload);
         }
         processAppMessage(topicParts, payload);
       }
@@ -564,7 +565,7 @@ function decodeMessage(topic, payload) {
       console.log('Unknown Topic: '+topic.toString());
     }
   } catch (ex) {
-    console.log('Decode Message error: %j topic: %j payload: %j', ex, topic, payload);
+    console.log('Decode Message error: %j topic: %j payload: %j', ex.message, topic, payload);
   }
 }
 exports.decode = decodeMessage;

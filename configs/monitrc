@@ -149,7 +149,7 @@
 ## commands to a running Monit daemon. See the Monit Wiki if you want to
 ## enable SSL for the HTTP interface.
 #
- set httpd port 2812
+ set httpd port 2812 and
      use address localhost        # only accept connection from localhost
      use address 0.0.0.0
      allow localhost
@@ -296,7 +296,7 @@
     if failed ping for 3 cycles then exec /home/iot/monit/pushbullet.sh
 #
   check host EE-berry-ex5 with address 192.168.1.5
-    if failed ping for 3 cycles then exec /home/iot/monit/pushbullet.sh
+    if failed ping for 5 cycles then exec /home/iot/monit/pushbullet.sh
 #
   check host Hollies-L with address 192.168.1.81
     if failed ping for 3 cycles then exec /home/iot/monit/pushbullet.sh

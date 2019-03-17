@@ -1,5 +1,4 @@
 pi-config.js
-jquery*
-jtsage*
+pi-config.json
 node_modules/
-
+/.gitattributes

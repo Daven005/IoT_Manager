@@ -8,7 +8,7 @@ function read(cb) {
 	cfg.loaded = true;
 	if (cb) cb(cfg);
   } catch (ex) {
-    console.log("Error reading %s %j", process.env.CONFIG, ex);
+    console.log("Error reading %s %j", process.env.CONFIG, ex.message);
   }
 }
 

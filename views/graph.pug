@@ -101,7 +101,7 @@ body
                     each val, k in settings.selectedRows
                       if val.DeviceID == sensors[i].DeviceID && val.SensorID == sensors[i].SensorID
                         - isChecked = true
-                    input(type="checkbox" name="row-#{sensors[i].DeviceID}/#{sensors[i].SensorID}" checked=isChecked)
+                    input(type="checkbox" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}` checked=isChecked)
                 - idx++
         div.left
           h3 Date

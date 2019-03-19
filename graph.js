@@ -125,6 +125,7 @@ function checkGraphSettings(graph, request, response) {
     options.sensorIDs = JSON.stringify(graphSensorIDs);
     options.data = JSON.stringify(_data);
     options.err = errorStr;
+    // console.log(JSON.stringify(options.data));
     checkSaveFile();
     response.render('graph', options);
   }
@@ -134,7 +135,8 @@ function checkGraphSettings(graph, request, response) {
 
   if (request.query.Action == "Select") {
     options.settings.selectedRows = [];
-    Object.keys(request.query).forEach(function(key) {
+    // console.log(request.query);
+    Object.keys(request.query).forEach((key) => {
        if (key.indexOf('row-') == 0) {
         selection = key.slice(4).split('/');
         options.settings.selectedRows.push({"DeviceID": selection[0], "SensorID":selection[1]});
@@ -153,7 +155,7 @@ function checkGraphSettings(graph, request, response) {
     sensorSelected = options.settings.selectedRows.length > 0;
   else
     sensorSelected = false;
-  // console.log(graph.selection, options.settings.date, options.settings.duration);
+  // console.log("===>", graph.selection, options.settings.date, options.settings.duration);
   if (sensorSelected && options.settings.date && options.settings.duration) {
     var sqlstr =
       "SELECT DeviceID, SensorID, DATE_FORMAT(time, '%Y/%m/%d %H:%i:%s') AS Time, value "+

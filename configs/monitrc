@@ -169,7 +169,7 @@
     if loadavg (5min) > 3 then exec /home/iot/monit/pushbullet.sh
     if cpu usage > 95% for 10 cycles then exec /home/iot/monit/pushbullet.sh
     if memory usage > 85% then exec /home/iot/monit/pushbullet.sh
-    if swap usage > 25% then exec /home/iot/monit/pushbullet.sh
+    if swap usage > 75% then exec /home/iot/monit/pushbullet.sh
 #
 #
 ## Check if a file exists, checksum, permissions, uid and gid. In addition

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 if [ -z "$1" ]; then
 echo "Usage: copy <wkg || fbk> <1 || 2> [all]"
 exit
@@ -28,7 +28,6 @@ if [ "$ERR" != "-" ] ; then
     exit 1
 fi
 if [ "$3" = "all" ] ; then
-    cp $C/dnsmasq.conf /etc
     cp $C/dnsmasq.blacklist.conf /etc/dnsmasq.d
     cp $C/dnsmasq.sethost.conf /etc/dnsmasq.d
     cp $C/50-server.cnf /etc/mysql/mariadb.conf.d
@@ -36,6 +35,8 @@ if [ "$3" = "all" ] ; then
     cp $C/smb.conf /etc/samba
     cp $C/monitrc /etc/monit
     cp $C/mosquitto.conf /etc/mosquitto
+    cp $C/dphys-swapfile /etc
+    cp $C/node-red/settings.js /home/iot/.nodered
 fi
 if [ "$4" = "reboot" ] ; then
     reboot

@@ -281,7 +281,7 @@ function showMobileScenes(request, response) {
 }
 
 function decodeMHRV(action, payload) {
-  switch (action) {
+  console.log(action);  switch (action) {
   case "Toilet Light PIR On":
     console.log("%j => %s", action, payload);
     tlc_if.trigger('Hollies-F', 'Toilet', 'Toilet', (payload=='1') ? 'on' : 'off', true);
@@ -497,12 +497,11 @@ function info(request, response) {
   function tlcsResponded() {
     response.render('TLcInfo', {map: tlc_if.list()});
   }
-  function errorClearCb() {
-    tlc_if.checkTLcs(tlcsResponded);
-  }
-  
+   
+  setTimeout(() => response.render('TLcInfo', {err: "Timed Out", map: tlc_if.list()}), 5000);
+
   if (request.query.action == 'Clear') {
-    tlc_if.rqInfo(request.query.tlc, 'errors', errorClearCb, 'Clear=1');
+    tlc_if.rqInfo(request.query.tlc, 'errors', () => tlc_if.checkTLcs(tlcsResponded), 'Clear=1');
   } else {
     tlc_if.checkTLcs(tlcsResponded);
   }

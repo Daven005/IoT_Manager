@@ -39,7 +39,7 @@ function enqTimeoutCb() {
     console.log(`TLcs: ${JSON.stringify(TLcList, null, 2)}`)
     updateScenes(enqBroadcastCb);
     // enqBroadcastCb();
-    // enqBroadcastCb = null;
+    enqBroadcastCb = null;
   }
 }
 
@@ -113,7 +113,10 @@ function init(initDone) {
 }
 
 function checkTLcs(cb) {
-  if (enqBroadcastCb) return; // Already doing it
+  if (enqBroadcastCb) {
+    console.log("checkTLcs, enq in progress");
+    return; // Already doing it
+  }
   enqBroadcastCb = cb;
   TLcList.forEach(function (t) {
     t.online = false;
@@ -176,6 +179,8 @@ function rqInfo(tlcName, info, cb, param) {
       checkTLcs(function () {
         console.log("Rechecked TLc IP addresses");
       });
+    } else {
+      console.log("rqInfo enqBroadcast in progress");
     }
   });
 }
@@ -233,7 +238,11 @@ function updateScenes(cb) {
           return getTLcData('scenes');
         })
         .then(tlcScenes => {
-          tlcScenes.forEach((scene) => { updateScene(tlc.Name, scene); });
+          if (tlcScenes.length > 0) {
+            tlcScenes.forEach((scene) => { updateScene(tlc.Name, scene); });
+          } else {
+            console.log(`No scenes from ${tlc.Name}`);
+          }
           return getTLcData('sceneChannels');
         })
         .then(tclSceneChannels => {
@@ -250,8 +259,9 @@ function updateScenes(cb) {
 
     // e.g. scenes {"ID":1, "Name": "Reading", "FadeIn":20, "Duration":0, "FadeOut":0, "FadePrev":false, "NextScene":255, "StartTime":"42:30"},
     function updateScene(tlcName, scene) {
-      if (idx = scenes.findIndex((sc) => { return sc.tlcName == tlcName && scene.ID == sc.ID }) >= 0) {
-        scenes[idx].Name = sc.Name; // That's all that might have changed that nwe want
+      let idx = scenes.findIndex((sc) => { return sc.tlcName == tlcName && scene.ID == sc.ID });
+      if (idx >= 0) {
+        scenes[idx].Name = scene.Name; // That's all that might have changed that we want
       } else {
         scenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
       }

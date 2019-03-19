@@ -540,7 +540,7 @@ function decodeMessage(topic, payload) {
         break;
       default:
         if (topicParts[3] == 'MHRV') {
-          tlc.decodeMHRV(topic, payload);
+          tlc.decodeMHRV(topicParts[4], payload); // Only pass 'action'
         }
         processAppMessage(topicParts, payload);
       }

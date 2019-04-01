@@ -385,8 +385,18 @@ function areas(request, response) {
   }
 }
 
-exports.areaChannels = function(request, response) {
+exports.sceneAreaChannels = function(request, response) {
+  tlc_if.getSceneAreaChannels(request.query.area, request.query.scene, (result) => {
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify(result));
+  });
+}
 
+exports.areaChannels = function(request, response) {
+  tlc_if.getAreaChannels(request.query.area, (result) => {
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify(result));
+  });
 }
 
 function getLightingChannel(request, response) {

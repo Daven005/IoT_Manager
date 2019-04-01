@@ -270,6 +270,7 @@ app.get('/tlc/setScene', tlc.setScene);
 app.post('/tlc/setChannels', tlc.setChannels);
 app_mobile.get('/tlc/scenes', tlc.showMobileScenes);
 app.get('/tlc/areas', tlc.areas);
+app.get('/tlc/sceneAreaChannels', tlc.sceneAreaChannels);
 app.get('/tlc/areaChannels', tlc.areaChannels);
 app.get('/tlc/info', tlc.info);
 app.get('/tlc/test', tlc.test);

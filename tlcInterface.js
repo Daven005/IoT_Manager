@@ -5,7 +5,9 @@ var http = require('http');
 
 var udpServer = dgram.createSocket('udp4');
 var TLcList = config.TLc.list;
-var scenes = [];
+var allScenes = [];
+var allChannels = [];
+var areaChannels = [];
 
 var enqTimer = null;
 var enqBroadcastCb = null;
@@ -44,9 +46,12 @@ function enqTimeoutCb() {
 }
 
 function udpServerMessageFunc(message, remote) {
-  var response = JSON.parse(message);
-  console.log("UDP msg: %j", response);
-  if (response.TLc) {
+  try {
+    var response = JSON.parse(message);
+  } catch(ex) {
+    console.log("UDP msg: %j %s", response, ex.message);
+  }
+    if (response.TLc) {
     var tlc = getTLc(response.TLc);
     if (tlc) {
       tlc.IPaddress = response.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');;
@@ -145,7 +150,6 @@ function rqInfo(tlcName, info, cb, param) {
   if (param) {
     options.path += '&' + param;
   }
-  // console.log("rqInfo: %j", options);
   var req = http.get(options, function (res) {
     var data = '';
     res.on('data', function (chunk) {
@@ -160,12 +164,10 @@ function rqInfo(tlcName, info, cb, param) {
         } else {
           obj.error = true;
           obj.info = `Rq ${info} returned false, info: ${data}`;
-          //console.log("rqInfo Error %j, options %j", obj, options);
         }
       } catch (ex) {
         obj.error = true;
         obj.info = "Bad JSON: " + data;
-        //console.log("rqInfo catch %s %j", data, options);
       }
       obj.reqInfo = info;
       obj.tlc = tlcName;
@@ -188,12 +190,20 @@ function rqInfo(tlcName, info, cb, param) {
 exports.test = function (request, response) {
   updateScenes(() => {
     response.setHeader('Content-Type', 'application/json');
-    response.end(scenes);
+    response.end(allScenes);
   });
+}
+
+function getChannel(tlcName, channelID) {
+  var chnl= allChannels.find(channel => { 
+    return channel.tlcName == tlcName && channel.id == channelID;
+  });
+  return chnl;
 }
 
 function updateScenes(cb) {
   let tlcCount = TLcList.length;
+  allChannels = [];
   TLcList.forEach(function (tlc) {
     // e.g. channels {"ID":5,"AreaID":0,"Name":"Bay green"},
     // e.g. areas {"ID":1,"Name":"Hall","LastScene":19},
@@ -205,7 +215,6 @@ function updateScenes(cb) {
     let channelValues = [];
 
     for (let i = 0; i < MAXAREAS; i++) areaNames.push('-');
-    for (let i = 0; i < MAXCHANNELS; i++) channels.push({});
 
     const getTLcData = function (url) {
       return new Promise((resolve, reject) => {
@@ -231,10 +240,9 @@ function updateScenes(cb) {
         })
         .then(_channels => {
           _channels.forEach((c) => {
-            channels[c.ID].areaName = areaNames[c.AreaID];
-            channels[c.ID].channelName = c.Name;
-            channels[c.ID].currentValue = channelValues[c.ID];
+            channels.push({id: c.ID, name: c.Name, tlcName: tlc.Name, areaName: areaNames[c.AreaID], currentValue: channelValues[c.ID]});
           });
+          Array.prototype.push.apply(allChannels, channels);
           return getTLcData('scenes');
         })
         .then(tlcScenes => {
@@ -247,9 +255,9 @@ function updateScenes(cb) {
         })
         .then(tclSceneChannels => {
           tclSceneChannels.forEach(sc => { updateSceneChannels(tlc.Name, sc); });
-          console.log(scenes.length);
+          console.log(allScenes.length);
           if (--tlcCount == 0) {
-            if(cb) cb();
+            if (cb) cb();
           }
         })
         .catch(e => console.log(e));
@@ -257,35 +265,43 @@ function updateScenes(cb) {
       console.log(`TLc ${tlc.Name} is offline`)
     }
 
-    // e.g. scenes {"ID":1, "Name": "Reading", "FadeIn":20, "Duration":0, "FadeOut":0, "FadePrev":false, "NextScene":255, "StartTime":"42:30"},
+    // e.g. allScenes {"ID":1, "Name": "Reading", "FadeIn":20, "Duration":0, "FadeOut":0, "FadePrev":false, "NextScene":255, "StartTime":"42:30"},
     function updateScene(tlcName, scene) {
-      let idx = scenes.findIndex((sc) => { return sc.tlcName == tlcName && scene.ID == sc.ID });
+      let idx = allScenes.findIndex((sc) => { return sc.tlcName == tlcName && scene.ID == sc.ID });
       if (idx >= 0) {
-        scenes[idx].Name = scene.Name; // That's all that might have changed that we want
+        allScenes[idx].Name = scene.Name; // That's all that might have changed that we want
       } else {
-        scenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
+        allScenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
       }
     }
 
     // e.g. sceneChannels {"SceneID":1,"Channel":{"ID":2,"Max":2,"value":250}}
     function updateSceneChannels(tlcName, sceneChannel) {
       try {
-        let sceneIdx = scenes.findIndex(scene => { return scene.tlcName == tlcName && scene.ID == sceneChannel.SceneID });
+        let sceneIdx = allScenes.findIndex(scene => { return scene.tlcName == tlcName && scene.ID == sceneChannel.SceneID });
         if (sceneIdx >= 0) {
           // console.log(`updateSceneChannels: %d %j`, sceneIdx, sceneChannel);
           // Add to scene.channels[] => {ID, targetValue, currentValue, areaName, channelName}
-          let scene = scenes[sceneIdx];
+          let scene = allScenes[sceneIdx];
           // Note sceneChannel has range of channels ID->Max
           for (let channelID = sceneChannel.Channel.ID; channelID <= sceneChannel.Channel.Max; channelID++) {
             let sceneChannelIdx = scene.channels.findIndex(channel => { return channel.ID == channelID; });
-            if (sceneChannelIdx >= 0) { // Found exisiting 
-              scene.channels[sceneChannelIdx].targetValue = sceneChannel.Channel.value;
-              scene.channels[sceneChannelIdx].currentValue = channels[channelID].currentValue;
-            } else { // New
-              scene.channels.push({
-                ID: channelID, targetValue: sceneChannel.Channel.value, currentValue: channels[channelID].currentValue,
-                areaName: channels[channelID].areaName, channelName: channels[channelID].channelName
-              });
+            let channelObj =  getChannel(scene.tlcName, channelID);
+            if (channelObj) {
+              if (sceneChannelIdx >= 0) { // Found exisiting 
+                scene.channels[sceneChannelIdx].targetValue = sceneChannel.Channel.value;
+                scene.channels[sceneChannelIdx].currentValue = channelObj.value;
+              } else { // New
+                scene.channels.push({
+                  ID: channelID, 
+                  targetValue: sceneChannel.Channel.value, 
+                  currentValue: channelObj.value,
+                  areaName: channelObj.areaName, 
+                  channelName: channelObj.name
+                });
+              }
+            } else {
+              // console.log(`No channelObj for ${JSON.stringify(scene)}, ${channelID} in ${JSON.stringify(sceneChannel)}`);
             }
           }
         } else {
@@ -298,7 +314,7 @@ function updateScenes(cb) {
   });
 }
 
-exports.getAreaChannels = function (areaName, sceneName, cb) {
+exports.getSceneAreaChannels = function (areaName, sceneName, cb) {
   const getTLcData = function (tlcName, url) {
     return new Promise((resolve, reject) => {
       rqInfo(tlcName, url, (result) => {
@@ -311,22 +327,29 @@ exports.getAreaChannels = function (areaName, sceneName, cb) {
     });
   }
 
-  var allTLcChannels = [];
-  var channelInfo = [];
-  TLcList.forEach(function (tlc) {
-    allTLcChannels.push(getTLcData(tlc.Name, 'channelvalues'));
-  });
+  function findValue(channelValues, tlcName, channelID) {
+    channelValues.forEach((tlcValues) => {
+     if (tlcName == tlcValues.tlc) return tlcValues.data[channelID];
+    });
+    return 0;
+  }
 
-  Promise.all(allTLcChannels)
-    .then(result => {
-      console.log(result);
-      scenes.forEach(scene => {
+  var allTLcPromises = [];
+  var channelInfo = [];
+  TLcList.forEach((tlc) => { allTLcPromises.push(getTLcData(tlc.Name, 'channelvalues'));});
+
+  Promise.all(allTLcPromises)
+    .then((results) => {
+      console.log(results);
+      allScenes.forEach((scene) => {
         if (scene.Name == sceneName || sceneName == null) {
-          scene.channels.forEach(channel => {
+          scene.channels.forEach((channel) => {
             if (channel.areaName == areaName || areaName == null) {
-              channelInfo.push(
-                {tlc: scene.tlcName, scene: scene.Name, channel: channel.channelName, id: channel.ID, 
-                  value: channel.currentValue, target: channel.targetValue});
+              channelInfo.push( {
+                  tlc: scene.tlcName, area: areaName, scene: scene.Name, channel: channel.channelName,
+                  id: channel.ID, value: findValue(results, scene.tlcName, channel.ID), 
+                  target: channel.targetValue
+                });
             }
           });
         }
@@ -335,6 +358,51 @@ exports.getAreaChannels = function (areaName, sceneName, cb) {
     })
     .catch(reason => {
       console.log(reason)
+      cb(reason);
+    });
+}
+
+exports.getAreaChannels = function (areaName, cb) {
+
+  const getTLcData = function (tlcName, url) {
+    return new Promise((resolve, reject) => {
+      rqInfo(tlcName, url, (result) => {
+        if (result.error)
+          reject(result);
+        else {
+          resolve(result);
+        }
+      });
+    });
+  }
+
+  function findValue(channelValues, tlcName, channelID) {
+    var retVal = -1;
+    channelValues.forEach((tlcValues) => {
+     if (tlcName == tlcValues.tlc) retVal = tlcValues.data[channelID];
+    });
+    if (channelID == 18) 
+      console.log(tlcName, channelID);
+    return (retVal < 0) ? 0 : retVal;
+  }
+
+  var allTLcPromises = [];
+  var channelInfo = [];
+  // Set up for parallel getting all (3) tlc info
+  TLcList.forEach((tlc) => {allTLcPromises.push(getTLcData(tlc.Name, 'channelvalues'));});
+
+  Promise.all(allTLcPromises)
+    .then((results) => {
+      allChannels.forEach((channel) => {
+          if (channel != {}) {
+            channel.currentValue = findValue(results, channel.tlcName, channel.id);
+          }
+      });
+      let result = allChannels.filter((chanl) => chanl.areaName == areaName);
+      cb(result);
+    })
+    .catch(reason => {
+      console.log(reason);
       cb(reason);
     });
 }

@@ -15,6 +15,11 @@ body
       h1#h1-large Pond Controls
       a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
     div.view.ui-content(data-role="main")
+      div.floatingMenu.hidden
+        button(class="ui-btn ui-mini" onclick="update(btnID, 'on');") On
+        button(class="ui-btn ui-mini" onclick="update(btnID, 'off');") Off
+        button(class="ui-btn ui-mini" onclick="update(btnID, 'not set');") Schedule
+        button(class="ui-btn ui-mini" onclick="clearMenu();") Cancel
       for val, i in map
         if (typeof val != 'undefined')
           if (val.name != 'LED')
@@ -24,6 +29,7 @@ body
                 div.dial.off(id=val.outputID)
                   img.imgBtn(src="pond "+val.name+".jpg")
     script.
+      var btnID = -1;
       function updateAll(map) {
         for(id in map) {
           if (map[id].request == map[id].state) 
@@ -40,6 +46,7 @@ body
             $('#sw'+map[id].outputID+' .dial').parent().parent().removeClass('overrideoff').addClass('overrideset')
         };
       }
+
       function doUpdate() {
         $.ajax({
           url: "/Pond/set",
@@ -50,41 +57,23 @@ body
           }
        });  
       }
+
       $(document).on('pageinit', function(x) {
         setInterval(doUpdate, 10000);
-        doUpdate();
-        var pressTimer = null;
-        window.oncontextmenu = function(event) {
-             event.preventDefault();
-             event.stopPropagation();
-             return false;
-        };        
-        $(".dial").mouseup(function(){
-          if (pressTimer != null) {
-            clearTimeout(pressTimer);
-            pressTimer = null;
-            update(this.id);
-          }
-        }).click(function(){
-        }).mousedown(function(){
-          var id = this.id;
-          pressTimer = setTimeout(function() {
-            pressTimer = null;
-            var url = "/Pond/set?request=not+set&id=" + id;
-            $.ajax({
-              url: url,
-              context: document.body,
-              cache : false,
-              success: function (data) {
-                  setTimeout(doUpdate, 600);
-            }});
-          }, 750);
+        doUpdate();      
+        $(".dial").click(function(){
+          $('.floatingMenu').toggleClass('hidden');
+          btnID = this.id;
         });
       });
 
-      function update(id) {
-        $('#sw'+id+' .dial').addClass('set').toggleClass('off').toggleClass('on');
-        var request = ($('#sw' + id + ' .dial').hasClass('on')) ? 'on' : 'off';
+      function clearMenu() {
+        $('.floatingMenu').addClass('hidden');
+      };
+
+      function update(id, request) {
+        //- $('#sw'+id+' .dial').addClass('set').toggleClass('off').toggleClass('on');
+        //- var request = ($('#sw' + id + ' .dial').hasClass('on')) ? 'on' : 'off';
         var url = "/Pond/set?request=" + request + '&id=' + id;
         $.ajax({
           url: url,
@@ -93,6 +82,7 @@ body
           success: function (data) {
               setTimeout(doUpdate, 500);
          }
-       });  
+       });
+       clearMenu();
       }
       $('head').append('<link rel="stylesheet" type="text/css" href="pond.css">');

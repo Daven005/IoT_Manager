@@ -1,0 +1,228 @@
+include ./mobileMenu.pug
+doctype html
+head
+  title Watering Times
+  meta(name="viewport" content="width=device-width, initial-scale=1.2")
+  meta(name="mobile-web-app-capable" content="yes")
+  link(rel='stylesheet' href='/jq/jquery.mobile-1.4.5.min.css')
+  script(src='/jq/jquery-2.2.1.min.js')
+  script(src='/jq/jquery.mobile-1.4.5.min.js')
+  script(src='/jq/jtsage-datebox4.min.js')
+  link(rel='stylesheet' href='/jq/jtsage-datebox4.min.css')
+script.
+    jQuery.extend(jQuery.jtsage.datebox.prototype.options, {
+            useCancelButton: true,
+            useClearButton: false,
+            useTodayButton: false,
+            useCollapsedBut: false
+        });
+
+    $(document).on('pageinit', function() {
+    	setInterval(getOutputs, 10000);
+    
+        function getOutputs() {
+            $.ajax({url: "/Watering/update",
+                success: (update) =>{
+                    $('#wateringProgrammes > div').each((idx, el) => {
+                        updateIcons(update, el);
+                    });
+                },
+                error: (x, error, txt) => {
+                    setStatus(`Update error: '${txt}'`);
+                }
+            });
+        }
+
+        function updateIcons(update, el) {
+            console.log(update, el);
+            let zone = $(el).find('select.zone').val();
+            var zoneState = false;
+            if (zone != 'off' && !isNaN(zone)) {
+                if (1 <= zone && zone <= 4) {
+                    zoneState = update.outputs[parseInt(zone)]; // Ignore entry 0 in array
+                }
+            }
+            let notIfRain = $(el).find('.checkRain').prop('checked');
+            if (zoneState) { // Zone is ON
+                $(el).find('.rainImage').removeClass('wateringOff').addClass('wateringOn');
+            } else {
+                $(el).find('.rainImage').addClass('wateringOff').removeClass('wateringOn');
+            }
+            if (update.rain && notIfRain) { // Rain is expected and checkbox set
+                $(el).find('.notRain').addClass('.wet').removeClass('.dry')
+            } else {
+                $(el).find('.notRain').addClass('.dry').removeClass('.wet')
+            }
+        }
+    
+        function xx() {
+            var op = $(this).find('.outputID').val();
+            var t = $(this).find('.zoneTime');
+            if (update.outputs[op]) {
+                t.addClass('rain');
+                t.removeClass('noRain');
+            } else {
+                t.addClass('noRain');
+                t.removeClass('rain');
+            }
+            var r = $(this).find('.checkRain');
+            if (update.rain) {
+                r.addClass('rain');
+                r.removeClass('noRain');
+            } else {
+                r.addClass('noRain');
+                r.removeClass('rain');
+            }
+        }
+
+        function getProgramme(s1) {
+            var obj = {};
+            obj.title = $(s1).find('.title').val();
+            obj.start = $(s1).find('.starttime').val();
+            obj.duration = $(s1).find('.duration').val();
+            obj.checkRain = $(s1).find('.checkRain').is(":checked");
+            obj.zone = $(s1).find('.zone').find(":selected").text();
+            obj.mode = $(s1).find('.mode').text();
+            return obj;
+        }
+
+
+        $('button').click(function () {
+            function doUpdate(s1) {
+                let prog = getProgramme(s1);
+                $(s1).find('h5 .h5').text(prog.title)
+                $.post("/Watering/settings", {action:"update", id:id, programme: prog}, () => {}, "json")
+                .done((msg) => 
+                    setStatus(`${prog.title} updated`))
+                .fail((err) => 
+                    setStatus(`Error ${err.responseText}`));
+            }
+
+            var s1 =$(this).closest('.ui-collapsible');
+            let id = $(s1).find('.id').val();
+            if ($(this).hasClass('mode')) {
+                if ($(this).text() == 'Off')
+                    $(this).text('On')
+                else if ($(this).text() == 'On')
+                    $(this).text('Auto')
+                else 
+                    $(this).text('Off');
+                doUpdate(s1);
+            } else if ($(this).hasClass('update')) {
+                doUpdate(s1);
+            } else if ($(this).hasClass('delete')) {
+                let s1 =$(this).closest('.ui-collapsible');
+                var title = $(s1).find('.title').val();
+                let id = $(s1).find('.id').val();
+                $.post("/Watering/settings", {action:"delete", id:id}, () => {}, "json")
+                .done((msg) => {
+                    setStatus(`${title} deleted`);
+                    s1.remove();
+                })
+                .fail((err) => 
+                    setStatus(`Error ${err.responseText}`));
+            } else if ($(this).hasClass('copy')) {
+                let s1 =$(this).closest('.ui-collapsible');
+                let newID = s1.parent().length;
+                s2 = s1.clone(true);
+                var newTitle = $(s1).find('.title').val()+'++';
+                $(s2).find('.id').val(newID);
+                $(s2).find('.title').val(newTitle);
+                $(s2).find('h5 .h5').text(newTitle)
+                let prog = getProgramme(s2);
+                $.post("/Watering/settings", {action:"add", id:newID, programme: prog}, () => {}, "json")
+                .done((msg) => {
+                    s1.parent().append(s2);
+                    s1.parent().collapsibleset( "refresh" )
+                    // $('.ui-collapsible-content').addClass('ui-collapsible-content-collapsed');
+                    setStatus(`${newTitle} added`);
+                })
+                .fail((err) => 
+                    setStatus(`Error ${err.responseText}`));
+           }
+        });
+    });
+
+    function  clearStatus() { $('#status').text('');}
+
+    function setStatus(msg) {
+        if (/<[a-z/][\s\S]*>/msg.test())
+            $('#status').html(msg);
+        else
+            $('#status').text(msg);
+        setTimeout(clearStatus, 5000);
+    }
+
+style.
+    .ui-widget {background-color: #488; }
+    .ui-header  { background: #cc1111 !important; }
+    .ui-slider-track { margin: 0px 0px 0px 50px !important;}
+    .ui-page {background-color: #181;}
+    .colm20 {width: 4.5em !important; }
+    .colm30 {width: 30% !important; }
+    .colm40 {width: 40% !important; }
+    .colm50 {width: 50% !important; }
+    .colm60 {width: 60% !important; }
+    .colm70 {width: 70% !important; }
+    .colm80 {width: 75% !important; }
+    .datebox-input-icon {display :none;}
+    .ui-button-text, .ui-datebox-flipcontent {font-size: 1.5em !important; padding: 2px; color: #00c; text-shadow:none;}
+    .ui-collapsible-content {padding: 10px 10px;}
+    .mode { float : right;}
+    input {font-size: 1.5em !important; font-weight: 600 !important; padding: 2px !important;}
+    .inline {display: inline-block;}
+    .durationSlider {padding: 5px 0px 5px 10px;}
+    #h1-large {font-size: 1.1em; margin-left: 15% }
+    #status {background-color: #224; text-align: center;}
+    .ui-icon-rain:after { background: url("/public/rain-drops.png"); 
+        background-position: center center;}
+    .ui-icon-sun:after { background: url("/public/morning-rain.svg"); 
+        background-position: center center;}
+    .wet {color: cornflowerblue;}
+    .dry {color: tan;}
+    .rainImage {width: 24px; height: 24px; float: right; }
+    .wateringOn {background-image: url("/public/rain-drops.png") }
+    .wateringOff {background-image: url("/public/morning-rain.svg"); }
+body
+  div.ui-responsive-panel(data-role="page" data-theme="b" data-dom-cache="false")
+    div(data-role="header" data-position="fixed" id="header")
+        h1#h1-large Watering
+        a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
+    div(data-role="main" class="ui-content" data-url="/Watering/schedule")
+        div(style='background-image: url("/public/flowers.png"); height:50px; background-position: center center; border-radius: 10px')
+        div#wateringProgrammes(data-role="collapsible-set" data-theme="a" data-content-theme="a")
+             each val, i in map
+                - var clpsd = 'true';
+                div(data-role="collapsible" data-theme="d" data-content-theme="d" data-collapsed=clpsd data-icon="ui-icon-sun")
+                    h5
+                        span.h5 #{val.title}
+                        div.rainImage.wateringOff.inline
+                    div.fieldcontain
+                        input.title(type="text" data-mini="true" value=val.title placeholder="Programme Title")
+                        input.oldTitle(type="hidden" value=val.title)
+                        input.id(type="hidden" value=i)
+                    div.fieldcontain.colm20.inline(style="vertical-align: middle;")
+                        input.starttime(type="text" width="6" data-inline="true" data-mini="true" value=val.start
+                            data-role="datebox" data-options='{"mode":"timeflipbox"}' placeholder="Start Time")
+                        span Start
+                    div.ui-field-contain.durationSlider.colm80.inline(style="vertical-align: top;")
+                        input.duration(type="range" value=val.duration min="0" max="30" data-mini="false" data-inline="false" )
+                        span minutes
+                    div.notRain.ui-field-contain.colm20.inline(style="vertical-align: top;") Not if raining
+                        - var checked = (val.checkRain ? 'checked' : '')
+                        input.checkRain(type="checkbox" checked)
+                    div.fieldcontain.colm30.inline(style="vertical-align: top;")
+                        span.colm10.inline Zone
+                        select.zone.inline(data-mini="true")
+                            each o in  ["Off", "1", '2', '3', '4']
+                                - var select = (o == val.zone)
+                                option(value=o selected=select) #{o}
+                    button.mode.colm30.inline #{val.mode}
+                    br
+                    button.update.colm30.inline() Update
+                    span &nbsp;&nbsp;&nbsp;
+                    button.delete.colm30.inline() Delete
+                    span &nbsp;&nbsp;&nbsp;
+                    button.copy.colm30.inline() Copy
+        p#status #{error}
++menu

@@ -4,12 +4,20 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "tlc interface test",
             "program": "${workspaceFolder}\\tlcinterface.test.js",
-            "env": {"CONFIG":"pi-config.json"}
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "moment test",
+            "program": "${workspaceFolder}\\watering.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
         }
     ]
 }

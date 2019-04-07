@@ -300,9 +300,11 @@ app_mobile.get("/Pond/set", pond.set);
 
 var watering = require('./watering');
 app.get("/Watering/schedule", watering.schedule);
-app.get("/Watering/restore", watering.restore);
 app.get("/Watering/update", watering.getUpdate);
 app.post("/Watering/settings", watering.settings);
+app_mobile.get("/Watering/schedule", watering.mobileSchedule);
+app_mobile.get("/Watering/update", watering.getUpdate);
+app_mobile.post("/Watering/settings", watering.settings);
 
 app.get("/", defaultPage);
 app.get("/index*", defaultPage);;

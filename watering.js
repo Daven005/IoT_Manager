@@ -8,17 +8,17 @@ if (config.watering.enabled) setInterval(checkOutputs, 60 * 1000);
 
 exports.checkOutputs = checkOutputs;
 function checkOutputs() {
-	if (config.debug)
-		deviceID = 'Test01234';
-	else
-		deviceID = deviceState.findDeviceID(config.watering.controllerName, config.watering.controllerLocation);
-	if (!deviceID) return;
-
 	function checkActive(prog) {
 		let startTime = moment().startOf('day').format('DD-MM-YYYY') + ' ' + moment(prog.start, "HH:mm").format('HH:mm');
 		let endTime = moment(startTime, 'DD-MM-YYYY HH:mm').add(prog.duration, 'minutes');
 		return moment().isBetween(moment(startTime, 'DD-MM-YYYY HHmm'), endTime);
 	}
+
+	if (config.debug)
+		deviceID = 'Test01234';
+	else
+		deviceID = deviceState.findDeviceID(config.watering.controllerName, config.watering.controllerLocation);
+	if (!deviceID) return;
 
 	fs.readFile('public/settings.json', (err, data) => {
 		try {
@@ -40,7 +40,7 @@ function checkOutputs() {
 					console.log(`Bad prog ${prog}`);
 				}
 			});
-			console.log(`Watering: ${outputs}`);
+			console.log(`Watering: ${currentOutputs}`);
 			outputs.forEach(setOutput);
 		} catch (err) {
 			console.log("Corrupt programmes %s %s", err.message, data);

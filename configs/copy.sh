@@ -36,7 +36,7 @@ if [ "$3" = "all" ] ; then
     cp $C/monitrc /etc/monit
     cp $C/mosquitto.conf /etc/mosquitto
     cp $C/dphys-swapfile /etc
-    cp $C/node-red/settings.js /home/iot/.nodered
+    cp $C/settings.js /home/iot/.nodered
 fi
 if [ "$4" = "reboot" ] ; then
     reboot

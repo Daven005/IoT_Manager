@@ -100,10 +100,11 @@ script.
             var s1 =$(this).closest('.ui-collapsible');
             let id = $(s1).find('.id').val();
             if ($(this).hasClass('mode')) {
-                if ($(this).text() == 'Off')
-                    $(this).text('On')
-                else if ($(this).text() == 'On')
-                    $(this).text('Auto')
+                if ($(this).text() == 'Off') {
+                    $(this).text('On');
+                    setTimeout(() => { $(this).text('Auto'); doUpdate(s1);}, 60*1000); // Only leave ON for a short while
+                } else if ($(this).text() == 'On')
+                    $(this).text('Auto');
                 else 
                     $(this).text('Off');
                 doUpdate(s1);
@@ -153,6 +154,14 @@ script.
     }
 
 style.
+    html { background-color: #040 !important; }
+    @media only screen and (min-width: 600px){
+        .ui-mobile-viewport {
+            width: 600px !important;
+            margin: 0 auto !important;
+            position: relative !important;
+        }
+     }
     .ui-widget {background-color: #488; }
     .ui-header  { background: #cc1111 !important; }
     .ui-slider-track { margin: 0px 0px 0px 50px !important;}
@@ -186,7 +195,8 @@ body
   div.ui-responsive-panel(data-role="page" data-theme="b" data-dom-cache="false")
     div(data-role="header" data-position="fixed" id="header")
         h1#h1-large Watering
-        a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
+        if (menu)
+            a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
     div(data-role="main" class="ui-content" data-url="/Watering/schedule")
         div(style='background-image: url("/public/flowers.png"); height:50px; background-position: center center; border-radius: 10px')
         div#wateringProgrammes(data-role="collapsible-set" data-theme="a" data-content-theme="a")
@@ -224,4 +234,5 @@ body
                     span &nbsp;&nbsp;&nbsp;
                     button.copy.colm30.inline() Copy
         p#status #{error}
-+menu
+if (menu)
+    +menu

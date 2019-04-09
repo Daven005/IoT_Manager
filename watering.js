@@ -23,25 +23,25 @@ function checkOutputs() {
 	fs.readFile('public/settings.json', (err, data) => {
 		try {
 			var programmes = JSON.parse(data);
-			currentOutputs = [0,0,0,0,0];
+			currentOutputs = [0, 0, 0, 0, 0];
 			programmes.forEach((prog) => {
 				let isActive = false; // NB value transmitted is 0 or 1
 				if (1 <= prog.zone && prog.zone <= 4) {
 					switch (prog.mode) {
-						case 'On': isActive = true; break;
-						case 'Off': break;
-						case 'Auto': isActive = checkActive(prog); break;
+					case 'On': isActive = true; break;
+					case 'Off': break;
+					case 'Auto': 
+						isActive = checkActive(prog);
+						if (prog.checkRain && (weather.rainToday > config.watering.likelyRainfall)) {
+							isActive = false; // Don't water if enough rain
+						}
+						break;
 					}
-					if (prog.checkRain && (weather.rainToday > config.watering.likelyRainfall)) {
-						isActive = false; // Don't water if enough rain
-					}
-					if (isActive) currentOutputs[prog.zone] = 1 // Accumulate all programmes
-				} else {
-					console.log(`Bad prog ${prog}`);
-				}
+				} else { console.log(`Bad prog ${prog}`); }
+				if (isActive) currentOutputs[prog.zone] = 1 // Accumulate all programmes
 			});
 			console.log(`Watering: ${currentOutputs}`);
-			outputs.forEach(setOutput);
+			currentOutputs.forEach(setOutput);
 		} catch (err) {
 			console.log("Corrupt programmes %s %s", err.message, data);
 		}
@@ -59,13 +59,19 @@ function setOutput(state, chanl) {
 }
 
 exports.schedule = function (request, response) {
-	response.render("watering");
+	fs.readFile('public/settings.json', "utf8", (err, data) => {
+		try {
+			response.render("wateringMobile", { map: JSON.parse(data), menu: false });
+		} catch (ex) {
+			response.render("wateringMobile", { error: ex.message });
+		}
+	});
 }
 
 exports.mobileSchedule = function (request, response) {
 	fs.readFile('public/settings.json', "utf8", (err, data) => {
 		try {
-			response.render("wateringMobile", { map: JSON.parse(data) });
+			response.render("wateringMobile", { map: JSON.parse(data), menu: true });
 		} catch (ex) {
 			response.render("wateringMobile", { error: ex.message });
 		}

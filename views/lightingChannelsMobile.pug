@@ -42,9 +42,8 @@ body
     div(data-role="header" data-position="fixed")
       h1#h1-large Lighting Channels
       a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
-    div(data-role="main" class="ui-content" data-url="/Heating/mobileOverrides")
+    div(data-role="main" class="ui-content" data-url="/hollies/lightingChannels")
       each val, i in map
-        - // console.log(val)
         form(method='get' data-ajax="false" form='form'+i id='form'+i)
           input(type="hidden" name="tlc" class="tlc" value=val.tlc)
           input(type="hidden" name="area" class="area" value=val.area)

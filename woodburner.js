@@ -2,15 +2,17 @@ var heating = require('./heating');
 
 var WBtopTemp = -99.0;
 var TSbottomTemp = -99.0;
+var emergencyOverrideIsOn = `Not Set`;
 
 exports.checkWB_Top = function(sensorName, temperature) {
 	if (sensorName != config.woodburner.WBtopName) return false;
 	
 	WBtopTemp = temperature;
 	if (temperature > config.woodburner.overheatOn) {
-		heating.setEmergencyOverride('2:00:00', 28);
+		heating.setEmergencyOverride('2:00:00', 28); // Set to an arbitary high temp of 28C
+		emergencyOverrideIsOn = 'ON'; 
 	} else if (temperature < config.woodburner.overheatOff) {
-		heating.clearEmergencyOverride();
+		if (emergencyOverrideIsOn == 'ON') heating.clearEmergencyOverride();
 	}
 	if (temperature > config.woodburner.supplyOn) {
 		if (!checkRelativeTemps()) {

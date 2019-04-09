@@ -2,7 +2,7 @@
 global.config;
 var setConfig = require('./config').read(configLoaded);
 
-console.log("**********IoT Started**********");
+console.log("**********IoT Starting**********");
 function configLoaded(cfg) {
 	global.config = cfg;
 }
@@ -13,6 +13,7 @@ var MySQLStore = require('express-mysql-session')(session);
 var path = require('path');
 var app = express();
 var app_mobile = express();
+var app_guest = express();
 var httpRequest = require('request');
 var bodyParser = require('body-parser');
 global.moment = require('moment');
@@ -30,9 +31,6 @@ app.locals.pretty = true;
 app.locals.setHue = utils.setHue;
 app_mobile.locals.setHue = utils.setHue;
 // app.locals.moment = require('moment');
-
-var stdin = process.openStdin();
-stdin.addListener("data", consoleIn);
 
 if (!config.loaded) {
 	console.log("No config file");
@@ -81,72 +79,43 @@ var sessionStore = new MySQLStore(sessionStoreOptions, db);
 
 global.desktop_port = config.browser.desktopPort;
 global.mobile_port = config.browser.mobilePort;
-
-function consoleIn(d) {
-  // note:  d is an object, and when converted to a string it will
-  // end with a linefeed.  so we (rather crudely) account for that  
-  // with toString() and then trim() 
-  var cmd = d.toString().trim().toLowerCase();
-  if (cmd == "clear") {
-    console.log('\x1B[0;0H\x1B[2J');
-  } else if (cmd == "close") {
-    console.log('Closing');
-    process.exit();
-  } else if (cmd == "time") {
-    console.log(moment().format('X'));
-    var t = Math.floor(Date.now() / 1000);
-    var d = new Date();
-    console.log(d.getTimezoneOffset());
-  } else if (cmd == "tlc") {
-    tlc.checkTLcs();
-  } else if (cmd == "getweather") {
-    weather.get();
-  } else if (cmd == "newheat") {
-    processHeating.test2(Date.now());
-  } else if (cmd == "checkheat") {
-    processHeating.check(Date.now());
-  } else {
-    console.log("?? >%s", cmd);
+global.guest_port = config.browser.guestPort;
+  
+var sessionOptions = {
+  name: 'session',
+  secret: 'ciSBiOsteDisaLIWo|eXtBAnStRtiGmiSA', // should be a large unguessable string
+  store: sessionStore,
+  resave: false,
+  saveUninitialized: false,
+  maxAge: 1 * 60 * 60 * 1000, // how long the session will stay valid in ms
+  cookie: {
+    httpOnly: true, // when true, cookie is not accessible from javascript
+    secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
   }
 }
-  
 app.set('views', './views');
 app.set('view engine', 'pug');
 app.use(express.static(__dirname));
 app.use('views', express.static(path.join(__dirname, '/views')));
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-app.use(session({
-  name: 'session',
-  secret: 'ciSBiOsteDisaLIWo|eXtBAnStRtiGmiSA', // should be a large unguessable string
-  store: sessionStore,
-  resave: false,
-  saveUninitialized: false,
-  maxAge: 1 * 60 * 60 * 1000, // how long the session will stay valid in ms
-  cookie: {
-    httpOnly: true, // when true, cookie is not accessible from javascript
-    secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
-  }
-}));
-  
+app.use(session(sessionOptions));
+
 app_mobile.set('views', './views');
 app_mobile.set('view engine', 'pug');
 app_mobile.use(express.static(__dirname));
 app_mobile.use('views', express.static(path.join(__dirname, '/views')));
 app_mobile.use(bodyParser.json()); // support json encoded bodies
 app_mobile.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-app_mobile.use(session({
-  name: 'session',
-  secret: 'ciSBiOsteDisaLIWo|eXtBAnStRtiGmiSA', // should be a large unguessable string
-  store: sessionStore,
-  resave: false,
-  saveUninitialized: false,
-  maxAge: 1 * 60 * 60 * 1000, // how long the session will stay valid in ms
-  cookie: {
-    httpOnly: true, // when true, cookie is not accessible from javascript
-    secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
-  }
-}));
+app_mobile.use(session(sessionOptions));
+
+app_guest.set('views', './views');
+app_guest.set('view engine', 'pug');
+app_guest.use(express.static(__dirname));
+app_guest.use('views', express.static(path.join(__dirname, '/views')));
+app_guest.use(bodyParser.json()); // support json encoded bodies
+app_guest.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+app_guest.use(session(sessionOptions));
 
 var login = require('./login');
 app.get("/login", login.doLogin);
@@ -161,9 +130,8 @@ client.subscribe('/Raw/#');
 client.publish('/Raw/Hollies000000/info', '{"Name": "Weather", "Location": "Outside"}');
 
 var processHeating = require('./processHeating');
-processHeating.load();
-console.log("Heating started");
-setInterval(processHeating.check, 1*60*990); // Just under 1 minute
+processHeating.load("Heating started");
+setInterval(() => {processHeating.check("Background heating check")}, 1*60*990); // Just under 1 minute
 
 var processDeletes = require('./processDeletes');
 setInterval(processDeletes.check, 2*60*999); // Just under 2 minutes
@@ -247,6 +215,8 @@ app_mobile.get("/Heating/rooms", heating.temperatureDials);
 app_mobile.get("/Heating/zones", heating.zonesInfo);
 app.get("/Heating/zones", heating.zonesInfo);
 
+app_guest.get("/", heating.guestOverride);
+
 var signal = require('./signal');
 app.get("/Signal/Gate", signal.gate);
 app_mobile.get("/Signal/Gate", signal.gate);
@@ -325,3 +295,5 @@ app.listen(desktop_port);
 console.log("App Server Running on %d", desktop_port);
 app_mobile.listen(mobile_port);
 console.log("App_Mobile Server Running on %d", mobile_port);
+app_guest.listen(guest_port);
+console.log("App_Mobile Server Running on %d", guest_port);

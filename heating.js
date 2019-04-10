@@ -57,7 +57,9 @@ exports.controlSensor = function (request, response) {
   });
 }
 
-exports.mobileOverrides = function (request, response) {
+exports.mobileOverrides = mobileOverrides;
+
+function mobileOverrides(request, response, zoneFilter) {
   var errorStr = "";
   function _reload(zone) {
     var sqlstr = "SELECT zoneID, heatingoverrides.ID AS oID, heatingzones.Name AS zoneName, "
@@ -67,7 +69,11 @@ exports.mobileOverrides = function (request, response) {
       + "FROM heatingoverrides "
       + "INNER JOIN heatingzones ON heatingoverrides.zoneID = heatingzones.ID "
       + "INNER JOIN daysofweek ON heatingoverrides.day = daysofweek.ID "
-      + "WHERE heatingoverrides.Name = 'Mobile' ORDER BY zoneName";
+      + "WHERE heatingoverrides.Name = 'Mobile'";
+    if (zoneFilter) {
+      sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}"`
+    }
+    sqlstr += " ORDER BY heatingzones.Name";
     db.query(sqlstr, function (err, result) {
       if (err) {
         console.log(`mobile ${errorStr = err.message} ${sqlstr}`);
@@ -105,11 +111,12 @@ exports.mobileOverrides = function (request, response) {
     });
   }
 
-
   console.log("*****mobileOverrides: %j", request.query);
   if (request.query.zoneID) {
     if (request.query.Action == "Set") {
-      if (login.check(request, response)) {
+      if (zoneFilter) {
+        _updateOverride(request); // Allow guest update access
+      } else if (login.check(request, response)) {
         _updateOverride(request);
       }
     } else {
@@ -120,8 +127,8 @@ exports.mobileOverrides = function (request, response) {
   }
 }
 
-exports.guestOverride = function() {
-
+exports.guestOverrides = function (request, response) {
+  mobileOverrides(request, response, `Guest1`);
 }
 
 exports.mobileGroups = function (request, response) {
@@ -497,8 +504,7 @@ function reloadZones(zone, response, render) {
       sqlstr = sql.format(sqlstr, zone);
       db.query(sqlstr, function (err, resultp) {
         if (err) {
-          console.log(err);
-          console.log(sqlstr);
+          console.log(`reload Zones error: ${err.message} ${sqlstr}`);
           errorStr += err.message;
           resultp = [];
         }
@@ -660,7 +666,7 @@ exports.voiceOverrides = function (request, response) {
 exports.manage = function (request, response) {
 
   function _reload(zone) {
-    reloadZones(zone, response, 'manage heating');
+    reloadZones(zone, response, 'heating');
   }
 
   function _updateZone(request) {

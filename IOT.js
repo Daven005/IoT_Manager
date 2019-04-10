@@ -30,6 +30,7 @@ global.utils = require('./utils');
 app.locals.pretty = true;
 app.locals.setHue = utils.setHue;
 app_mobile.locals.setHue = utils.setHue;
+app_guest.locals.setHue = utils.setHue;
 // app.locals.moment = require('moment');
 
 if (!config.loaded) {
@@ -215,7 +216,7 @@ app_mobile.get("/Heating/rooms", heating.temperatureDials);
 app_mobile.get("/Heating/zones", heating.zonesInfo);
 app.get("/Heating/zones", heating.zonesInfo);
 
-app_guest.get("/", heating.guestOverride);
+app_guest.get("/", heating.guestOverrides);
 
 var signal = require('./signal');
 app.get("/Signal/Gate", signal.gate);

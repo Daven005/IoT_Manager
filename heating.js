@@ -59,7 +59,11 @@ exports.controlSensor = function (request, response) {
 
 exports.mobileOverrides = mobileOverrides;
 
-function mobileOverrides(request, response, zoneFilter) {
+function mobileOverrides(request, response) {
+  _mobileOverrides(request, response);
+}
+
+function _mobileOverrides(request, response, zoneFilter) {
   var errorStr = "";
   function _reload(zone) {
     var sqlstr = "SELECT zoneID, heatingoverrides.ID AS oID, heatingzones.Name AS zoneName, "
@@ -70,10 +74,11 @@ function mobileOverrides(request, response, zoneFilter) {
       + "INNER JOIN heatingzones ON heatingoverrides.zoneID = heatingzones.ID "
       + "INNER JOIN daysofweek ON heatingoverrides.day = daysofweek.ID "
       + "WHERE heatingoverrides.Name = 'Mobile'";
-    if (zoneFilter) {
+    if (zoneFilter) { // Allow for guest override page
       sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}"`
     }
     sqlstr += " ORDER BY heatingzones.Name";
+    console.log(sqlstr);
     db.query(sqlstr, function (err, result) {
       if (err) {
         console.log(`mobile ${errorStr = err.message} ${sqlstr}`);
@@ -128,7 +133,7 @@ function mobileOverrides(request, response, zoneFilter) {
 }
 
 exports.guestOverrides = function (request, response) {
-  mobileOverrides(request, response, `Guest1`);
+  _mobileOverrides(request, response, `Guest1`);
 }
 
 exports.mobileGroups = function (request, response) {

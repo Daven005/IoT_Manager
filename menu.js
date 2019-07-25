@@ -69,9 +69,10 @@ exports.get = function(request, response) {
   othersMenu.push(makeMenuItem('/message', 'Message'));
   othersMenu.push(makeMenuItem('/alarms', 'Alarms'));
   othersMenu.push(makeMenuItem('/errors', 'Errors'));
-  othersMenu.push(makeMenuItem('/public/weather.html', 'Weather'));
   othersMenu.push(makeMenuItem('/Pond/schedule', 'Pond'));
+  othersMenu.push(makeMenuItem('/tides', 'Tides'));
   othersMenu.push(makeMenuItem('/Watering/schedule', 'Watering'));
+  othersMenu.push(makeMenuItem('/public/weather.html', 'Weather'));
   var ip = request.connection.localAddress.replace('::ffff:', '');
   othersMenu.push(makeMenuItem('http://'+ip+':'+mobile_port+'/', 'Mobile View'));
   

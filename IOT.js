@@ -140,7 +140,11 @@ setInterval(processDeletes.check, 2*60*999); // Just under 2 minutes
 var weather = require('./weather');
 weather.get();
 weather.publish();
-setInterval(weather.get, 10*60*995); // Just under 10 minutes
+setInterval(weather.get, 10*60*1000-4); // Just under 10 minutes
+
+var tides = require('./admiraltyTides');
+tides.load(() => console.log("Tides loaded"));
+setInterval(tides.load, 60*60*1000-5);
 
 var time = require('./time');
 time.publish();
@@ -276,6 +280,7 @@ app.post("/Watering/settings", watering.settings);
 app_mobile.get("/Watering/schedule", watering.mobileSchedule);
 app_mobile.get("/Watering/update", watering.getUpdate);
 app_mobile.post("/Watering/settings", watering.settings);
+app.get("/tides", tides.show);
 
 app.get("/", defaultPage);
 app.get("/index*", defaultPage);;

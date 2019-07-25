@@ -6,6 +6,7 @@ var sun = [{az: 0, alt: 0 }, {az: 0, alt: 0 }, {az: 0, alt: 0 }];
 var rain = {today: 0 };
 var ForecastIo = require('forecastio');
 var forecastIo = new ForecastIo(config.forecastIoAPI);
+var tides = require('./admiraltyTides');
 
 exports.publish = publish;
 
@@ -73,4 +74,5 @@ function get(){
     sun[idx] = { az: Math.round(sp.azimuth * (180/Math.PI)-162+180), // Angle of plates = 162
             alt: Math.round(sp.altitude * (180/Math.PI)-45) }; // Angle of plates = 45
   }
+  tides.load();
 }

@@ -282,6 +282,10 @@ app_mobile.get("/Watering/update", watering.getUpdate);
 app_mobile.post("/Watering/settings", watering.settings);
 app.get("/tides", tides.show);
 
+var camera = require('./camera');
+app_mobile.get("/Camera", camera.load);
+app_mobile.get("/Camera/action", camera.action);
+
 app.get("/", defaultPage);
 app.get("/index*", defaultPage);;
 app.get("/default*", defaultPage);

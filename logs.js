@@ -4,11 +4,11 @@ exports.showErrors = function(request, response) {
   if (request.query.Action == "Delete") {
     if (login.check(request, response)) {
       errorLog.remove(request.query.row);
-    }
+    } else return;
   } else if (request.query.Action == "DeleteAll") {
     if (login.check(request, response)) {
       errorLog.removeAll();
-    }
+    } else return;
   } else if (request.query.Action == "Read") {
     errorLog.read();
   } else if (request.query.Action == "Save") {

@@ -83,6 +83,7 @@ function saveDeviceSettings(DeviceID, settings) {
     sqlstr += '("'+DeviceID+'", '+idx+', ' + settings[idx]+')';
   }
   sqlstr += ' ON DUPLICATE KEY UPDATE Value=VALUES(Value)';
+  // console.log(`saveDeviceSettings: ${sqlstr}`);
   db.query(sqlstr, function(err, result) {
     if (err) {console.log("saveDeviceSettings: %j", err);}
   });
@@ -94,7 +95,7 @@ function saveDeviceInfo(values) {
     "INSERT INTO Devices (DeviceID, Location, Name) VALUES(?, ?, ?) "+
     "ON DUPLICATE KEY UPDATE Location=VALUES(Location), Name=VALUES(Name)",
      [values.DeviceID, values.Location, values.Name]);
-  // console.log(sqlstr);
+  // console.log(`saveDeviceInfo: ${values}, ${sqlstr}`);
   db.query(sqlstr,  function(err, result) {
     if (err) {
       console.log("saveDeviceInfo error: %j, sql = %s", err, sqlstr);

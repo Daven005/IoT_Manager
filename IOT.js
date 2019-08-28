@@ -141,6 +141,7 @@ var weather = require('./weather');
 weather.get();
 weather.publish();
 setInterval(weather.get, 10*60*1000-4); // Just under 10 minutes
+setInterval(weather.publishSun, 1*60*1000-4); // Just under 1 minute
 
 var tides = require('./admiraltyTides');
 tides.load(() => console.log("Tides loaded"));
@@ -285,6 +286,11 @@ app.get("/tides", tides.show);
 var camera = require('./camera');
 app_mobile.get("/Camera", camera.load);
 app_mobile.get("/Camera/action", camera.action);
+
+var charge = require('./charge');
+app.get("/charge/rates", charge.rates);
+app.get("/charge/status", charge.status);
+app.get("/charge/control", charge.control);
 
 app.get("/", defaultPage);
 app.get("/index*", defaultPage);;

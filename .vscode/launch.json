@@ -10,12 +10,18 @@
             "name": "Onvif Discover",
             "program": "${workspaceFolder}/onvif/discover.js"
         },
-        
         {
             "type": "node",
             "request": "launch",
             "name": "tlc interface test",
             "program": "${workspaceFolder}\\tlcinterface.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "charge test",
+            "program": "${workspaceFolder}\\chargeRates.test.js",
             "env": {"CONFIG":"pi-config.debug.json"}
         },
         {

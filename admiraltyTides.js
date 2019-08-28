@@ -18,8 +18,8 @@ exports.load = function(callback) {
       };
       
       var req = https.request(options, function(res) {
-        console.log("statusCode: ", res.statusCode);
-        console.log("headers: ", res.headers);
+        // console.log("statusCode: ", res.statusCode);
+        // console.log("headers: ", res.headers);
       
         res.on('data', function(d) {
           data += d;

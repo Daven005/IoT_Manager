@@ -287,7 +287,7 @@ var camera = require('./camera');
 app_mobile.get("/Camera", camera.load);
 app_mobile.get("/Camera/action", camera.action);
 
-var charge = require('./charge');
+var charge = require('./chargeRates');
 app.get("/charge/rates", charge.rates);
 app.get("/charge/status", charge.status);
 app.get("/charge/control", charge.control);

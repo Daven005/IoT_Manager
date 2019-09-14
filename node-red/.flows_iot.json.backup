@@ -31,6 +31,13 @@
         "info": ""
     },
     {
+        "id": "e3fc4d98.11333",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": ""
+    },
+    {
         "id": "bb330f1d.4495",
         "type": "subflow",
         "name": "Room Temperatures",
@@ -124,14 +131,9 @@
         "in": [],
         "out": [
             {
-                "x": 420,
-                "y": 480,
-                "wires": [
-                    {
-                        "id": "436d41ad.a1426",
-                        "port": 0
-                    }
-                ]
+                "x": 620,
+                "y": 560,
+                "wires": []
             }
         ]
     },
@@ -284,7 +286,7 @@
         "id": "16026dfe.edfd72",
         "type": "ui_group",
         "z": "",
-        "name": "Electric",
+        "name": "Electric (export -ve)",
         "tab": "9dace2eb.bff4d",
         "order": 7,
         "disp": true,
@@ -754,7 +756,7 @@
         "type": "mqtt in",
         "z": "962cb828.613348",
         "name": "",
-        "topic": "/Raw/Hollies11c554/#",
+        "topic": "/Raw/Hollies3ae5fd/#",
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
         "x": 177,
@@ -775,7 +777,7 @@
         "console": "false",
         "complete": "payload",
         "x": 610,
-        "y": 40,
+        "y": 20,
         "wires": []
     },
     {
@@ -1732,7 +1734,7 @@
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
         "x": 150,
-        "y": 380,
+        "y": 440,
         "wires": [
             [
                 "6798660a.a1a248"
@@ -1762,7 +1764,7 @@
         "seg1": "0",
         "seg2": "",
         "x": 570,
-        "y": 380,
+        "y": 440,
         "wires": []
     },
     {
@@ -2051,7 +2053,7 @@
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
         "x": 140,
-        "y": 460,
+        "y": 520,
         "wires": [
             [
                 "68d7278b.197388"
@@ -2081,7 +2083,7 @@
         "seg1": "",
         "seg2": "",
         "x": 560,
-        "y": 460,
+        "y": 520,
         "wires": []
     },
     {
@@ -2125,7 +2127,7 @@
         "outputs": 1,
         "noerr": 0,
         "x": 371,
-        "y": 380,
+        "y": 440,
         "wires": [
             [
                 "cfc28f02.ce6d2"
@@ -2794,7 +2796,7 @@
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
         "x": 137,
-        "y": 595,
+        "y": 655,
         "wires": [
             [
                 "17ce077d.cd0e09"
@@ -2824,7 +2826,7 @@
         "seg1": "",
         "seg2": "",
         "x": 570,
-        "y": 600,
+        "y": 660,
         "wires": []
     },
     {
@@ -2864,8 +2866,8 @@
         "type": "mqtt in",
         "z": "962cb828.613348",
         "name": "",
-        "topic": "/Raw/Holliesd82273/#",
-        "qos": "2",
+        "topic": "/Raw/Hollies26ef96/0/#",
+        "qos": "0",
         "broker": "d9cbc95c.9962d8",
         "x": 140,
         "y": 100,
@@ -3456,7 +3458,7 @@
         "width": "2",
         "height": "2",
         "gtype": "gage",
-        "title": "Garage Solar",
+        "title": "G-Solar (mb)",
         "label": "units",
         "format": "{{value}}",
         "min": "-3000",
@@ -3481,7 +3483,7 @@
         "qos": "0",
         "broker": "d9cbc95c.9962d8",
         "x": 180,
-        "y": 120,
+        "y": 100,
         "wires": [
             [
                 "9d4adee0.5dd36"
@@ -3497,11 +3499,11 @@
         "width": "2",
         "height": "2",
         "name": "",
-        "label": "Garage gen",
+        "label": "Garage gen MWh",
         "format": "{{ msg.payload}}",
         "layout": "col-center",
-        "x": 570,
-        "y": 120,
+        "x": 590,
+        "y": 100,
         "wires": []
     },
     {
@@ -4057,7 +4059,7 @@
         "type": "debug",
         "z": "962cb828.613348",
         "name": "",
-        "active": false,
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -4071,7 +4073,7 @@
         "type": "debug",
         "z": "962cb828.613348",
         "name": "",
-        "active": false,
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -4123,28 +4125,11 @@
         "wires": []
     },
     {
-        "id": "436d41ad.a1426",
-        "type": "http request",
-        "z": "eb4cd96e.0ae0a8",
-        "name": "",
-        "method": "GET",
-        "ret": "txt",
-        "url": "https://monitoringapi.solaredge.com/site/715727/currentPowerFlow.json?api_key=2KIZC7NTK62JD7PJ7LG0NXGYYCL2TOT4",
-        "tls": "",
-        "x": 270,
-        "y": 360,
-        "wires": [
-            [
-                "d68c1dc8.74a"
-            ]
-        ]
-    },
-    {
         "id": "5eaeea73.6daef4",
         "type": "debug",
         "z": "93cd5b69.186278",
         "name": "",
-        "active": false,
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -4176,7 +4161,7 @@
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
         "x": 127,
-        "y": 515,
+        "y": 575,
         "wires": [
             [
                 "15862c66.4aca94"
@@ -4206,7 +4191,7 @@
         "seg1": "",
         "seg2": "",
         "x": 557,
-        "y": 515,
+        "y": 575,
         "wires": []
     },
     {
@@ -4216,22 +4201,22 @@
         "name": "",
         "group": "f8783d13.3b8ec",
         "order": 2,
-        "width": "2",
-        "height": "2",
+        "width": "1",
+        "height": "1",
         "passthru": false,
-        "label": "Update",
+        "label": "",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
-        "icon": "",
+        "icon": "refresh",
         "payload": "",
         "payloadType": "str",
-        "topic": "",
-        "x": 100,
+        "topic": "currentPowerFlow",
+        "x": 90,
         "y": 360,
         "wires": [
             [
-                "436d41ad.a1426"
+                "83a9aadb.52c2e8"
             ]
         ]
     },
@@ -4240,8 +4225,8 @@
         "type": "function",
         "z": "eb4cd96e.0ae0a8",
         "name": "",
-        "func": "var info = JSON.parse(msg.payload);\nvar newMsg = [];\nnewMsg[0] = {'payload':info.siteCurrentPowerFlow.GRID.currentPower};\nnewMsg[1] = {'payload':info.siteCurrentPowerFlow.LOAD.currentPower};\nnewMsg[2] = {'payload':info.siteCurrentPowerFlow.PV.currentPower};\nnewMsg[3] = {'payload':info.siteCurrentPowerFlow.STORAGE.currentPower};\nnewMsg[4] = {'payload':info.siteCurrentPowerFlow.STORAGE.chargeLevel};\nreturn newMsg;",
-        "outputs": 5,
+        "func": "var info = JSON.parse(msg.payload);\nvar newMsg = [];\nnewMsg[0] = {'payload':info.siteCurrentPowerFlow.GRID.currentPower};\nnewMsg[1] = {'payload':info.siteCurrentPowerFlow.LOAD.currentPower};\nnewMsg[2] = {'payload':info.siteCurrentPowerFlow.PV.currentPower};\nif (info.siteCurrentPowerFlow.STORAGE.status == 'Discharging') {\n    newMsg[3] = {'payload': -info.siteCurrentPowerFlow.STORAGE.currentPower};\n} else {\n    newMsg[3] = {'payload': +info.siteCurrentPowerFlow.STORAGE.currentPower};\n}\n\nnewMsg[4] = {'payload':info.siteCurrentPowerFlow.STORAGE.chargeLevel};\nreturn newMsg;",
+        "outputs": 6,
         "noerr": 0,
         "x": 430,
         "y": 360,
@@ -4260,7 +4245,8 @@
             ],
             [
                 "1a2f6ed4.6ff011"
-            ]
+            ],
+            []
         ]
     },
     {
@@ -4354,15 +4340,15 @@
         "title": "Batt",
         "label": "kw",
         "format": "{{value}}kw",
-        "min": 0,
+        "min": "-2",
         "max": "5",
         "colors": [
             "#00b500",
             "#e6e600",
             "#ca3838"
         ],
-        "seg1": "",
-        "seg2": "",
+        "seg1": "-1",
+        "seg2": "1",
         "x": 630,
         "y": 440,
         "wires": []
@@ -4402,7 +4388,7 @@
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
         "x": 150,
-        "y": 200,
+        "y": 160,
         "wires": [
             [
                 "b034fdac.0de33"
@@ -4423,28 +4409,28 @@
         "label": "units",
         "format": "{{value}}",
         "min": "-4000",
-        "max": "4000",
+        "max": "100",
         "colors": [
-            "#ff0000",
+            "#00ff40",
             "#e6e600",
             "#00ff00"
         ],
-        "seg1": "",
-        "seg2": "",
+        "seg1": "-500",
+        "seg2": "0",
         "x": 570,
-        "y": 200,
+        "y": 160,
         "wires": []
     },
     {
         "id": "9d4adee0.5dd36",
         "type": "function",
         "z": "eb4cd96e.0ae0a8",
-        "name": "",
+        "name": "/1000",
         "func": "var total = parseInt(msg.payload, 10);\nreturn {'payload': total/1000};",
         "outputs": 1,
         "noerr": 0,
         "x": 390,
-        "y": 120,
+        "y": 100,
         "wires": [
             [
                 "240cad73.8aa6d2"
@@ -4479,6 +4465,268 @@
         "complete": "false",
         "x": 480,
         "y": 540,
+        "wires": []
+    },
+    {
+        "id": "2e6cf4e3.b51ffc",
+        "type": "mqtt in",
+        "z": "f919d09c.4026b",
+        "name": "",
+        "topic": "/App/Boiler Rm/+/4 Other/#",
+        "qos": "0",
+        "broker": "d9cbc95c.9962d8",
+        "x": 150,
+        "y": 380,
+        "wires": [
+            [
+                "54813c20.bbbbd4"
+            ]
+        ]
+    },
+    {
+        "id": "50c4647f.8f80ec",
+        "type": "ui_gauge",
+        "z": "f919d09c.4026b",
+        "name": "Ex Other",
+        "group": "16026dfe.edfd72",
+        "order": 0,
+        "width": "2",
+        "height": "2",
+        "gtype": "gage",
+        "title": "Ex Other",
+        "label": "units",
+        "format": "{{value}}",
+        "min": "000",
+        "max": "1000",
+        "colors": [
+            "#ffff80",
+            "#e19f04",
+            "#ca3838"
+        ],
+        "seg1": "100",
+        "seg2": "300",
+        "x": 573,
+        "y": 385,
+        "wires": []
+    },
+    {
+        "id": "3114c686.274f4a",
+        "type": "mqtt in",
+        "z": "f919d09c.4026b",
+        "name": "",
+        "topic": "/App/+/+/1 Solar/#",
+        "qos": "0",
+        "broker": "d9cbc95c.9962d8",
+        "x": 130,
+        "y": 720,
+        "wires": [
+            [
+                "fa2eea62.d7a8a8"
+            ]
+        ]
+    },
+    {
+        "id": "fa2eea62.d7a8a8",
+        "type": "ui_gauge",
+        "z": "f919d09c.4026b",
+        "name": "House Solar",
+        "group": "16026dfe.edfd72",
+        "order": 0,
+        "width": "2",
+        "height": "2",
+        "gtype": "gage",
+        "title": "House Solar",
+        "label": "units",
+        "format": "{{value}}",
+        "min": "-4000",
+        "max": "100",
+        "colors": [
+            "#00ff80",
+            "#e6e600",
+            "#ff0000"
+        ],
+        "seg1": "-500",
+        "seg2": "0",
+        "x": 583,
+        "y": 725,
+        "wires": []
+    },
+    {
+        "id": "94ebb409.7e2d08",
+        "type": "function",
+        "z": "eb4cd96e.0ae0a8",
+        "name": "",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 360,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "14a673e7.1f354c",
+        "type": "mqtt in",
+        "z": "eb4cd96e.0ae0a8",
+        "name": "",
+        "topic": "/App/+/+/3 - Inverter/#",
+        "qos": "2",
+        "broker": "d9cbc95c.9962d8",
+        "x": 160,
+        "y": 220,
+        "wires": [
+            [
+                "512b4fef.de3da"
+            ]
+        ]
+    },
+    {
+        "id": "38999c09.bb3424",
+        "type": "ui_gauge",
+        "z": "eb4cd96e.0ae0a8",
+        "name": "",
+        "group": "f8783d13.3b8ec",
+        "order": 0,
+        "width": "2",
+        "height": "2",
+        "gtype": "gage",
+        "title": "G-Solar (inv)",
+        "label": "units",
+        "format": "{{value}}",
+        "min": "-4000",
+        "max": "1000",
+        "colors": [
+            "#00ff40",
+            "#e6e600",
+            "#ff0000"
+        ],
+        "seg1": "-500",
+        "seg2": "0",
+        "x": 570,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "54813c20.bbbbd4",
+        "type": "function",
+        "z": "f919d09c.4026b",
+        "name": "negate",
+        "func": "msg.payload = -msg.payload;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 370,
+        "y": 380,
+        "wires": [
+            [
+                "50c4647f.8f80ec"
+            ]
+        ]
+    },
+    {
+        "id": "512b4fef.de3da",
+        "type": "function",
+        "z": "eb4cd96e.0ae0a8",
+        "name": "negate",
+        "func": "msg.payload = -msg.payload;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 220,
+        "wires": [
+            [
+                "38999c09.bb3424"
+            ]
+        ]
+    },
+    {
+        "id": "da046022.2f23f",
+        "type": "ui_button",
+        "z": "e3fc4d98.11333",
+        "name": "",
+        "group": "f8783d13.3b8ec",
+        "order": 2,
+        "width": "1",
+        "height": "1",
+        "passthru": false,
+        "label": "Power",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "power",
+        "x": 110,
+        "y": 860,
+        "wires": [
+            [
+                "42778e4b.5af"
+            ]
+        ]
+    },
+    {
+        "id": "42778e4b.5af",
+        "type": "function",
+        "z": "e3fc4d98.11333",
+        "name": "",
+        "func": "var M = global.get(\"moment\");\nvar m = new M();\nmsg.startTime = m.format(\"YYYY:MM:DD hh:00\")\nmsg.endTime = m.add(1, 'h').format(\"YYYY:MM:DD hh:00\")\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 280,
+        "y": 860,
+        "wires": [
+            [
+                "97c4241f.d74888"
+            ]
+        ]
+    },
+    {
+        "id": "97c4241f.d74888",
+        "type": "http request",
+        "z": "e3fc4d98.11333",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "url": "https://monitoringapi.solaredge.com/site/715727/{{topic}}.json?startTime={{startTime}}:endTime={{endTime}}:api_key=2KIZC7NTK62JD7PJ7LG0NXGYYCL2TOT4",
+        "tls": "",
+        "x": 440,
+        "y": 880,
+        "wires": [
+            [
+                "86dd9cbd.81da9"
+            ]
+        ]
+    },
+    {
+        "id": "83a9aadb.52c2e8",
+        "type": "http request",
+        "z": "eb4cd96e.0ae0a8",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "url": "https://monitoringapi.solaredge.com/site/715727/{{topic}}.json?api_key=2KIZC7NTK62JD7PJ7LG0NXGYYCL2TOT4",
+        "tls": "",
+        "x": 250,
+        "y": 360,
+        "wires": [
+            [
+                "d68c1dc8.74a"
+            ]
+        ]
+    },
+    {
+        "id": "86dd9cbd.81da9",
+        "type": "debug",
+        "z": "e3fc4d98.11333",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 620,
+        "y": 900,
         "wires": []
     }
 ]

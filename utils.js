@@ -16,7 +16,7 @@ transporter.verify(function(error, success) {
    if (error) {
         console.log("Nodemailer verify error: %j", error);
    } else {
-        console.log('Server is ready to take our messages');
+        console.log('Nodemailer Server is ready to take our messages');
    }
 });
 

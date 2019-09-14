@@ -66,7 +66,7 @@ exports.saveInfoMobile = function(req, res, next) {
     req.session.lastRequest = req.originalUrl;
   }
   req.loggedIn = req.session.loggedIn;
-  res.locals.desktopLink = 'http://'+req.ip+':'+desktop_port+'/';
+  res.locals.desktopLink = 'http://'+req.ip+':'+config.browser.desktop_port+'/';
   //console.log("Rqm: %s %j %j", req.session.lastRequest, req.useMobile, req.loggedIn );
   next();
 }

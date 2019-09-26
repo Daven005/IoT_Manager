@@ -37,6 +37,41 @@
             "name": "tides test",
             "program": "${workspaceFolder}\\admiraltyTides.test.js",
             "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "sun test",
+            "program": "${workspaceFolder}\\sun.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "weather test",
+            "program": "${workspaceFolder}\\weather.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "modbus test",
+            "program": "${workspaceFolder}\\modbus.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "managePower test",
+            "program": "${workspaceFolder}\\managePower.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Startup test",
+            "program": "${workspaceFolder}\\IOT.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
         }
     ]
 }

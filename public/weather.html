@@ -16,8 +16,9 @@ function getWeather(){
     var lati = 50.82656702724442;
     var longi = -1.340523851589267;
     var data;
+	var u;
 
-    $.getJSON(url + apiKey + "/" + lati + "," + longi + "?units=uk&callback=?", function(data) {
+    $.getJSON(u = url + apiKey + "/" + lati + "," + longi + "?units=uk&callback=?", function(data) {
       //console.log(data);
       $('#weather').html('and the temperature is: ' + data.currently.temperature);
 	var i; var str;

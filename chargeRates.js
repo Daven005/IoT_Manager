@@ -1,5 +1,5 @@
 var elecCosts = [];
-setInterval(getRates, 30*60*1000);
+setInterval(getRates, 1*60*1000);
 
 getRates();
 
@@ -27,6 +27,7 @@ function getRates() {
         var temp = rates.splice(0, 8);
         temp.sort((a, b) => moment(a.valid_from) - moment(b.valid_from));
         temp.forEach((r) => elecCosts.push({t: new Date(r.valid_from).getTime(), r: r.value_inc_vat}));
+        client.publish('/App/elec/rates', JSON.stringify(elecCosts));
         // console.log(JSON.stringify(elecCosts));
     })
     .catch((error) => 

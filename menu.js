@@ -74,7 +74,7 @@ exports.get = function(request, response) {
   othersMenu.push(makeMenuItem('/Watering/schedule', 'Watering'));
   othersMenu.push(makeMenuItem('/public/weather.html', 'Weather'));
   var ip = request.connection.localAddress.replace('::ffff:', '');
-  othersMenu.push(makeMenuItem('http://'+ip+':'+mobile_port+'/', 'Mobile View'));
+  othersMenu.push(makeMenuItem('http://'+ip+':'+config.browser.mobilePort+'/', 'Mobile View'));
   
   menu.push(makeMenuItem('/errors', 'Other', othersMenu));
   

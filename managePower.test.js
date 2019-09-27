@@ -6,16 +6,18 @@ global.sun = require('./sun');
 global.config;
 require('./config').read((cfg) => {
     global.config = cfg;
+    config.database.host = "IOT1"; // Need to be able to write to 'cloud' table
     var dbs = require('./dbSetup');
     global.weather = require('./weather');
     try {
         dbs.init(() => {
-            weather.load(() => {
-                var mp = require('./managePower');
-                mp.init(() => {
-                    // mp.powerFlowJob();
-                    mp.powerJob();
-                    setInterval(() => { weather.load() }, 5 * 60 * 1000);
+            var mp = require('./managePower'); // NB this sets up getCloud for managePower
+            mp.init(() => {
+                weather.load(() => {
+                    mp.powerJob2();
+                    setInterval(() => {
+                        weather.load()
+                    }, 5 * 60 * 1000);
                 })
             });
         });

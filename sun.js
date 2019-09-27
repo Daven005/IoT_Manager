@@ -34,7 +34,8 @@ function publish() {
 }
 
 function get(date) {
-    var sp = sunCalc.getPosition(moment(date), config.latitude, config.longitude);
+    if (!date) date = new Date();
+    var sp = sunCalc.getPosition(moment.utc(date), config.latitude, config.longitude);
     return {
         az: Math.round(sp.azimuth * (180 / Math.PI)),
         alt: Math.round(sp.altitude * (180 / Math.PI))

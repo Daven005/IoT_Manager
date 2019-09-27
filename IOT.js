@@ -20,6 +20,7 @@ global.errorLog = require('./errorLog.js');
 global.alarmLog = require('./alarmLog.js');
 global.deviceState = require('./DeviceState.js').DeviceState;
 global.utils = require('./utils');
+global.sun = require('./sun');
 // global.beep = new sound();
 // beep.play('./alert.wav');
 
@@ -27,7 +28,7 @@ global.utils = require('./utils');
 var processHeating = require('./processHeating');
 var processDeletes = require('./processDeletes');
 var weather = require('./weather');
-var sun = require('./sun');
+var managePower = require('./managePower'); // NB this sets up getCloud for managePower from weather
 var tides = require('./admiraltyTides');
 var time = require('./time');
 var monitor = require('./monitor');
@@ -44,8 +45,6 @@ var dashboard = require('./dashboard');
 var pond = require('./pond');
 var watering = require('./watering');
 var camera = require('./camera');
-var charge = require('./chargeRates');
-
 function configLoaded(cfg) {
     global.config = cfg;
 
@@ -62,6 +61,7 @@ function configLoaded(cfg) {
     var message = require('./message'); // Decode MQTT messages
     client.on('message', message.decode);
     client.on('connect', () => {
+        console.log("MQTT connected");
         client.subscribe('/App/#');
         client.subscribe('/Raw/#');
         client.publish('/Raw/Hollies000000/info', '{"Name": "Weather", "Location": "Outside"}'); 
@@ -96,12 +96,12 @@ function configLoaded(cfg) {
         setupIntervalFunctions();
         setupWeb();
 
-        app.listen(config.browser.desktop_port);
-        console.log(`App Server Running on ${config.browser.desktop_port}`);
-        app_mobile.listen(config.browser.mobile_port);
-        console.log(`App_Mobile Server Running on ${config.browser.mobile_port}`);
-        app_guest.listen(config.browser.guest_port);
-        console.log(`Guest Server Running on ${config.browser.guest_port}`);
+        app.listen(config.browser.desktopPort);
+        console.log(`App Server Running on ${config.browser.desktopPort}`);
+        app_mobile.listen(config.browser.mobilePort);
+        console.log(`App_Mobile Server Running on ${config.browser.mobilePort}`);
+        app_guest.listen(config.browser.guestPort);
+        console.log(`Guest Server Running on ${config.browser.guestPort}`);
     });
 }
 
@@ -154,12 +154,16 @@ function setupIntervalFunctions() {
         processHeating.check("Background heating check")
     }, 1 * 60 * 990); // Just under 1 minute
 
-    setInterval(processDeletes.check, 2 * 60 * 999); // Just under 2 minutes
+    setInterval(processDeletes.check, 5 * 60 * 999); // Just under 5 minutes
 
-    weather.load(() => weather.publish());
-    setInterval(weather.load, 10 * 60 * 1000 - 4); // Just under 10 minutes
-    setInterval(weather.publish, 2 * 60 * 1000 - 4); // Just under 2 minutes
-
+    managePower.init(() => {
+        weather.load(() => {
+            managePower.powerJob();
+            weather.publish(); // Done straight away for Boiler Control
+            setInterval(weather.load, 10 * 60 * 1000);
+            setInterval(weather.publish, 2 * 60 * 1000 - 4); // Just under 2 minutes
+        });
+    });
     sun.load();
     setInterval(sun.load, 15 * 60 * 1000 - 4); // Just under 1 minute
     setInterval(sun.publish, 1 * 60 * 1000 - 4); // Just under 1 minute
@@ -244,7 +248,7 @@ function setupWeb() {
     app.get("/WiFiGate/sse", wifiGate.sse);
     app_mobile.get("/WiFiGate/sse", wifiGate.sse);
 
-    app.get('/tlc/testPIR', tlc.testPIR);
+    // app.get('/tlc/testPIR', tlc.testPIR);
     app.get('/tlc/scenes', tlc.showScenes);
     app.post('/tlc/setScene', tlc.setScene);
     app.get('/tlc/setScene', tlc.setScene);

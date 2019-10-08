@@ -57,11 +57,15 @@ exports.controlSensor = function (request, response) {
   });
 }
 
-exports.mobileOverrides = function (request, response) {
+exports.mobileOverrides = mobileOverrides;
+
+function mobileOverrides(request, response) {
+  _mobileOverrides(request, response);
+}
+
+function _mobileOverrides(request, response, zoneFilter) {
   var errorStr = "";
-  function reload(zone) {
-    var zoneName = "";
-    var zoneRow = 0;
+  function _reload(zone) {
     var sqlstr = "SELECT zoneID, heatingoverrides.ID AS oID, heatingzones.Name AS zoneName, "
       + "heatingoverrides.Name AS groupName, TemperatureMax, TemperatureMin, "
       + "heatingoverrides.day, daysofweek.Name AS dayName, "
@@ -69,85 +73,73 @@ exports.mobileOverrides = function (request, response) {
       + "FROM heatingoverrides "
       + "INNER JOIN heatingzones ON heatingoverrides.zoneID = heatingzones.ID "
       + "INNER JOIN daysofweek ON heatingoverrides.day = daysofweek.ID "
-      + "WHERE heatingoverrides.Name = 'Mobile' ORDER BY zoneName";
+      + "WHERE heatingoverrides.Name = 'Mobile'";
+    if (zoneFilter) { // Allow for guest override page
+      sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}"`
+    }
+    sqlstr += " ORDER BY heatingzones.Name";
+    console.log(sqlstr);
     db.query(sqlstr, function (err, result) {
       if (err) {
-        console.log("mobile %j", err);
-        console.log(sqlstr);
-        errorStr = err.message;
+        console.log(`mobile ${errorStr = err.message} ${sqlstr}`);
         result = [];
       }
-      sqlstr = "SELECT heatingoverrides.Name AS name, max(temperature) AS temperature, day, daysofweek.Name AS dayName, "
-        + "min(heatingoverrides.start) as start, min(heatingoverrides.duration) as duration "
-        + "from heatingoverrides inner join daysofweek on daysofweek.ID = heatingoverrides.day "
-        + "GROUP BY name";
-      db.query(sqlstr, function (err, result1) {
-        if (err) {
-          console.log("mobile1 %j", err);
-          console.log(sqlstr);
-          errorStr = err.message;
-          result1 = [];
-        }
-        sqlstr = "SELECT * FROM daysofweek"
-        db.query(sqlstr, function (err, result2) {
-          if (err) {
-            console.log("mobile2 %j", err);
-          }
-          result.forEach(function (el) {
-            el.target = processHeating.zoneTargetTemp(el.zoneID);
-            el.currentTemperature = processHeating.zoneCurrentTemp(el.zoneID);
-          });
-          response.render('heatingMobile',
-            { map: result, loggedIn: request.loggedIn, zone: { zoneID: zone }, err: errorStr });
-        });
+      result.forEach(function (el) {
+        el.target = processHeating.zoneTargetTemp(el.zoneID);
+        if (!el.target) console.log(`No target for ${el.zoneID}`)
+        el.currentTemperature = processHeating.zoneCurrentTemp(el.zoneID);
       });
+      response.render('heatingMobile',
+        { map: result, loggedIn: request.loggedIn, zone: { zoneID: zone }, err: errorStr });
     });
   }
 
-  function updateOverride(request) {
+  function _updateOverride(request) {
     var sqlstr = "UPDATE heatingoverrides SET "
-      + "day = ?, "
+      + "day = 10, "
       + "start = ?, "
       + "duration = ?, "
       + "temperature = ?, "
-      + "dontClear = ?, "
+      + "dontClear = false, "
       + "active = ? "
       + "WHERE ID = ?";
     sqlstr = sql.format(sqlstr, [
-      request.query.day,
       request.query.start,
       request.query.duration + ':00',
       request.query.temperature,
-      (request.query.dontClear == 'yes'),
-      (request.query.active == 'yes' && request.query.duration > 0),
+      (request.query.duration > 0),
       request.query.ID
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log("updateOverride %j SQL = %s request= %j", err, sqlstr, request); errorStr = "Empty values?"; }
-      reload(request.query.zoneID);
+      processHeating.load(`_updateOverride`, () => {_reload(request.query.zoneID)});
     });
   }
-  console.log("**mobileOverrides: %j", request.query);
+
+  console.log("*****mobileOverrides: %j", request.query);
   if (request.query.zoneID) {
     if (request.query.Action == "Set") {
-      if (login.check(request, response)) {
-        updateOverride(request);
-        processHeating.load();
+      if (zoneFilter) {
+        _updateOverride(request); // Allow guest update access
+      } else if (login.check(request, response)) {
+        _updateOverride(request);
       }
     } else {
-      reload(request.query.zoneID);
+      _reload(request.query.zoneID);
     }
   } else {
-    reload();
+    _reload();
   }
+}
+
+exports.guestOverrides = function (request, response) {
+  _mobileOverrides(request, response, `Guest1`);
 }
 
 exports.mobileGroups = function (request, response) {
   var errorStr = "";
 
-  function reload() {
-    var zoneName = "";
-    var zoneRow = 0;
+  function _reload() {
     var sqlstr = "SELECT heatingoverrides.Name AS name, max(temperature) AS temperature, day, daysofweek.Name AS dayName, "
       + "min(heatingoverrides.start) as start, min(heatingoverrides.duration) as duration "
       + "from heatingoverrides inner join daysofweek on daysofweek.ID = heatingoverrides.day "
@@ -163,7 +155,7 @@ exports.mobileGroups = function (request, response) {
     });
   }
 
-  function updateGroup(request) {
+  function _updateGroup(request) {
     var sqlstr = "UPDATE heatingoverrides SET "
       + "day = ?, "
       + "start = ?, "
@@ -181,9 +173,9 @@ exports.mobileGroups = function (request, response) {
       (request.query.active == 'yes'),
       request.query.Name
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log("updateGroup %j", err); }
-      reload();
+      _reload();
     });
   }
 
@@ -191,15 +183,15 @@ exports.mobileGroups = function (request, response) {
     case "Set Group":
       if (login.check(request, response)) {
         if (request.query.Name) {
-          updateGroup(request);
+          _updateGroup(request);
         } else {
-          reload();
+          _reload();
         }
-        processHeating.load();
+        processHeating.load(`updateGroup`);
       }
       break;
     default:
-      reload();
+      _reload();
   }
 }
 
@@ -215,9 +207,9 @@ exports.setEmergencyOverride = function (duration, temperature) {
   sqlstr = sql.format(sqlstr, [
     duration, temperature
   ]);
-  db.query(sqlstr, function (err, result) {
+  db.query(sqlstr, function (err) {
     if (err) { console.log("set Emergency Group %j", err); }
-    processHeating.load();
+    processHeating.load(`setEmergencyOverride`);
   });
 }
 
@@ -225,9 +217,9 @@ exports.clearEmergencyOverride = function () {
   var sqlstr = "UPDATE heatingoverrides SET "
     + "active = 0 "
     + "WHERE Name = 'Emergency'";
-  db.query(sqlstr, function (err, result) {
+  db.query(sqlstr, function (err) {
     if (err) { console.log("clear Emgergency Group %j", err); }
-    processHeating.load();
+    processHeating.load('clearEmergencyOverride');
   });
 }
 
@@ -257,9 +249,7 @@ exports.zones = function (request, response) {
 exports.override = function (request, response) {
   var errorStr = "";
 
-  function reload(zone) {
-    var zoneName = "";
-    var zoneRow = 0;
+  function _reload() {
     var sqlstr = "SELECT zoneID, heatingoverrides.ID AS oID, heatingzones.Name AS zoneName, "
       + "heatingoverrides.Name AS oName,  heatingoverrides.priority AS priority,  TemperatureMax, TemperatureMin, "
       + "heatingoverrides.day, daysofweek.Name AS dayName, "
@@ -297,7 +287,7 @@ exports.override = function (request, response) {
     });
   }
 
-  function updateOverride(request) {
+  function _updateOverride(request) {
     var sqlstr = "UPDATE heatingoverrides SET "
       + "Name = ?, "
       + "priority = ?, "
@@ -321,13 +311,13 @@ exports.override = function (request, response) {
       (request.query.active == 'yes'),
       request.query.ID
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); errorStr = "Empty values?"; }
-      reload();
+      _reload();
     });
   }
 
-  function insertOverride(request) {
+  function _insertOverride(request) {
     var sqlstr = "INSERT heatingoverrides  "
       + "(Name, priority, zoneID, day, Temperature, start, duration, active, dontClear) "
       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -342,22 +332,22 @@ exports.override = function (request, response) {
       (request.query.dontClear == 'yes'),
       (request.query.active == 'yes'),
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); }
-      reload();
+      _reload();
     });
   }
 
-  function deleteOverride(z) {
+  function _deleteOverride(z) {
     var sqlstr = "DELETE FROM heatingoverrides WHERE ID = ?";
     sqlstr = sql.format(sqlstr, [z]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); }
-      reload();
+      _reload();
     });
   }
 
-  function updateGroup(request) {
+  function _updateGroup(request) {
     var sqlstr = "UPDATE heatingoverrides SET "
       + "day = ?, "
       + "priority = ?, "
@@ -377,48 +367,48 @@ exports.override = function (request, response) {
       (request.query.active == 'yes'),
       request.query.Name
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); }
-      reload();
+      _reload();
     });
   }
 
   switch (request.query.Action) {
     case "Update":
       if (request.query.ID != 0) {
-        updateOverride(request);
+        _updateOverride(request);
       } else {
-        reload();
+        _reload();
       }
       processHeating.load();
       break;
     case "Delete":
       console.log("Delete override %d", request.query.ID);
       if (request.query.ID != 0) {
-        deleteOverride(request.query.ID);
+        _deleteOverride(request.query.ID);
       } else {
-        reload();
+        _reload();
       }
       processHeating.load();
       break;
     case "Add":
       if (request.query.ID != 0) {
-        insertOverride(request);
+        _insertOverride(request);
       } else {
-        reload();
+        _reload();
       }
       processHeating.load();
       break;
     case "Set Group":
       if (request.query.Name) {
-        updateGroup(request);
+        _updateGroup(request);
       } else {
-        reload();
+        _reload();
       }
       processHeating.load();
       break;
     default:
-      reload();
+      _reload();
   }
 }
 
@@ -433,13 +423,13 @@ exports.setOverride = function (device, override) { // Override message from Rad
         "SET O.start = NOW(), duration = '?:?', temperature = ?, active = 1 " +
         "WHERE Z.ControlDeviceID = ? AND O.Name = 'Mobile' AND O.day = 10";
       sqlstr = sql.format(sqlstr, [info.Hour, info.Minute, info.Temp, device]);
-      db.query(sqlstr, function (err, result) {
+      db.query(sqlstr, function (err) {
         if (err) {
           if (alarmLog.set(2000, err.code, device)) { // New
             utils.notify("Remote override fail", 'Alarm', device, err.message + ". " + override);
           }
         } else {
-          processHeating.load(); // Update all flags and current heating
+          processHeating.load(`setOverride`); // Update all flags and current heating
         }
       });
     }
@@ -448,9 +438,9 @@ exports.setOverride = function (device, override) { // Override message from Rad
   }
 }
 
-function reloadZones(zone, request, response, render) {
+function reloadZones(zone, response, render) {
 
-  function respond(data) {
+  function _respond(data) {
     switch (render) {
       case 'json':
         var info = data.map.map(function (z) {
@@ -502,6 +492,7 @@ function reloadZones(zone, request, response, render) {
       // ?????? processHeating.set
       z.demand = processHeating.zoneDemand(z.ID);
       z.targetTemp = processHeating.zoneTargetTemp(z.ID);
+     //  console.log(`++target ${z.ID} = ${z.targetTemp}`)
       z.overrideOn = processHeating.zoneOverrideOn(z.ID);
       z.overrideName = processHeating.zoneOverrideName(z.ID);
     });
@@ -518,22 +509,21 @@ function reloadZones(zone, request, response, render) {
       sqlstr = sql.format(sqlstr, zone);
       db.query(sqlstr, function (err, resultp) {
         if (err) {
-          console.log(err);
-          console.log(sqlstr);
+          console.log(`reload Zones error: ${err.message} ${sqlstr}`);
           errorStr += err.message;
           resultp = [];
         }
         resultp.push({ days: 10, Name: 'Anyday', Start: '12:00:00', Temperature: 21, preset: false, Action: 'Add Programme' });
-        respond({ map: result, programme: resultp, zone: { ID: zone, name: zoneName, row: zoneRow }, err: errorStr });
+        _respond({ map: result, programme: resultp, zone: { ID: zone, name: zoneName, row: zoneRow }, err: errorStr });
       });
     } else {
-      respond({ map: result, err: errorStr });
+      _respond({ map: result, err: errorStr });
     }
   });
 }
 
 exports.zonesInfo = function (request, response) {
-  reloadZones(request.query.zoneID, request, response, 'json');
+  reloadZones(request.query.zoneID, response, 'json');
 }
 
 exports.zoneInfoByName = function (request, response) {
@@ -558,7 +548,7 @@ exports.whyFiring = function (request, response) {
 }
 
 exports.voiceOverrides = function (request, response) {
-  function overrideSetResponse(info) {
+  function _overrideSetResponse(info) {
     response.setHeader('Content-Type', 'application/json');
     if (info.err != "OK") response.status(400);
     //console.log("OR info: %j", info);
@@ -566,13 +556,13 @@ exports.voiceOverrides = function (request, response) {
     response.end();
   }
 
-  function makeAmountText(txt, amount) {
+  function _makeAmountText(txt, amount) {
     var str = amount + ' ' + txt;
     if (amount != 1) str += 's';
     return str;
   }
 
-  function chooseFastestZone(info) {
+  function _chooseFastestZone(info) {
     let id = 0;
     if (info.err == 'OK' && info.zones) {
       if (info.zones.length >= 2) {
@@ -587,8 +577,8 @@ exports.voiceOverrides = function (request, response) {
     return id;
   }
 
-  function decodeRequestParams(info) {
-    function decodeDuration(info) {
+  function _decodeRequestParams(info) {
+    function _decodeDuration(info) {
       if (request.body.duration) {
         let v = parseInt(request.body.duration, 10); // duration may be in the form '<v> hours'
         if (isNaN(v)) { // Assume may be in form {amount:<v>, unit:h||min }
@@ -598,12 +588,12 @@ exports.voiceOverrides = function (request, response) {
               case 'h':
                 info.hour = duration.amount;
                 info.minute = 0;
-                info.durationText = makeAmountText('hour', duration.amount);
+                info.durationText = _makeAmountText('hour', duration.amount);
                 break;
               case 'min':
                 info.hour = 0;
                 info.minute = duration.amount;
-                info.durationText = makeAmountText('minute', duration.amount);
+                info.durationText = _makeAmountText('minute', duration.amount);
                 break;
               default: info.hour = 1; info.minute = 0; info.durationText = '1 hour'; break;
             }
@@ -631,15 +621,15 @@ exports.voiceOverrides = function (request, response) {
         info.targetRequest = request.body.temperatureNumber;
       }
     }
-    decodeDuration(info);
-    return chooseFastestZone(info);
+    _decodeDuration(info);
+    return _chooseFastestZone(info);
   }
 
   function gotZone(info) {
     if (info.err != "OK") {
       overrideSetResponse(info);
     } else {
-      let id = decodeRequestParams(info); // index to info.zones[]
+      let id = _decodeRequestParams(info); // index to info.zones[]
       let z = info.zones[id];
       switch (info.onOffAction) {
         case 'on': z.targetTemp = info.targetRequest; z.override = true; break;
@@ -662,14 +652,14 @@ exports.voiceOverrides = function (request, response) {
         sqlstr = sql.format(sqlstr, [z.override, z.zoneID]);
       }
       // console.log(sqlstr);
-      db.query(sqlstr, function (err, result) {
+      db.query(sqlstr, function (err) {
         if (err) {
           console.log("OR error: %j %j", sqlstr, err);
           info.err = "Can't set override";
         } else {
-          processHeating.load(); // Update all flags and current heating
+          processHeating.load(`gotZone`); // Update all flags and current heating
         }
-        overrideSetResponse(info);
+        _overrideSetResponse(info);
       });
     }
   }
@@ -680,11 +670,11 @@ exports.voiceOverrides = function (request, response) {
 
 exports.manage = function (request, response) {
 
-  function reload(zone) {
-    reloadZones(zone, request, response, 'heating');
+  function _reload(zone) {
+    reloadZones(zone, response, 'heating');
   }
 
-  function updateZone(request) {
+  function _updateZone(request) {
     var isMaster = false;
     if (request.query.IsMaster) isMaster = true;
     var sqlstr = "UPDATE heatingzones SET "
@@ -710,32 +700,32 @@ exports.manage = function (request, response) {
       request.query.TemperatureMin,
       request.query.ID
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); }
-      reload();
+      _reload();
     });
   }
 
-  function deleteZone(z) {
+  function _deleteZone(z) {
     // First delete any programmes
     var sqlstr = "DELETE FROM heatingprogrammes WHERE zoneID = ?";
     sqlstr = sql.format(sqlstr, [z]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) {
         console.log(err);
-        reload();
+        _reload();
       } else {
         sqlstr = "DELETE FROM heatingzones WHERE ID = ?";
         sqlstr = sql.format(sqlstr, [z]);
-        db.query(sqlstr, function (err, result) {
+        db.query(sqlstr, function (err) {
           if (err) { console.log(err); }
-          reload();
+          _reload();
         });
       }
     });
   }
 
-  function duplicateZone(request) {
+  function _duplicateZone(request) {
     var sqlstr = "INSERT heatingzones  "
       + "(Name, MasterZone, TemperatureDeviceID, TemperatureSensorID, ControlDeviceID, ControlSensorID, TemperatureMax, TemperatureMin) "
       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -749,13 +739,13 @@ exports.manage = function (request, response) {
       request.query.TemperatureMax,
       request.query.TemperatureMin
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); }
-      reload();
+      _reload();
     });
   }
 
-  function updateProgramme(request) {
+  function _updateProgramme(request) {
     var sqlstr = "UPDATE heatingprogrammes SET "
       + "zoneID = ?, "
       + "Temperature = ?, "
@@ -773,7 +763,7 @@ exports.manage = function (request, response) {
       request.query.oldDays,
       request.query.oldStart
     ]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) {
         if (err.rrno == 1062) { // Duplicate key so just update Temperature && preset
           sqlstr = "UPDATE heatingprogrammes SET "
@@ -786,17 +776,17 @@ exports.manage = function (request, response) {
             request.query.zoneID,
             request.query.days
           ]);
-          db.query(sqlstr, function (err, result) {
+          db.query(sqlstr, function (err) {
             if (err) { console.log(err); }
-            reload(request.query.zoneID);
+            _reload(request.query.zoneID);
           });
         } else { console.log(err); }
       }
-      reload(request.query.zoneID);
+      _reload(request.query.zoneID);
     });
   }
 
-  function addProgramme(request) {
+  function _addProgramme(request) {
     var sqlstr = "INSERT heatingprogrammes  "
       + "(zoneID, days, start, temperature, preset) "
       + "VALUES (?, ?, ?, ?, ?)";
@@ -808,18 +798,18 @@ exports.manage = function (request, response) {
       request.query.preset == 'yes'
     ]);
     sqlstr += ' ON DUPLICATE KEY UPDATE Temperature=VALUES(Temperature)';
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); }
-      reload(request.query.zoneID);
+      _reload(request.query.zoneID);
     });
   }
 
-  function deleteProgramme(request) {
+  function _deleteProgramme(request) {
     var sqlstr = "DELETE FROM heatingprogrammes WHERE zoneID = ? AND days = ? AND start = ?";
     sqlstr = sql.format(sqlstr, [request.query.zoneID, request.query.days, request.query.Start]);
-    db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err) {
       if (err) { console.log(err); }
-      reload(request.query.zoneID);
+      _reload(request.query.zoneID);
     });
   }
 
@@ -827,9 +817,9 @@ exports.manage = function (request, response) {
     case "Update":
       if (login.check(request, response)) {
         if (request.query.ID) {
-          updateZone(request);
+          _updateZone(request);
         } else {
-          reload();
+          _reload();
         }
         processHeating.load();
       }
@@ -837,9 +827,9 @@ exports.manage = function (request, response) {
     case "Delete":
       if (login.check(request, response)) {
         if (request.query.ID) {
-          deleteZone(request.query.row);
+          _deleteZone(request.query.row);
         } else {
-          reload();
+          _reload();
         }
         processHeating.load();
       }
@@ -847,22 +837,22 @@ exports.manage = function (request, response) {
     case "Duplicate":
       if (login.check(request, response)) {
         if (request.query) {
-          duplicateZone(request);
+          _duplicateZone(request);
         } else {
-          reload();
+          _reload();
         }
         processHeating.load();
       }
       break;
     case "Show Programme":
-      reload(request.query.ID);
+      _reload(request.query.ID);
       break;
     case "Update Programme":
       if (login.check(request, response)) {
         if (request.query.zoneID) {
-          updateProgramme(request)
+          _updateProgramme(request)
         } else {
-          reload(request.query.zoneID);
+          _reload(request.query.zoneID);
         }
         processHeating.load();
       }
@@ -870,9 +860,9 @@ exports.manage = function (request, response) {
     case "Add Programme":
       if (login.check(request, response)) {
         if (request.query.zoneID) {
-          addProgramme(request)
+          _addProgramme(request)
         } else {
-          reload(request.query.zoneID);
+          _reload(request.query.zoneID);
         }
         processHeating.load();
       }
@@ -880,25 +870,20 @@ exports.manage = function (request, response) {
     case "Delete Programme":
       if (login.check(request, response)) {
         if (request.query.zoneID) {
-          deleteProgramme(request)
+          _deleteProgramme(request)
         } else {
-          reload(request.query.zoneID);
+          _reload(request.query.zoneID);
         }
         processHeating.load();
       }
       break;
-    case "Reload Control":
-      reload();
-      processHeating.load();
-      break;
     default:
-      reload();
-      processHeating.load();
+      _reload();
   }
 }
 
 exports.temperatureDials = function (request, response) {
-  reloadZones(request.query.zoneID, request, response, 'temperatureDials');
+  reloadZones(request.query.zoneID, response, 'temperatureDials');
 }
 
 exports.getAllDeviceInfo = getAllDeviceInfo;
@@ -925,7 +910,7 @@ function getAllDeviceInfo(request, response) {
 }
  
 exports.externalSetOverride = function (request, response) {
-  console.log(`externalSetOverride ${JSON.stringify(request.query)}`);
+  // console.log(`externalSetOverride ${JSON.stringify(request.query)}`);
   if ((0 <= request.query.hour && request.query.hour < 24)
     && (5 <= request.query.temperature && request.query.temperature <= 30)) {
     // NB The override must have the GroupName <EXTERNAL_NAME> and the day as 'AnyDay' (10)
@@ -936,13 +921,13 @@ exports.externalSetOverride = function (request, response) {
       `WHERE zoneID = ? AND Name = '${EXTERNAL_NAME}' AND day = 10`;
     sqlstr = sql.format(sqlstr, [parseInt(request.query.hour), parseInt(request.query.temperature), 
                           (request.query.hour > 0) ? 1 : 0, parseInt(request.query.zoneID)]);
-     db.query(sqlstr, function (err, result) {
+     db.query(sqlstr, function (err) {
       if (err) {
         if (alarmLog.set(2001, err.code, request.query.overrideID)) { // New
           utils.notify("Remote override fail", 'Alarm', request.query.overrideID, err.message);
         }
       } else {
-        processHeating.load(); // Update all flags and current heating
+        processHeating.load(`externalSetOverride`); // Update all flags and current heating
         setTimeout(() => getAllDeviceInfo(request, response), 2000);
       }
     });

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSSample</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+    $(function() {
+        var params = {
+            // Request parameters
+        };
+      
+        $.ajax({
+            url: "https://admiraltyapi.azure-api.net/uktidalapi/api/V1/Stations/0061",
+            beforeSend: function(xhrObj){
+                // Request headers
+                xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","fe4d922e9e354dafa4046930acad93cf");
+                xhrObj.setRequestHeader("Access-Control-Allow-Origin",'*');
+            },
+            type: "GET"
+        })
+        .done(function(data) {
+            alert("success");
+        })
+        .fail(function(err) {
+            alert("error");
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,5 +1,10 @@
-pi-config.js
-jquery*
-jtsage*
-node_modules/
-
+pi-config.json
+pi-config.debug.json
+/node_modules
+/graph
+graph/
+/jq
+*.pcap
+*.json
+ERRORS.js
+/.gitattributes

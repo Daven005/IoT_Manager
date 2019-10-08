@@ -12,7 +12,7 @@ function reload() {
 		},
 		error: function(x, error, txt) {
 			var idx;
-			alert(txt);
+			alert(`Reload error: '${txt}'`);
 			for (idx=0; idx<4; idx++) addZone({}, idx);
 		}
 	});
@@ -42,7 +42,7 @@ function getOutputs() {
 			});
 		},
 		error: function(x, error, txt) {
-			alert(txt);
+			alert(`Update error: '${txt}'`);
 		}
 	});
 }
@@ -108,6 +108,17 @@ function makeZoneString(setting, idx) {
   '</div><p></p>';
 }
 
+function makeSlider(id, start, end) {
+	let s = 
+	'<div data-role="rangeslider">'+
+	'<label for="range-1a">Rangeslider:</label>'+
+	`<input name="range-1a" id="${id}a" min="0" max="100" value="${start}" type="range">`+
+	'<label for="range-1b">Rangeslider:</label>'+
+	`<input name="range-1b" id="${id}b" min="0" max="100" value="${end}" type="range">`+
+	'</div>';
+	return s;
+}
+
 function getSelect(z) {
   var sel = '<select class="outputID">'+
     '<option value="0">OFF</option>'
@@ -152,7 +163,7 @@ function updateBtn() {
 		dataType: "json/text",
 		contentType: "application/json",
 		complete: function(data, status) {
-			if (data.responseText != 'OK') alert(data.responseText);
+			if (data.responseText != 'OK') alert(`Bad response: '${data.responseText}'`);
  			reload();
    }
   });
@@ -163,7 +174,7 @@ function restoreBtn() {
 		url : "/Watering/restore",
 		type: "get",
 		complete: function(data, status) {
-			alert(data.responseText);
+			if (data.responseText != 'OK') alert(`restoreBtn Bad response: '${data.responseText}'`);
  			reload();
 		}
   });

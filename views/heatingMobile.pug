@@ -3,19 +3,13 @@ doctype html
 head
   title Heating Overrides
   meta(name="viewport" content="width=device-width, initial-scale=1")
-  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
-  script(src='/views/jquery-2.2.1.min.js')
-  script(src='/views/jquery.mobile-1.4.5.min.js')
+  link(rel='stylesheet' href='/jq/jquery.mobile-1.4.5.min.css')
+  script(src='/jq/jquery-2.2.1.min.js')
+  script(src='/jq/jquery.mobile-1.4.5.min.js')
   script(src='/views/heatingMobile.js')
 
 style.
-  @media all and (min-width: 60em) {           
-    .col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 50%} 
-  }
   .ui-header  { background: #cc1111 !important; }
-  .ui-block-a { width: 30% !important; }
-  .ui-block-b { width: 40% !important; }
-  .ui-block-c { width: 30% !important; }
   .inline {float: left}
   #h1-large { font-size: 1.1em; margin-left: 15% }
   
@@ -24,30 +18,28 @@ body
     div(data-role="header" data-position="fixed")
       h1#h1-large Heating Overrides
       a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
-    div(data-role="main" class="ui-content" data-url="/Heating/mobileOverrides")
+    div(data-role="main" class="ui-content" data-url="/Heating/mobileGroups")
       each val, i in map
         form(method='get' data-ajax="false" form='form'+i id='form'+i)
           input(type="hidden" name="ID" value=val.oID)
           input(type="hidden" name="zoneID" value=val.zoneID)
           input(type="hidden" name="start" value=moment().format('HH:mm'))
-          input(type="hidden" name="day" value="10")
-          input(type="hidden" name="active" value="yes")
-      div.col20(data-role="collapsible-set" data-theme="a" data-content-theme="a")
+      div(data-role="collapsible-set" data-theme="a" data-content-theme="a")
         each val, i in map
           - var clpsd
           - if (val.zoneID.toString() == zone.zoneID) { clpsd = 'false'; } else { clpsd = 'true';}
           div(data-role="collapsible" data-theme="d" data-content-theme="d" data-collapsed=clpsd)
             h3 #{val.zoneName} (#{val.currentTemperature}C)
             - var c = 'hsl('+setHue(val.TemperatureMin, val.TemperatureMax, val.target)+',75%,50%)';
-            div(tMax=val.TemperatureMax tMin=val.TemperatureMin
-              style="background-color: #{c}; border-radius: 15px; text-align: center") Temperature
+            div.fieldcontain(tMax=val.TemperatureMax tMin=val.TemperatureMin
+              style=`background-color: ${c}; border-radius: 15px; text-align: center`) Temperature
               input(type="range" name="temperature" id="temperature" form="form"+i value=val.target
                 min=val.TemperatureMin max=val.TemperatureMax onchange='updateTemperatureBackground(this)'
-                data-highlight="true" style="border-radius: 10px") 
-            div(style="background-color: blue; border-radius: 15px; text-align: center" ) Duration
-              input.btn(type="range" name="duration" id="duration" form="form"+i value="0"
+                data-highlight="true" style="border-radius: 10px" data-mini="false") 
+            div.fieldcontain(style="background-color: blue; border-radius: 15px; text-align: center" ) Duration
+              input(type="range" name="duration" id="duration" form="form"+i value="0"
                 min="0" max=(24-moment().hour()) onchange='updateTimeBackground(this)'
-                data-highlight="true" style="border-radius: 10px")  
+                data-highlight="true" style="border-radius: 10px" data-mini="false")  
             div
               button(name="Action" form="form"+i value="Set" data-corners="true") Set
   +menu

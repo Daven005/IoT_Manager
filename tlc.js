@@ -385,8 +385,18 @@ function areas(request, response) {
   }
 }
 
-exports.areaChannels = function(request, response) {
+exports.sceneAreaChannels = function(request, response) {
+  tlc_if.getSceneAreaChannels(request.query.area, request.query.scene, (result) => {
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify(result));
+  });
+}
 
+exports.areaChannels = function(request, response) {
+  tlc_if.getAreaChannels(request.query.area, (result) => {
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify(result));
+  });
 }
 
 function getLightingChannel(request, response) {
@@ -497,12 +507,11 @@ function info(request, response) {
   function tlcsResponded() {
     response.render('TLcInfo', {map: tlc_if.list()});
   }
-  function errorClearCb() {
-    tlc_if.checkTLcs(tlcsResponded);
-  }
-  
+   
+  setTimeout(() => response.render('TLcInfo', {err: "Timed Out", map: tlc_if.list()}), 5000);
+
   if (request.query.action == 'Clear') {
-    tlc_if.rqInfo(request.query.tlc, 'errors', errorClearCb, 'Clear=1');
+    tlc_if.rqInfo(request.query.tlc, 'errors', () => tlc_if.checkTLcs(tlcsResponded), 'Clear=1');
   } else {
     tlc_if.checkTLcs(tlcsResponded);
   }

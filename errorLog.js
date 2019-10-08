@@ -18,7 +18,7 @@ function init() {
 		result.forEach(function(descr) {
 			errorDescriptions.push({device:descr.device, number:descr.number, info: descr.info, description: descr.description});
 		});
-		console.log(errorDescriptions);
+		// console.log(errorDescriptions);
 	});
 }
 

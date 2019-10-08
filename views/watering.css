@@ -1,5 +1,5 @@
 body { 
-	background-image: url("http://192.168.1.100:8090/public/flowers.png"); 
+	background-image: url("/public/flowers.png"); 
 	background-color: #ADF07A; 
 	background-repeat: no-repeat;
 	max-width:945px;
@@ -21,7 +21,7 @@ div.zone {
 	border-style: solid;
 	border-width: 1px;
 	border-radius: 10px;
-	magin: 20px;
+	margin: 20px;
 	padding: 5px;
 }
 div.changeName {

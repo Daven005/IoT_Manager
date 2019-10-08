@@ -10,9 +10,9 @@ doctype html
 head
   title IoT Graph
   meta(name="viewport" content="width=device-width, initial-scale=0.9")
-  script(src='/views/jquery-2.2.1.min.js')
-  script(src='/views/jquery.mobile-1.4.5.min.js')
-  script(src='/views/jtsage-datebox.min.js')
+  script(src='/jq/jquery-2.2.1.min.js')
+  script(src='/jq/jquery.mobile-1.4.5.min.js')
+  script(src='/jq/jtsage-datebox.min.js')
   script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.dateAxisRenderer.min.js")
   script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.cursor.min.js")
   script(src="//cdn.jsdelivr.net/jqplot/1.0.8/plugins/jqplot.barRenderer.min.js")
@@ -24,8 +24,8 @@ head
   link(rel="stylesheet" href="//cdn.jsdelivr.net/jqplot/1.0.8/jquery.jqplot.min.css")
   link(rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/css/selectize.default.css")
   script(src='/views/graph.js')
-  link(rel='stylesheet' href='/views/jtsage-datebox.min.css')
-  link(rel='stylesheet' href='/views/jquery.mobile-1.4.5.min.css')
+  link(rel='stylesheet' href='/jq/jtsage-datebox.min.css')
+  link(rel='stylesheet' href='/jq/jquery.mobile-1.4.5.min.css')
 style.
   @media all and (min-width: 36em) {.col10 { width: 10%}  .col5 { width: 5%} .col20 { width: 25%} }
   @media all and (max-width: 36em) { th { display:none} }
@@ -46,6 +46,6 @@ body
     div(data-role="main" class="ui-content")
       div(class="ui-grid-b")
         div.clear#chart1(style='color:red' oncontextmenu='return false;')
-    +menu(loggedIn)  script(src='/views/jquery-ui.min.js')
+    +menu(loggedIn)  script(src='/jq/jquery-ui.min.js')
 
   

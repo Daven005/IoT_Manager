@@ -69,6 +69,13 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Message test",
+            "program": "${workspaceFolder}\\message.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Startup test",
             "program": "${workspaceFolder}\\IOT.js",
             "env": {"CONFIG":"pi-config.debug.json"}

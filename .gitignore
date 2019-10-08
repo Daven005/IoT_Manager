@@ -1,4 +1,4 @@
-/pi-config.json
+pi-config.json
 pi-config.debug.json
 /node_modules
 /graph
@@ -6,4 +6,5 @@ graph/
 /jq
 *.pcap
 *.json
+ERRORS.js
 /.gitattributes

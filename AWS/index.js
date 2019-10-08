@@ -344,7 +344,7 @@ function handleControl(request, callback) {
             setLightingLevel(request.payload.brightness, 0);
             break;
         case 'SetPowerLevel':
-            setLightingLevel(request.payload.powerLevelel, 0)
+            setLightingLevel(request.payload.powerLevelel, 0);
             break;
         case 'SetTargetTemperature':
             setHeatingLevel(request.payload.targetSetpoint.value, 0);
@@ -376,7 +376,7 @@ function handleControl(request, callback) {
 
     function setHeatingLevel(temperature, delta) {
         if (typeof temperature == 'string') temperature = parseInt(temperature, 10);
-        if (typeof delta == 'string') level = parseInt(delta, 10);
+        if (typeof delta == 'string') delta = parseInt(delta, 10);
         let tMin = parseInt(request.endpoint.cookie.TemperatureMin, 10);
         let tMax = parseInt(request.endpoint.cookie.TemperatureMax, 10);
         if (tMin <= temperature && temperature <= tMax) {

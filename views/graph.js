@@ -13,7 +13,7 @@ function setupGraph(d, graphLabels, graphTypes, sensorIDs, title) {
       xaxis:{renderer:$.jqplot.DateAxisRenderer, 
         rendererOptions: {tickRenderer:$.jqplot.CanvasAxisTickRenderer},
         tickInterval:'1 hour', tickOptions: {formatString: '%d %H:%M', angle: 45}},
-      y5axis: {min:650, max:1000, tickInterval: 10},
+      y5axis: {min:0, max:1000, tickInterval: 50},
       y2axis: {min:0, max:10, tickInterval: 1}
     },
     series:[]            
@@ -105,7 +105,7 @@ function setupDailyGraph(d, graphLabels, graphTypes, sensorIDs, title) {
         xaxis:{renderer:$.jqplot.DateAxisRenderer, 
           rendererOptions: {tickRenderer:$.jqplot.CanvasAxisTickRenderer},
           tickInterval:'1 day', tickOptions: {formatString: '%#d %b', angle: 45}},
-        y2axis: {min:660, max:1100, tickInterval: 10}},
+        y2axis: {min:0, max:1100, tickInterval: 100}},
       series:[]            
     };
     plotOptions.series[0] = 

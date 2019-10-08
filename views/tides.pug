@@ -1,0 +1,24 @@
+doctype html
+head
+  title Tides
+  include header
+style.
+    .lowTide {background: linear-gradient(90deg, rgba(196,201,22,1) 18%, rgba(0,220,220,1) 22%);}
+    .highTide {background: linear-gradient(90deg, rgba(196,201,22,1) 78%, rgba(0,220,220,1) 82%);font-weight: bold;}
+body
+    #menu
+    h2 Tides
+    table
+        tbody
+        each val, idx in map
+            tr
+                td=val.day
+                // - console.log(val);
+                each tide, tIdx in val.tides
+                    td
+                        div(style="padding: 5px;")
+                            td=tide.time+':'
+                            if (tide.height > 2)
+                                td.highTide=tide.height
+                            else
+                                td.lowTide=tide.height

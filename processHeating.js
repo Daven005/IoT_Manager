@@ -2,12 +2,12 @@
 var zones = [];
 var overrides = [];
 
-exports.allZones = function() { return zones;}
-exports .allOverrides = function() {return overrides;}
+exports.allZones = function() {return zones;}
+exports.allOverrides = function() {return overrides;}
 
 exports.load = load;
 
-function load(callback) {
+function load(reason, callback) {
   var sqlstr = "SELECT * FROM heatingzones"
   db.query(sqlstr, function(err, result) {
     if (err) {
@@ -33,17 +33,16 @@ function load(callback) {
         }
         overrides = [];
         result.forEach((r) => overrides.push(r));
-        check(callback);
-        // console.log("Heating zones: %j", zones);
-        // console.log("O->%j", overrides);
+        check(reason, undefined, callback);
       });
     });
   });
 }
 
 function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) { 
-  if (log) console.log(timeNow);
-
+  if (log) {
+    console.log(timeNow.format("YYYY/MM/DD HH:mm:ss"));
+  }
   zones.forEach(function (z) { // First check each zone's own demand
     checkZoneHeat(z, timeNow, dateStr, dow, previousDow);
   });
@@ -78,21 +77,20 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
       overrides.forEach(checkOverride);
       z.overrideName = overrideName;
       z.demand = (currentTemperature < targetTemp);
-      // console.log(`----> ${targetTemp}`);
       z.targetTemp = targetTemp;
     }
     return;
     
-    function checkDayTime(p, idx) {
-      if (isProgrammeDay(p, dow)) {
-        if (checkTime()) return true;
+    function checkDayTime(programmeEntry) { // Updates targetTemp if this programmentry applies
+      if (isProgrammeDay(programmeEntry, dow)) {
+        return checkTime();
       }   
       return false;
 
       function checkTime() {
-        var start = new Date(dateStr + ' ' + p.start);       
+        var start = new Date(dateStr + ' ' + programmeEntry.start);       
         if (timeNow >= start) {
-          targetTemp = p.temperature;
+          targetTemp = programmeEntry.temperature; // NB may be overwritten by a later programmeEntry
           return true;
         }
         return false;
@@ -141,7 +139,7 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
     
     function clearActive(id) {
       var sqlstr = sql.format("UPDATE heatingoverrides SET active = 0 WHERE ID = ?", [id]);
-      db.query(sqlstr, function(err, result) {
+      db.query(sqlstr, function(err) {
         if (err) {
           console.log(err);
         }
@@ -155,19 +153,17 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
     zones.forEach(function (z) {
       if (z.MasterZone == thisZone.ID) {
         if (z.demand) {
-          // if (log) console.log("Master zone %d demand set by zone %d", z.MasterZone, thisZone.ID);
           demand = true;
         }
       }
     });
     return demand;
   }
-
 }
 
 exports.check = check;
 
-function check(callback, t) {
+function check(reason, t, callback) {
   var info = {dow:0,  prevDow:0,  nextDow:0,  timeNow:0,  dateStr:""};
   calcDates(t, info);
   checkZonesHeat(info.timeNow, info.dateStr, info.dow, info.previousDow, (typeof t != 'undefined'));
@@ -182,10 +178,8 @@ function setHeatingOutput(Device, Sensor, demand) {
     if (Sensor >= 20) Sensor -= 20; // Allow for offset Sensor IDs
     if ((Sensor == 4 || Sensor == 7) && demand) {
 		error = new Error(`setHeatingOutput ${Sensor}, ${demand}`);
-		//console.log(error.stack);
 	}
 	topic = `/Raw/${Device}/${Sensor}/set/output`;
-    //console.log("Heating %s %j", topic, demand);
   if (config.boiler.enabled) {
 		client.publish(topic, (demand) ? '1' : '0');
 	} else {
@@ -200,7 +194,7 @@ exports.test = function(request, response) {
   case 'devices':
 	console.log(deviceState.show());
   case "load":
-    load();
+    load(`test page`,);
     break;
   case "zones":
     console.log("Zones %j", obj = zones);
@@ -216,7 +210,7 @@ exports.test = function(request, response) {
     obj = overrides;
     break;
   default:
-    check(null, request.query.command);
+    check("test page", request.query.command, null);
   }
   response.render("testHeating", {show: obj});
 }
@@ -358,7 +352,7 @@ exports.firingReason = function(onoff, temperature, callback) {
   checkDHW(onoff == 'on');
 }
 
-function checkPreset(timeNow, currentTemp, outsideTemp) {
+function checkPreset(timeNow, currentTemp, outsideTemp) { // Scheme to preset heating so it come to temperature by the start of the time period
   var info = {dow:0,  prevDow:0,  nextDow:0,  timeNow:0,  dateStr:""};
   var rate = 0;
   var tDiff = 0;
@@ -397,7 +391,6 @@ function checkNewZoneHeat(z,  timeNow,  dateStr,  dow,  prevDow, nextDow) {
   nextProgramme.forEach(p => programme.push(p));
   thisProgramme.forEach(p => programme.push(p));
   prevProgramme.forEach(p => programme.push(p));
-  console.log(JSON.stringify(programme));
   var pIdx = programme.findIndex(p => p.newStart < timeNow);
   var timeLeft = moment.duration(programme[pIdx-1].newStart.diff(timeNow));
   return {next: programme[pIdx-1].temperature, 
@@ -416,17 +409,16 @@ function isProgrammeDay(p, dow) {
 }
 
 function calcDates(t, info) {
-  info.timeNow = new moment();
+  info.timeNow = new moment(); // IE now
   info.dateStr =  info.timeNow.format("YYYY/MM/DD");
   info.dow = info.timeNow.day()+1;
   try {
     if (t) {
-      info.timeNow = new Date(info.dateStr+' '+t);
-      info.dow = info.timeNow.getDay()+1;
+      info.timeNow = new moment(info.dateStr+' '+t, 'YYYY/MM/DD HH:mm');
+      info.dow = info.timeNow.day()+1;
     } 
   } catch (ex) {
-      console.log(ex);
-      console.log("Bad date %s", t);
+      console.log(`${ex.message} Bad date ${t}`);
   }
   if ((info.prevDow = info.dow - 1) == 0) info.prevDow = 7;
   if ((info.nextDow = info.dow + 1) == 8) info.nextDow = 1;

@@ -38,3 +38,8 @@
     border-radius: 10%;
     border: none;
   }
+  .floatingMenu {
+    position: absolute; left: 150px; top: 200px; width: 150px;
+    background-color: #345; opacity: 0.9;
+  }
+  .hidden { visibility: hidden;}

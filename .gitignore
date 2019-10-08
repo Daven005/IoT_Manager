@@ -4,4 +4,8 @@ jquery*
 jtsage*
 node_modules/
 graph/
-
+jq/
+*.pcap
+*.json
+ERRORS.js
+/.gitattributes

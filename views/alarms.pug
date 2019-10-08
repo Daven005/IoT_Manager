@@ -21,9 +21,9 @@ body
                 when "device"
                 when "last"
                   th
-                    a(href="/alarms?Action=Sort&Column=#{index}&Direction=Asc") #{index} &uarr;
+                    a(href=`/alarms?Action=Sort&Column=${index}&Direction=Asc`) #{index} &uarr;
                     | &nbsp;
-                    a(href="/alarms?Action=Sort&Column=#{index}&Direction=Desc") &darr;
+                    a(href=`/alarms?Action=Sort&Column=${index}&Direction=Desc`) &darr;
                 default
                   th=index
         tbody

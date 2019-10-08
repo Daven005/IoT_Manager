@@ -36,7 +36,6 @@ exports.checkResponse = function(request, response) {
    response.render("loginMobile", {loggedIn: request.loggedIn})
   else
     response.render("login", {})
-
 }
 
 exports.check = function(request, response) {
@@ -56,7 +55,7 @@ exports.saveInfoDesktop = function(req, res, next) {
   if (utils.saveTypeUrl(req.path)) {
     req.session.lastRequest = req.originalUrl;
   }
-  req.loggedIn = req.session.loggedIn
+  req.loggedIn = req.session.loggedIn;
   //console.log("Rqd: %s %j %j", req.session.lastRequest, req.useMobile, req.loggedIn );
   next();
 }
@@ -66,8 +65,8 @@ exports.saveInfoMobile = function(req, res, next) {
   if (utils.saveTypeUrl(req.path)) {
     req.session.lastRequest = req.originalUrl;
   }
-  req.loggedIn = req.session.loggedIn
-  res.locals.desktopLink = 'http://'+req.ip+':'+desktop_port+'/';
+  req.loggedIn = req.session.loggedIn;
+  res.locals.desktopLink = 'http://'+req.ip+':'+config.browser.desktop_port+'/';
   //console.log("Rqm: %s %j %j", req.session.lastRequest, req.useMobile, req.loggedIn );
   next();
 }

@@ -16,6 +16,8 @@ mixin status(deviceState)
         - tt = tt + " IP:" + deviceState.ipAddress
       if typeof(deviceState.AP) != 'undefined'
         - tt = tt + " AP:" + deviceState.AP
+      if typeof(deviceState.lastSet) != 'undefined'
+        - tt = tt + " Recent:" + moment(deviceState.lastSet).format("HH:mm DD/MM/YY")
     else
       - st = 'background-color:red'
       - tt = 'Offline since'+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version

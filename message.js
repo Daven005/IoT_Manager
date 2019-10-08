@@ -106,7 +106,7 @@ function saveDeviceInfo(values) {
     if (values.RSSI) {
       r = validateValue(values.RSSI, "RSSI");
       if (r.result == "numberInRange") {
-        insertSensorLog(values.DeviceID, "RSSI", "RSSI", values.RSSI);
+        checkInsertSensorLog(values.DeviceID, "RSSI", "RSSI", values.RSSI);
       } else {
         console.log(r.error+" from %s-%s", values.Location, values.Name);
       }
@@ -116,7 +116,7 @@ function saveDeviceInfo(values) {
       r = validateValue(values.Vcc, "Vcc")
       if (r.result == "numberInRange") {
         var vcc = values.Vcc/241; // Convert to voltage
-        insertSensorLog(values.DeviceID, "Vcc", "Vcc", vcc);
+        checkInsertSensorLog(values.DeviceID, "Vcc", "Vcc", vcc);
       } else {
         console.log(r.error+" from %s-%s", values.Location, values.Name);
       }
@@ -124,7 +124,7 @@ function saveDeviceInfo(values) {
     if (values.Attempts) {
       r = validateValue(values.Attempts, "Attempts")
       if (r.result == "numberInRange") {
-        insertSensorLog(values.DeviceID, "Attempts", "Attempts", values.Attempts);
+        checkInsertSensorLog(values.DeviceID, "Attempts", "Attempts", values.Attempts);
         deviceState.setAttempts(values.DeviceID, values.Attempts);
       } else {
         if (values.Attempts != deviceState.getAttempts(values.DeviceID)) {
@@ -136,7 +136,7 @@ function saveDeviceInfo(values) {
     if (values.ConnectTime) {
       r = validateValue(values.ConnectTime, "ConnectTime")
       if (r.result == "numberInRange") {
-        insertSensorLog(values.DeviceID, "ConnectTime", "ConnectTime", values.ConnectTime);
+        checkInsertSensorLog(values.DeviceID, "ConnectTime", "ConnectTime", values.ConnectTime);
         deviceState.setAttempts(values.DeviceID, values.ConnectTime);
       } else {
         if (values.ConnectTime != deviceState.getAttempts(values.DeviceID)) {
@@ -319,7 +319,7 @@ function validateValue(value, type) {
   case 'PIR':
     return_b = (value == 0 || value == 1);
     if (return_b)
-      return {result: "flag", value: value};
+      return {result: "flag", value: value}; // Will not be logged
     break;
   case 'PIR LIGHT ON':
   case 'PIR FAN ON':
@@ -378,9 +378,10 @@ function validateValue(value, type) {
 }
 
 function publishAppInfo(DeviceID, SensorID, Value) {
-  db.query('SELECT Location, Devices.Name AS DeviceName, Sensors.Name AS SensorName, Type '+
+    let sqlstr = sql.format('SELECT Location, Devices.Name AS DeviceName, Sensors.Name AS SensorName, Type '+
     'FROM Devices INNER JOIN Sensors ON Devices.DeviceID = Sensors.DeviceID WHERE Devices.DeviceID = ? AND SensorID = ?',
-    [DeviceID, SensorID],  function(err, result) {
+    [DeviceID, SensorID]);
+    db.query(sqlstr,  function(err, result) {
       if (err) {
         console.log('Select Location err: '+err);
       } else {// Closure!!
@@ -396,34 +397,40 @@ function publishAppInfo(DeviceID, SensorID, Value) {
    // Allow it to return 'undefined' in error cases
 }
 
-function insertSensorLog(DeviceID, SensorID, Type, value, time) {
-  db.query(updateSensorSQLstring(DeviceID, SensorID, Type), function(err, result) {
-      if (err) {
-        console.log('Insert Sensors table err: '+err);
-      } else {
-        if (time) {
-          var sqlstr = sql.format('INSERT INTO TemperatureLog (time, DeviceID, SensorID, Value) '+
-            'VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE Value=VALUES(Value)', 
-            [moment(time*1000).format("YYYY-MM-DD HH:mm:ss"), DeviceID, SensorID, value]);
-          var query = db.query(sqlstr, function(err, result) {
-              if (err) {
-                console.log('Insert Log table err: '+err+' [%s]', sqlstr);
-              } else {
-                // console.log(sqlstr);
-              }
-          });
-        } else {
-          var sqlstr = sql.format('INSERT INTO TemperatureLog (DeviceID, SensorID, Value) '+
-            'VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE Value=VALUES(Value)', 
-            [DeviceID, SensorID, value]);
-          var query = db.query(sqlstr, function(err, result) {
-              if (err) {
-                console.log('Insert Log table err: '+err+' [%s]', sqlstr);
-              }
-          });
+function insertSensorLogTime(DeviceID, SensorID, value, time) {
+    var sqlstr = sql.format('INSERT INTO TemperatureLog (time, DeviceID, SensorID, Value) ' +
+        'VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE Value=VALUES(Value)',
+        [moment(time * 1000).format("YYYY-MM-DD HH:mm:ss"), DeviceID, SensorID, value]);
+    db.query(sqlstr, function (err) {
+        if (err) {
+            console.error(`Insert Log table err: ${err} - ${sqlstr}`);
         }
-      }
-  });
+    });
+}
+
+function insertSensorLog(DeviceID, SensorID, value) {
+    var sqlstr = sql.format('INSERT INTO TemperatureLog (DeviceID, SensorID, Value) ' +
+        'VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE Value=VALUES(Value)',
+        [DeviceID, SensorID, value]);
+    db.query(sqlstr, function (err) {
+        if (err) {
+            console.error(`Insert Log table err: ${err} - ${sqlstr}`);
+       }
+    });
+}
+
+function checkInsertSensorLog(DeviceID, SensorID, Type, value, time) {
+    db.query(updateSensorSQLstring(DeviceID, SensorID, Type), function (err) {
+        if (err) {
+            console.error(`Insert Sensors table err: ${err}`);
+        } else {
+            if (time) {
+                insertSensorLogTime(DeviceID, SensorID, value, time);
+            } else {
+                insertSensorLog(DeviceID, SensorID, value);
+            }
+        }
+    });
 }
 
 function updateSensorSQLstring(DeviceID, SensorID, Type) {
@@ -433,40 +440,47 @@ function updateSensorSQLstring(DeviceID, SensorID, Type) {
 }
 
 function processSensorValues(values, val) {
+    function updateSensorInfo(cb) {
+        db.query(updateSensorSQLstring(values.DeviceID, values.SensorID, values.Type), (err) => {
+            if (err) {
+                console.error(`Insert Sensors table err: ${err}, values=${values}`);
+            } else {
+                deviceState.set(values.DeviceID, true); // Record device is online
+                if (cb) cb();
+            }
+        });
+    }
+
     var r = validateValue(val, values.Type);
     switch (r.result) {
-    case "numberOutOfRange":
-      console.log(r.error+' for %j', values);
-      return;
-    case "string":
-      db.query(updateSensorSQLstring(values.DeviceID, values.SensorID, values.Type), function(err, result) {
-        if (err) {
-          console.log('Insert Sensors table err: %j, values=%j', err, values);
-        }
-        deviceState.set(values.DeviceID, true); // Record device is online
-      });
-      return; // Don't put message in log
-    default: break;
-    }
-    deviceState.set(values.DeviceID, true); // Record device is online
-    publishAppInfo(values.DeviceID, values.SensorID, values.Value);
-    switch (r.result) {
-    case "flag": // e.g. PIR ON
-      break;
-    case "numberInRange":
-      switch (values.Type) {
-      case "Temp":
-        deviceState.setLatestTemperature(values.DeviceID, values.SensorID, val);
-        break;
-      case "Input":
-        deviceState.setLatestInput(values.DeviceID, values.SensorID, val);
-        break;
-      case "Output":
-        deviceState.setLatestOutput(values.DeviceID, values.SensorID, val);
-        break;
-      }
-      insertSensorLog(values.DeviceID, values.SensorID, values.Type, val);
-      break;
+        case "numberOutOfRange":
+            console.error(`${r.error} for ${values}`);
+            break;
+        case "flag": // No logging
+            updateSensorInfo(() => {
+                publishAppInfo(values.DeviceID, values.SensorID, values.Value);
+            });
+            break;
+        case "string":
+            updateSensorInfo();
+            break; // Don't publish nor put message in log
+        case "numberInRange":
+            updateSensorInfo(() => {
+                publishAppInfo(values.DeviceID, values.SensorID, values.Value);
+                switch (values.Type) {
+                    case "Temp":
+                        deviceState.setLatestTemperature(values.DeviceID, values.SensorID, val);
+                        break;
+                    case "Input":
+                        deviceState.setLatestInput(values.DeviceID, values.SensorID, val);
+                        break;
+                    case "Output":
+                        deviceState.setLatestOutput(values.DeviceID, values.SensorID, val);
+                        break;
+                }
+                insertSensorLog(values.DeviceID, values.SensorID, val); // Not checkInsert.. already updated
+            });
+            break;
     }
 }
 
@@ -492,7 +506,7 @@ function processRawSensorMessage(topicParts, payload) {
 
 function processBulkData(topicParts, payload) {
   function insert(id, type) {
-    insertSensorLog(topicParts[2], id, type, values[id], values.time);
+    checkInsertSensorLog(topicParts[2], id, type, values[id], values.time);
   }
   
   var values = JSON.parse(payload);
@@ -553,7 +567,7 @@ function decodeMessage(topic, payload) {
         heating.setOverride(topicParts[2], payload);
       } else if (topicParts[4] == 'info') { // Sensor Info
         processRawSensorMessage(topicParts, payload);
-      } else if (topicParts[3] == 'bulkData') { // Sensor Info
+      } else if (topicParts[3] == 'bulkData') { // Sensor Info. Used eg in windSensor
         processBulkData(topicParts, payload);
       } else if (topicParts[3] == 'message' 
         || topicParts[3] == 'clear' || topicParts[4] == 'clear'

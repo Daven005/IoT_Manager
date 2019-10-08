@@ -1,5 +1,7 @@
-pi-config.js
+pi-config.json
+pi-config-debug.json
 jquery*
 jtsage*
 node_modules/
+graph/
 

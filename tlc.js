@@ -39,14 +39,15 @@ function checkTLcs() {
 }
 
 function tlcReady() {
-  tlc_if.list().forEach(function(tlc) {
-    if (tlc.IPaddress) {
-      msg.setDevice(tlc.Name, tlc);
-    }
-  });
+    console.log("tlcReady");
+    tlc_if.list().forEach(function (tlc) {
+        if (tlc.IPaddress) {
+            msg.setDevice(tlc.Name, tlc);
+        }
+    });
 
-  setInterval(temperatureCheck, 3*60*1000);
-  temperatureCheck();
+    setInterval(temperatureCheck, 3 * 60 * 1000);
+    temperatureCheck();
 }
 
 function temperatureCheck() {

@@ -249,6 +249,7 @@ function setupWeb() {
     app_mobile.get("/WiFiGate/sse", wifiGate.sse);
 
     // app.get('/tlc/testPIR', tlc.testPIR);
+if (tlc) {
     app.get('/tlc/scenes', tlc.showScenes);
     app.post('/tlc/setScene', tlc.setScene);
     app.get('/tlc/setScene', tlc.setScene);
@@ -259,8 +260,10 @@ function setupWeb() {
     app.get('/tlc/areaChannels', tlc.areaChannels);
     app.get('/tlc/info', tlc.info);
     app.get('/tlc/test', tlc.test);
-
     app.post('/hollies/setScene', tlc.setSceneDecode);
+} else {
+    console.error(`No tlc`);
+}
     app.post('/hollies/getZoneInfo', heating.zoneInfoByName);
     app.post('/hollies/overrideHeating', heating.voiceOverrides);
     app.get('/hollies/whyFiring', heating.whyFiring);
@@ -292,9 +295,9 @@ function setupWeb() {
     app_mobile.get("/Camera", camera.load);
     app_mobile.get("/Camera/action", camera.action);
 
-    app.get("/charge/rates", charge.rates);
-    app.get("/charge/status", charge.status);
-    app.get("/charge/control", charge.control);
+    // app.get("/charge/rates", charge.rates);
+    // app.get("/charge/status", charge.status);
+    // app.get("/charge/control", charge.control);
 
     app.get("/", defaultPage);
     app.get("/index*", defaultPage);;

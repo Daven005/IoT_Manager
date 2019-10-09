@@ -1,6 +1,6 @@
 {
-    "name": "node-red-project",
-    "description": "A Node-RED Project",
+    "name": "iotmanager",
+    "description": "IoT Manager for The Hollies",
     "version": "0.0.1",
     "dependencies": {
         "aplay": "^1.2.0",

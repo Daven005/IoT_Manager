@@ -1,11 +1,10 @@
 pi-config.json
-pi-config-debug.json
+pi-config.debug.json
 jquery*
 jtsage*
 node_modules/
 graph/
 jq/
 *.pcap
-*.json
 ERRORS.js
 /.gitattributes

@@ -144,8 +144,8 @@ function setupLogin() {
     app_mobile.get("/login", login.doMobileLogin);
     app.get("/loginResponse", login.checkResponse);
     app_mobile.get("/loginResponse", login.checkResponse);
-    app.use(login.saveInfoDesktop);
-    app_mobile.use(login.saveInfoMobile);
+    app.use(login.saveInfoDesktop);  // express.router functions
+    app_mobile.use(login.saveInfoMobile); // ""
 }
 
 function setupIntervalFunctions() {

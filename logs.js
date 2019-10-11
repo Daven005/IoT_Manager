@@ -75,6 +75,8 @@ exports.showAlarms = function (request, response) {
         response.render('alarms', {
             map: alarmLog.sort(request.query.Direction, request.query.Column)
         });
+    } else {
+        reload();
     }
 }
 

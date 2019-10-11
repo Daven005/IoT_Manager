@@ -171,10 +171,10 @@ function processDeviceErrorMessage(values) {
   var lastError;
   db.query(sqlstr, function(err, result){
     if (err) {
-      console.log("processDeviceErrorMessage %j", err);
+      console.error(`processDeviceErrorMessage ${err}`);
       if (errorLog.set(values.error, values.info, values.deviceID, 'system')) { // true if new error
         lastError = errorLog.getLast();
-        utils.notify('Error: ('+values.deviceID+') err: '+lastError.error+' info: '+lastError.info, "Error", values.deviceID);
+        utils.notify(`Error: (${values.deviceID}) err: ${lastError.error} info: ${lastError.info}`, "Error", values.deviceID);
       }
     } else {
       try {
@@ -194,16 +194,15 @@ function processDeviceAlarmMessage(values) {
   var lastAlarm;
   db.query(sqlstr, function(err, result){
     if (err) {
-      console.log("processDeviceAlarmMessage %j", err);
+      console.error(`processDeviceAlarmMessage ${err}`);
       if (alarmLog.set(values.alarm, values.info, values.deviceID)) { // true if new alarm
         lastAlarm = alarmLog.getLast();
-        utils.notify('Alarm: ('+values.deviceID+') alm: '+lastAlarm.alarm+' info: '+lastAlarm.info, "Alarm", values.deviceID, lastAlarm.alarm);
+        utils.notify(`Alarm: (${values.deviceID}) alm: ${lastAlarm.alarm} info: ${lastAlarm.info}`, "Alarm", values.deviceID, lastAlarm.alarm);
       }
     } else {
-       var deviceName = result[0].Name+'-'+result[0].Location;
-       if (alarmLog.set(values.alarm, values.info, deviceName)) { // true if new alarm
+       if (alarmLog.set(values.alarm, values.info, result[0].Name, result[0].Location)) { // true if new alarm
           lastAlarm = alarmLog.getLast();
-          utils.notify('Alarm: ('+deviceName+') err: '+lastAlarm.alarm+' info: '+lastAlarm.info, "Alarm", deviceName, lastAlarm.alarm);
+          utils.notify(`Alarm: (${result[0].Name}-${result[0].Location} err: ${lastAlarm.alarm}info: ${lastAlarm.info}`, "Alarm", result[0].Name, lastAlarm.alarm);
        }
     }
   });

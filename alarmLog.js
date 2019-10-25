@@ -56,22 +56,19 @@ exports.mapFmt = function () {
 }
 
 exports.set = function (alarm, info, device, location) { // Returns true if new alarm
-    function matchAlarm(el) {
+    
+    function matchAlarm(el, idx) {
         if (el.device != device) return false;
         if (el.number != alarm) return false;
-        if (el.info == -1) return true;
+        if (el.info == -1) { matchIdx = idx; return true; }
+        if (el.info == -2) { matchIdx = idx; return true; }
         if (el.info != info) return false;
+        matchIdx = idx;
         return true;
     }
     try {
-        for (el in alarmList) {
-            if (alarmList[el].alarm == alarm && alarmList[el].info == info && alarmList[el].device == device) {
-                alarmList[el].last = Date.now();
-                alarmList[el].count += 1;
-                lastUpdate = el;
-                return false;
-            }
-        }
+        var matchIdx = -1;
+        var matchInfo = -1;
         var a = {
             alarm: alarm,
             info: info,
@@ -86,7 +83,21 @@ exports.set = function (alarm, info, device, location) { // Returns true if new 
             console.log("No matching alarm description for: ", device, alarm, info);
         } else {
             a.description = found.description;
+            matchInfo = alarmDescriptions[matchIdx].info;
         }
+        for (el in alarmList) {
+            if (alarmList[el].alarm == alarm && alarmList[el].device == device) {
+                if (alarmList[el].info == info || matchInfo == -2) {
+                    // Don't record separate alarm where info matches OR alarmDescriptions has info as -2
+                    alarmList[el].last = Date.now();
+                    alarmList[el].info = info; // Record last info when alarmDescriptions[].info == -2
+                    alarmList[el].count += 1;
+                    lastUpdate = el;
+                    return false;
+                }
+            }
+        }
+
         lastUpdate = alarmList.push(a) - 1;
         return true;
     } catch (e) {

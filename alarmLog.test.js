@@ -10,7 +10,7 @@ require('./config').read((cfg) => {
             alarmLog.set(59, 2, "Solar Control");
             console.log(`${JSON.stringify(alarmLog.mapFmt())}`);
             console.log(`${JSON.stringify(alarmLog.getLast())}`);
-            alarmLog.set(99, 4, "Solar Control");
+            alarmLog.set(59, 4, "Solar Control");
             console.log(`${JSON.stringify(alarmLog.getLast())}`);
             alarmLog.save(() => {
                 alarmLog.removeAll();

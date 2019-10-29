@@ -52,38 +52,47 @@ exports.read = function (cb) {
     }
 }
 
-exports.set = function (errNumber, info, device, location) { // Returns true if new error
-    function matchErr(el, idx) {
-        if (el.device != device) return false;
-        if (el.number != errNumber) return false;
-        if (el.info == -1) return true;
+exports.set = function (error, info, device, location) { // Returns true if new error
+
+    function matchError(el, idx) {
+        if (el.number != error) return false;
+        if (el.device != device && el.device != "") return false;
+        if (el.info == -1) { matchIdx = idx; return true; }
+        if (el.info == -2) { matchIdx = idx; return true; }
         if (el.info != info) return false;
+        matchIdx = idx;
         return true;
     }
     try {
-        for (el in errorList) {
-            if (errorList[el].error == errNumber && errorList[el].info == info && errorList[el].device == device) {
-                errorList[el].last = Date.now();
-                errorList[el].count += 1;
-                lastUpdate = el;
-                return false;
-            }
-        }
+        var matchIdx = -1;
+        var matchInfo = -1;
         var e = {
-            error: errNumber,
+            error: error,
             info: info,
             count: 1,
             device: device,
             location: location,
             first: Date.now(),
             last: Date.now()
-        }
-        var found = errorDescriptions.find(matchErr);
-        // console.log(found);
+        };
+        var found = errorDescriptions.find(matchError);
         if (!found) {
-            console.log("No matching error description for: ", device, errNumber, info);
+            console.log("No matching error description for: ", device, error, info);
         } else {
             e.description = found.description;
+            matchInfo = errorDescriptions[matchIdx].info;
+        }
+        for (el in errorList) {
+            if (errorList[el].error == error && errorList[el].device == device) {
+                if (errorList[el].info == info || matchInfo == -2) {
+                    // Don't record separate error where info matches OR errorDescriptions has info as -2
+                    errorList[el].last = Date.now();
+                    errorList[el].info = info; // Record last info when errorDescriptions[].info == -2
+                    errorList[el].count += 1;
+                    lastUpdate = el;
+                    return false;
+                }
+            }
         }
         lastUpdate = errorList.push(e) - 1;
         return true;

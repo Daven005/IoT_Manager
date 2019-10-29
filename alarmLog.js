@@ -58,8 +58,8 @@ exports.mapFmt = function () {
 exports.set = function (alarm, info, device, location) { // Returns true if new alarm
     
     function matchAlarm(el, idx) {
-        if (el.device != device) return false;
         if (el.number != alarm) return false;
+        if (el.device != device && el.device != "") return false;
         if (el.info == -1) { matchIdx = idx; return true; }
         if (el.info == -2) { matchIdx = idx; return true; }
         if (el.info != info) return false;
@@ -77,7 +77,7 @@ exports.set = function (alarm, info, device, location) { // Returns true if new 
             location: location,
             first: Date.now(),
             last: Date.now()
-        }
+        };
         var found = alarmDescriptions.find(matchAlarm);
         if (!found) {
             console.log("No matching alarm description for: ", device, alarm, info);

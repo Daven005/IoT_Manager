@@ -11,6 +11,9 @@ require('./config').read((cfg) => {
             console.log(`${JSON.stringify(errorLog.mapFmt())}`);
             console.log(`${JSON.stringify(errorLog.getLast())}`);
             errorLog.set(57, 4, "Solar Control");
+            errorLog.set(51, 4, "Solar Control");
+            errorLog.set(51, 9, "Solar Control");
+            errorLog.set(1000, 4, "Solar Control");
             console.log(`${JSON.stringify(errorLog.getLast())}`);
             errorLog.save(() => {
                 errorLog.removeAll();

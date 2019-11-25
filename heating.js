@@ -75,7 +75,7 @@ function _mobileOverrides(request, response, zoneFilter) {
       + "INNER JOIN daysofweek ON heatingoverrides.day = daysofweek.ID "
       + "WHERE heatingoverrides.Name = 'Mobile'";
     if (zoneFilter) { // Allow for guest override page
-      sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}"`
+      sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}_"`; // Guest1/2
     }
     sqlstr += " ORDER BY heatingzones.Name";
     console.log(sqlstr);
@@ -116,7 +116,6 @@ function _mobileOverrides(request, response, zoneFilter) {
     });
   }
 
-  console.log("*****mobileOverrides: %j", request.query);
   if (request.query.zoneID) {
     if (request.query.Action == "Set") {
       if (zoneFilter) {
@@ -133,7 +132,7 @@ function _mobileOverrides(request, response, zoneFilter) {
 }
 
 exports.guestOverrides = function (request, response) {
-  _mobileOverrides(request, response, `Guest1`);
+  _mobileOverrides(request, response, `Guest`); // Allows for Guest1/2
 }
 
 exports.mobileGroups = function (request, response) {

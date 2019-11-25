@@ -1,4 +1,5 @@
 var https = require("https");
+var weather = require ('./weather');
 var tides = [];
 
 exports.get = function () {
@@ -27,9 +28,12 @@ exports.load = function (callback) {
         });
         res.on('close', () => {
             try {
-                JSON.parse(data).forEach(tide => {
+                var tideData = JSON.parse(data);
+                var firstDay = moment(tideData[0].DateTime);
+                tideData.forEach(tide => {
                     var dt = moment(tide.DateTime);
                     var day = dt.format("dddd Do");
+                    var dayNo = dt.diff(firstDay, 'days', false);
                     // console.log(`Tide[${day}] ${dt.format('HH.mm')} ${tide.EventType}, ${parseFloat(tide.Height).toFixed(2)}`);
                     dayTides = tides.find((t) => t.day == day);
                     if (!dayTides) {
@@ -39,9 +43,11 @@ exports.load = function (callback) {
                         });
                         dayTides = tides.find((t) => t.day == day);
                     }
+
                     dayTides.tides.push({
                         time: dt.format('HH.mm'),
-                        height: parseFloat(tide.Height).toFixed(2)
+                        height: parseFloat(tide.Height).toFixed(2),
+                        varHeight: ((weather.avgPressure() - weather.getPressure(dayNo)) * 0.01).toFixed(2) // cm/mBar
                     })
                 });
             } catch (ex) {

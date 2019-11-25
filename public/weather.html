@@ -46,7 +46,7 @@ function getWeather(){
 	$('#Hourly').html(str);
 	
 	var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-	str = '<thead><th>Day</th><th>Temp Max</th><th>Wind</th><th>Cloud</th><th>Rain</th><th>Prob</th></thead>';	
+	str = '<thead><th>Day</th><th>Temp Max</th><th>Wind</th><th>Cloud</th><th>Rain</th><th>Prob</th><th>Press</th></thead>';	
 	for (i=0; i<=7; i++) {
 		var myDate = new Date(data.daily.data[i].time*1000);
 		str = str + '<tr><td>'+days[myDate.getDay()] + '</td><td>'
@@ -54,7 +54,8 @@ function getWeather(){
 		str = str + data.daily.data[i].windSpeed + '</td><td>'
 		str = str + data.daily.data[i].cloudCover + '</td><td>'
 		str = str + data.daily.data[i].precipIntensity + '</td><td>'
-		str = str + data.daily.data[i].precipProbability+'</td></tr>';
+        str = str + data.daily.data[i].precipProbability+'</td><td>';
+        str = str + data.daily.data[i].pressure+'</td></tr>';
 	}
 	$('#Daily').html(str);	
     });

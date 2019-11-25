@@ -18,6 +18,11 @@ mixin status(deviceState)
         - tt = tt + " AP:" + deviceState.AP
       if typeof(deviceState.lastSet) != 'undefined'
         - tt = tt + " Recent:" + moment(deviceState.lastSet).format("HH:mm DD/MM/YY")
+      - var now = moment(new Date()); 
+      - var end = moment(deviceState.lastSet);
+      - var duration = moment.duration(now.diff(end));
+      if (now.diff(end, 'minutes') >= 5)
+        - st = 'color:orange';
     else
       - st = 'background-color:red'
       - tt = 'Offline since'+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version

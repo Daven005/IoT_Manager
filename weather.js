@@ -16,6 +16,8 @@ var currentTemp = 0;
 var rain = {
     today: 0
 };
+const avgPressure = 1013;
+var pressure = [avgPressure, avgPressure, avgPressure, avgPressure, avgPressure, avgPressure, avgPressure];
 
 var rqCloudCB = null;
 exports.rqCloud = function (cb) {
@@ -33,6 +35,13 @@ exports.rainToday = function () {
 }
 exports.getCloud = function () {
     return cloud;
+}
+exports.avgPressure = function() {
+    return avgPressure;
+}
+exports.getPressure = function(day) {
+    if (0 <= day && day <=6) return pressure[day];
+    return 1013;
 }
 
 function publish() {
@@ -105,6 +114,10 @@ function load(callback) {
                 wind.Avg = Math.round(data.currently.windSpeed);
                 wind.Gust = Math.round(data.currently.windGust);
                 rain.today = data.daily.data[0].precipIntensity * data.daily.data[0].precipProbability;
+                for (idx=0; idx <=6; idx++) {
+                    pressure[idx] = data.daily.data[idx].pressure;
+                }
+                
                 if (callback) callback();
             } catch (ex) {
                 resetWeather();

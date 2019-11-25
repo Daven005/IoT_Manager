@@ -13,12 +13,12 @@ body
         each val, idx in map
             tr
                 td=val.day
-                // - console.log(val);
+                - console.log(val);
                 each tide, tIdx in val.tides
                     td
                         div(style="padding: 5px;")
                             td=tide.time+':'
                             if (tide.height > 2)
-                                td.highTide=tide.height
+                                td.highTide=`${tide.height} (${tide.varHeight})`
                             else
-                                td.lowTide=tide.height
+                                td.lowTide=`${tide.height} (${tide.varHeight})`

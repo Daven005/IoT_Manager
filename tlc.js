@@ -284,11 +284,11 @@ function showMobileScenes(request, response) {
 function decodeMHRV(action, payload) {
   switch (action) {
   case "Toilet Light PIR On":
-    console.log("%j => %s", action, payload);
+    // console.log("%j => %s", action, payload);
     tlc_if.trigger('Hollies-F', 'Toilet', 'Toilet', (payload=='1') ? 'on' : 'off', true);
     break;
   case "Utility Light PIR On":  
-    console.log("%j => %s", action, payload);
+    // console.log("%j => %s", action, payload);
     tlc_if.trigger('Hollies-F', 'Utility', 'Utility', (payload=='1') ? 'on' : 'off', false);
     break;
   }

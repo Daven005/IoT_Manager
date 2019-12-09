@@ -2,6 +2,7 @@ var dgram = require('dgram');
 var freeport = require('freeport');
 var network = require('network');
 var http = require('http');
+var weather = require('./weather');
 
 var udpServer = dgram.createSocket('udp4');
 var TLcList = config.TLc.list;
@@ -420,40 +421,36 @@ function state() {
   return controlState;
 }
 
-function isLight() {
-  var times;
-  var now = new Date();
+exports.isLight = isLight; // for testing
+
+function isLight(now, cloudCover) {
   switch (controlState) {
     case "Auto":
-      times = sunCalc.getTimes(now, config.latitude, config.longitude);
-      if (now >= times.sunset || now <= times.sunrise) {
-        return false;
-      }
-      return true;
+        let cloudAdjustment = 0.5  + cloudCover/100; // Up to 1.5 hours before/after sunset/sunrise
+        let times = sunCalc.getTimes(now, config.latitude, config.longitude);
+        let start = moment(times.sunrise).add(cloudAdjustment, 'hours');
+        let end = moment(times.sunset).subtract(cloudAdjustment, 'hours');
+        console.log(`Light: ${start.format('HH:mm')} - ${end.format('HH:mm')} cloud: ${cloudAdjustment}`);
+        return now.isBetween(start, end);
     case "Dark":
-      return false;
+        return false;
     case "Light":
-      return true;
+        return true;
   }
   return true;
 }
 
 function trigger(tlcName, area, channel, state, filter) {
-  var msg;
-  var val = (state == 'on') ? 255 : 0;
-  if (filter) {
-    if (isLight()) return;
+  if (filter && state == 'on') { // NB always turn OFF; conditional turn ON
+    if (isLight(moment(),  weather.getCloud().c[0])) return;
   }
-  msg = `{"OSC":["${area}-Fader","${channel}"],"args":[${val}]}`
-  send(tlcName, msg);
+  send(tlcName, `{"OSC":["${area}-Fader","${channel}"],"args":[${(state == 'on') ? 255 : 0}]}`);
 }
 
 function setChannel(tlcName, area, channel, val) {
-  var msg;
   if (val < 0) val = 0;
   if (val > 255) val = 255;
-  msg = `{"OSC":["${area}-Fader","${channel}"],"args":[${val}]}`
-  send(tlcName, msg);
+  send(tlcName, `{"OSC":["${area}-Fader","${channel}"],"args":[${val}]}`);
 }
 
 function showScene(tlcName, scene) {

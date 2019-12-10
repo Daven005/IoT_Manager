@@ -47,7 +47,7 @@ mixin pattern(frameID)
 
   form(action='/lights/pattern', method='post' enctype='application/json')
     fieldset
-      legend= "Frame "+(frameID+1)
+      legend= "Frame "+(frameID)
       div
         input(type="hidden" name="frame" value=frameID)
         label=" Start position: "
@@ -208,6 +208,6 @@ body
   +patterns()
   +showplaylist()
   form(action='/lights', method='post' enctype='application/json')
-    input(type="text" name="file")
+    input(type="text" name="file" value=`${locals.fileName}`)
     input(type="submit" name="Action" value="Save As")
     input(type="submit" name="Action" value="Transmit All")

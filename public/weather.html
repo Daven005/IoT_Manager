@@ -31,27 +31,32 @@ function getWeather(){
 	}
 	$('#ByMinute').html(str);
 
-	str = '<thead><th>Time</th><th>Temp</th><th>Wind Spd</th><th>Wind Dir</th><th>Cloud</th><th>Rain</th><th>Prob</th></thead>';	
+	str = '<thead><th>Time</th><th>Temp</th><th>Wind</th><th>Gust</th><th>Dir</th><th>Cloud</th><th>Rain</th><th>Prob</th><th>Press</th></thead>';	
 
 	for (i=0; i<24; i++) {
 		var myDate = new Date(data.hourly.data[i].time*1000);
 		str = str + '<tr><td>'+myDate.getHours() + '</td><td>'
 		str = str + data.hourly.data[i].temperature + '</td><td>'
-		str = str + data.hourly.data[i].windSpeed + '</td><td>'
+        str = str + data.hourly.data[i].windSpeed + '</td><td>'
+        str = str + data.hourly.data[i].windGust + '</td><td>'
 		str = str + data.hourly.data[i].windBearing + '</td><td>'
 		str = str + data.hourly.data[i].cloudCover + '</td><td>'
 		str = str + data.hourly.data[i].precipIntensity + '</td><td>'
-		str = str + data.hourly.data[i].precipProbability+'</td></tr>';
+        str = str + data.hourly.data[i].precipProbability+'</td><td>';
+        str = str + data.hourly.data[i].pressure+'</td></tr>';
 	}
 	$('#Hourly').html(str);
 	
 	var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-	str = '<thead><th>Day</th><th>Temp Max</th><th>Wind</th><th>Cloud</th><th>Rain</th><th>Prob</th><th>Press</th></thead>';	
+	str = '<thead><th>Day</th><th>Temp</th><th>Min</th><th>Wind</th><th>Gust</th><th>Dir</th><th>Cloud</th><th>Rain</th><th>Prob</th><th>Press</th></thead>';	
 	for (i=0; i<=7; i++) {
 		var myDate = new Date(data.daily.data[i].time*1000);
 		str = str + '<tr><td>'+days[myDate.getDay()] + '</td><td>'
-		str = str + data.daily.data[i].temperatureMax + '</td><td>'
-		str = str + data.daily.data[i].windSpeed + '</td><td>'
+        str = str + data.daily.data[i].temperatureMax + '</td><td>'
+        str = str + data.daily.data[i].temperatureMin + '</td><td>'
+        str = str + data.daily.data[i].windSpeed + '</td><td>'
+        str = str + data.daily.data[i].windGust + '</td><td>'
+        str = str + data.daily.data[i].windBearing + '</td><td>'
 		str = str + data.daily.data[i].cloudCover + '</td><td>'
 		str = str + data.daily.data[i].precipIntensity + '</td><td>'
         str = str + data.daily.data[i].precipProbability+'</td><td>';

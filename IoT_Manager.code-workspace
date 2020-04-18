@@ -1,0 +1,17 @@
+{
+	"folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "\\\\iot1\\iot\\onvif"
+        },
+        {
+            "name": "SeaTalk",
+            "path": "C:\\Users\\User\\Documents\\PlatformIO\\Projects\\SeaTalk"
+        }
+    ],
+    "settings": {
+        "git.ignoreLimitWarning": true
+    }
+}

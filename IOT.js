@@ -248,8 +248,16 @@ function setupWeb() {
     app.get("/WiFiGate/sse", wifiGate.sse);
     app_mobile.get("/WiFiGate/sse", wifiGate.sse);
 
+    app.post('/hollies/getZoneInfo', heating.zoneInfoByName);
+    app.post('/hollies/overrideHeating', heating.voiceOverrides);
+    app.get('/hollies/whyFiring', heating.whyFiring);
+    app.post('/hollies/whyFiring', heating.whyFiring);
+    app.get('/hollies/heating/getAllDeviceInfo', heating.getAllDeviceInfo);
+    app.get('/hollies/heating/override', heating.externalSetOverride);
+
     // app.get('/tlc/testPIR', tlc.testPIR);
 if (tlc) {
+    console.log(`+++++++++ tlC object ready`);
     app.get('/tlc/scenes', tlc.showScenes);
     app.post('/tlc/setScene', tlc.setScene);
     app.get('/tlc/setScene', tlc.setScene);
@@ -260,22 +268,15 @@ if (tlc) {
     app.get('/tlc/areaChannels', tlc.areaChannels);
     app.get('/tlc/info', tlc.info);
     app.get('/tlc/test', tlc.test);
-    app.post('/hollies/setScene', tlc.setSceneDecode);
-} else {
-    console.error(`No tlc`);
-}
-    app.post('/hollies/getZoneInfo', heating.zoneInfoByName);
-    app.post('/hollies/overrideHeating', heating.voiceOverrides);
-    app.get('/hollies/whyFiring', heating.whyFiring);
-    app.post('/hollies/whyFiring', heating.whyFiring);
     app.get('/hollies/lightingChannels', tlc.setDesktopLightingChannels);
+    app.post('/hollies/setScene', tlc.setSceneDecode);
     app_mobile.get('/hollies/lightingChannels', tlc.setMobileLightingChannels);
     app.get('/hollies/lightingChannel', tlc.getLightingChannel);
     app_mobile.get('/hollies/lightingChannel', tlc.getLightingChannel);
     app.get('/hollies/lighting/getAllDeviceInfo', tlc.getAllDeviceInfo);
-    app.get('/hollies/heating/getAllDeviceInfo', heating.getAllDeviceInfo);
-    app.get('/hollies/heating/override', heating.externalSetOverride);
-
+} else {
+    console.error(`No tlc object`);
+}
     app.get("/Dashboard", dashboard.get);
     app_mobile.get("/Dashboard", dashboard.get);
 

@@ -402,7 +402,7 @@ function insertSensorLogTime(DeviceID, SensorID, value, time) {
         [moment(time * 1000).format("YYYY-MM-DD HH:mm:ss"), DeviceID, SensorID, value]);
     db.query(sqlstr, function (err) {
         if (err) {
-            console.error(`Insert Log table err: ${err} - ${sqlstr}`);
+            console.error(`Insert Log table (time) err: ${err} - ${sqlstr}`);
         }
     });
 }
@@ -452,34 +452,37 @@ function processSensorValues(values, val) {
 
     var r = validateValue(val, values.Type);
     switch (r.result) {
-        case "numberOutOfRange":
-            console.error(`${r.error} for ${values}`);
-            break;
-        case "flag": // No logging
-            updateSensorInfo(() => {
-                publishAppInfo(values.DeviceID, values.SensorID, values.Value);
-            });
-            break;
-        case "string":
-            updateSensorInfo();
-            break; // Don't publish nor put message in log
-        case "numberInRange":
-            updateSensorInfo(() => {
-                publishAppInfo(values.DeviceID, values.SensorID, values.Value);
-                switch (values.Type) {
-                    case "Temp":
-                        deviceState.setLatestTemperature(values.DeviceID, values.SensorID, val);
-                        break;
-                    case "Input":
-                        deviceState.setLatestInput(values.DeviceID, values.SensorID, val);
-                        break;
-                    case "Output":
-                        deviceState.setLatestOutput(values.DeviceID, values.SensorID, val);
-                        break;
-                }
-                insertSensorLog(values.DeviceID, values.SensorID, val); // Not checkInsert.. already updated
-            });
-            break;
+    case "numberOutOfRange":
+        console.error(`${r.error} for ${values}`);
+        break;
+    case "flag": // No logging
+        updateSensorInfo(() => {
+            publishAppInfo(values.DeviceID, values.SensorID, values.Value);
+        });
+        break;
+    case "string":
+        updateSensorInfo();
+        break; // Don't publish nor put message in log
+    case "numberInRange":
+        updateSensorInfo(() => {
+            let delta;
+            publishAppInfo(values.DeviceID, values.SensorID, values.Value);
+            switch (values.Type) {
+                case "Temp":
+                    deviceState.setLatestTemperature(values.DeviceID, values.SensorID, val);
+                    delta = deviceState.getTemperatureChange(values.DeviceID, values.SensorID);
+                    checkInsertSensorLog(values.DeviceID, values.SensorID+'_delta', "TempDelta", delta);
+                    break;
+                case "Input":
+                    deviceState.setLatestInput(values.DeviceID, values.SensorID, val);
+                    break;
+                case "Output":
+                    deviceState.setLatestOutput(values.DeviceID, values.SensorID, val);
+                    break;
+            }
+            insertSensorLog(values.DeviceID, values.SensorID, val); // Not checkInsert.. already updated
+        });
+        break;
     }
 }
 

@@ -1,6 +1,7 @@
 var utils = require('./utils');
 var login = require('./login');
 var currentDevice = "All";
+var showAllDevices = false;
 
 exports.settings = function(request, response) {
 
@@ -119,7 +120,7 @@ exports.sensors = function(request, response) {
       console.log(err);
       errorStr = err.message;
     }
-     response.render('names', {map: result, err: errorStr, devices: deviceState.list()});
+     response.render('names', {map: result, err: errorStr, devices: deviceState.list(), allDevices: showAllDevices});
    });
   }
  
@@ -291,8 +292,10 @@ exports.sensors = function(request, response) {
        }
     });
   }
-
-  if (request.query.row) {
+  if (request.query.all) {
+    showAllDevices = request.query.all == 'yes';
+    reload();
+  } else if (request.query.row) {
     if (login.check(request, response)) {
       if (request.query.del == "yes") {
         if (request.query.delDev == "yes") { // Delete everything wrt this device

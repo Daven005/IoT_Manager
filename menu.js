@@ -4,7 +4,7 @@ var version = require("./version");
 console.log(`+++Menu ${JSON.stringify(version)}`)
 function getfiles(fileType) {
     var fileList = fs.readdirSync(fileType).filter(function (file) {
-        return (file.substr(-3) === '.js');
+        return (file.substr(-3) === '.js' || file.substr(-5) === '.json');
     });
     return fileList;
 }

@@ -50,10 +50,15 @@ function setupGraph(d, graphLabels, graphTypes, sensorIDs, title) {
     case 'Pressure':
     case 'Flow':
     case 'FlowMax':
-     plotOptions.series[idx] = {renderer: $.jqplot.LineRenderer, disableStack : true, 
+        plotOptions.series[idx] = {renderer: $.jqplot.LineRenderer, disableStack : true, 
                                 yaxis: 'y4axis', lineWidth:2, markerOptions: {show: false}, 
                                 label: graphLabels[idx], showLabel: true};
-      break;
+        break;
+    case 'TempDelta':
+        plotOptions.series[idx] = {renderer: $.jqplot.LineRenderer, disableStack : true, 
+            yaxis: 'y6axis', lineWidth:2, markerOptions: {show: false}, 
+            label: graphLabels[idx], showLabel: true};
+        break;
     case 'Temp':
     case 'Hum':
     case 'Pump':

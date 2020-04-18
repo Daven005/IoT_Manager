@@ -4,7 +4,7 @@ var login = require('./login');
 var async = require('async');
 var msg = require('./message');
 
-tlc_if.init(tlcReady);
+tlc_if.init(tlc_ifReady);
 var currentTLc;
 
 exports.testPIR = testPIR;
@@ -35,11 +35,11 @@ const scene = {
 };
 
 function checkTLcs() {
-  tlc_if.checkTLcs(tlcReady);
+  tlc_if.checkTLcs(tlc_ifReady);
 }
 
-function tlcReady() {
-    console.log("tlcReady");
+function tlc_ifReady() {
+    console.log("tlc_ifReady");
     tlc_if.list().forEach(function (tlc) {
         if (tlc.IPaddress) {
             msg.setDevice(tlc.Name, tlc);
@@ -58,7 +58,9 @@ function temperatureCheck() {
         info.data.forEach(function(t) {
           if (t.ID) {
             if (t.Temp != '0.0') {
-              msg.setSensor(tlc.Name, t.ID, {Type:'Temp', Value: t.Temp});
+                msg.setSensor(tlc.Name, t.ID, {Type:'Temp', Value: t.Temp});
+            } else {
+                msg.setDevice(tlc.Name, tlc);
             }
           }
         });
@@ -523,3 +525,5 @@ function getAllDeviceInfo(request, response) {
   response.send(JSON.stringify(scene));
   response.end();
 }
+
+console.log(">>>>>>>>>>>>>>>>>>>>>>>>      tlC ready");

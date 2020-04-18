@@ -18,7 +18,7 @@ function load(reason, callback) {
       r.overrideOn = false;
       r.demand = false;
       r.programme = [];
-      zones[r.ID] = r;      
+      zones[r.ID] = r; // Save each zone data     
     });
     sqlstr = "SELECT * FROM heatingprogrammes ORDER BY days, start DESC"
     db.query(sqlstr, function(err, result) {
@@ -53,15 +53,19 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
       console.log("%s = %d ---> %d. Sensor %s Override: %s Demand: %s Other: %s", 
         z.Name, currentTemperature, z.targetTemp, z.ControlSensorID, 
         z.overrideOn ? "ON" : "OFF", 
-        z.demand ? "ON" : "OFF", checkDemand(z) ? "ON" : "OFF");
+        z.demand ? "ON" : "OFF", // this zone demand
+        checkDemand(z) ? "ON" : "OFF" // Other zone demand
+        );
     }
     z.demand = checkDemand(z); // Now Update any demand from other zones
-    setHeatingOutput(z.ControlDeviceID, z.ControlSensorID, z.demand);
+    if (z.Enabled) setHeatingOutput(z.ControlDeviceID, z.ControlSensorID, z.demand);
   });
 
   function checkZoneHeat(z, timeNow, dateStr, dow, previousDow) {    
     var targetTemp = -99;
     var presetIdx = -1;
+
+    if (!z.Enabled) return; // Allow for a (real) zone to have an alternative programme
 
     // if (log && (z.programme.length > 0)) console.log("P->%j", z.programme);
 
@@ -256,8 +260,8 @@ exports.zoneInfoByName = function(name, callback) {
   sqlstr = sqlstr.replace(/'/g, "");
   db.query(sqlstr, function(err, result) {
     if (err) {
-      console.log("zoneInfoByName %j", err);
-      info.err = "Can't find room called "+name;
+      console.log(`zoneInfoByName: ${err} ${sqlstr}`);
+      info.err = `Can't find room called ${name}`;
     } else {
       if (result.length >= 1) {
         result.forEach(function(result) {
@@ -273,7 +277,7 @@ exports.zoneInfoByName = function(name, callback) {
           info.zones.push(zone);
         });
       } else {
-        info.err = "Can't find room called "+name;
+        info.err = `Can't find room called ${name}`;
       }
     }
     callback(info);
@@ -288,14 +292,14 @@ exports.firingReason = function(onoff, temperature, callback) {
     sqlstr = 'SELECT T.Value, T.time from devices AS D '+
         'INNER JOIN sensors AS S ON D.deviceID = S.DeviceID '+
         'INNER JOIN temperaturelog AS T on T.deviceID = D.deviceID AND T.SensorID = S.SensorID '+
-        'WHERE D.name = ' + config.boiler.controllerName + ' ' +
+        `WHERE D.name = '${config.boiler.controllerName}' ` +
         'AND S.Name = "TS Top" '+
         'AND T.Time > DATE_SUB(now(), INTERVAL 20 MINUTE) '+
         'ORDER BY T.Value ASC LIMIT 1';
     db.query(sqlstr, function(err, result) {
       var dhwTemp;
       if (err) {
-        console.log("No temperatureLog for 'TS Top'");
+        console.log(`${err} No temperatureLog for 'TS Top'`);
         dhwTemp = 0;
       } else {
         dhwTemp = result[0].Value;
@@ -303,13 +307,13 @@ exports.firingReason = function(onoff, temperature, callback) {
         sqlstr = 'SELECT T.Value, T.time from devices AS D '+
           'INNER JOIN sensors AS S ON D.deviceID = S.DeviceID '+
           'INNER JOIN temperaturelog AS T on T.deviceID = D.deviceID AND T.SensorID = S.SensorID '+
-          'WHERE D.name = ' + config.boiler.controllerName + ' '+
+          `WHERE D.name = '${config.boiler.controllerName}' `+
           'AND S.Name = "DHW setpoint" '+
           'AND T.Time > DATE_SUB(now(), INTERVAL 1 MINUTE) '+
           'ORDER BY T.Time DESC LIMIT 1';
         db.query(sqlstr, function(err, result) {
           if (err) {
-            console.log("No temperatureLog for 'DHW setpoint'");
+            console.log(`${err} No temperatureLog for 'DHW setpoint'`);
           } else {
             if (result[0].Value) dhwSetpoint = result[0].Value
             if (onoff) {

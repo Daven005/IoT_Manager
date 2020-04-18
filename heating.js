@@ -73,9 +73,9 @@ function _mobileOverrides(request, response, zoneFilter) {
       + "FROM heatingoverrides "
       + "INNER JOIN heatingzones ON heatingoverrides.zoneID = heatingzones.ID "
       + "INNER JOIN daysofweek ON heatingoverrides.day = daysofweek.ID "
-      + "WHERE heatingoverrides.Name = 'Mobile'";
+      + "WHERE heatingoverrides.Name = 'Mobile' AND heatingzones.Enabled = 1";
     if (zoneFilter) { // Allow for guest override page
-      sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}_"`; // Guest1/2
+      sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}%"`; // Guest1/2/2m
     }
     sqlstr += " ORDER BY heatingzones.Name";
     console.log(sqlstr);
@@ -234,7 +234,7 @@ exports.days = function (request, response) {
 }
 
 exports.zones = function (request, response) {
-  var sqlstr = "SELECT ID, Name FROM heatingZones"
+  var sqlstr = "SELECT ID, Name FROM heatingZones ORDER BY Name"
   db.query(sqlstr, function (err, result) {
     if (err) {
       console.log("zones %j", err);
@@ -256,7 +256,7 @@ exports.override = function (request, response) {
       + "FROM heatingoverrides "
       + "INNER JOIN heatingzones ON heatingoverrides.zoneID = heatingzones.ID "
       + "INNER JOIN daysofweek ON heatingoverrides.day = daysofweek.ID "
-      + "ORDER BY oName";
+      + "WHERE heatingZones.Enabled = 1 ORDER BY oName";
     db.query(sqlstr, function (err, result) {
       if (err) {
         console.log("override %j", err);
@@ -437,7 +437,7 @@ exports.setOverride = function (device, override) { // Override message from Rad
   }
 }
 
-function reloadZones(zone, response, render) {
+function reloadZones(zone, response, render, showAll) {
 
   function _respond(data) {
     switch (render) {
@@ -472,10 +472,13 @@ function reloadZones(zone, response, render) {
     + "LEFT JOIN DEVICES DT ON H.TemperatureDeviceID = DT.DeviceID "
     + "LEFT JOIN DEVICES DC ON H.ControlDeviceID = DC.DeviceID "
     + "LEFT JOIN SENSORS ST ON H.TemperatureDeviceID = ST.DeviceID AND H.TemperatureSensorID = ST.SensorID "
-    + "LEFT JOIN SENSORS SC ON H.ControlDeviceID = SC.DeviceID AND H.ControlSensorID = SC.SensorID "
-    + "order by H.Name";
+    + "LEFT JOIN SENSORS SC ON H.ControlDeviceID = SC.DeviceID AND H.ControlSensorID = SC.SensorID ";
+    
+  if (!showAll) 
+    sqlstr += " WHERE H.Enabled = 1";
+  sqlstr += " ORDER BY H.Name";
 
-  db.query(sqlstr, function (err, result) {
+    db.query(sqlstr, function (err, result) {
     if (err) {
       console.log(err);
       console.log(sqlstr);
@@ -522,28 +525,24 @@ function reloadZones(zone, response, render) {
 }
 
 exports.zonesInfo = function (request, response) {
-  reloadZones(request.query.zoneID, response, 'json');
+  reloadZones(request.query.zoneID, response, 'json', false);
 }
 
 exports.zoneInfoByName = function (request, response) {
-  function gotInfo(info) {
-    response.setHeader('Content-Type', 'application/json');
-    if (info.err != "OK") response.status(400);
-    console.log("CK info: %j", info);
-    response.send(JSON.stringify(info));
-    response.end();
-  }
-  processHeating.zoneInfoByName(request.body.room, gotInfo);
+    processHeating.zoneInfoByName(request.body.room, (info) => {
+        response.setHeader('Content-Type', 'application/json');
+        console.log(`CK - Zone info: ${info}`);
+        if (info.err != "OK") response.status(400);
+        response.end(JSON.stringify(info));
+    });
 }
 
 exports.whyFiring = function (request, response) {
-  function gotInfo(info) {
+  processHeating.firingReason(request.body.onoff, request.body.temp, (info) => {
     response.setHeader('Content-Type', 'application/json');
     console.log("CK demand: %j", info);
-    response.send(JSON.stringify(info));
-    response.end();
-  }
-  processHeating.firingReason(request.body.onoff, request.body.temp, gotInfo);
+    response.end(JSON.stringify(info));
+  });
 }
 
 exports.voiceOverrides = function (request, response) {
@@ -670,14 +669,17 @@ exports.voiceOverrides = function (request, response) {
 exports.manage = function (request, response) {
 
   function _reload(zone) {
-    reloadZones(zone, response, 'heating');
+    reloadZones(zone, response, 'heating', true);
   }
 
   function _updateZone(request) {
     var isMaster = false;
     if (request.query.IsMaster) isMaster = true;
+    var Enabled = false;
+    if (request.query.Enabled) Enabled = true;
     var sqlstr = "UPDATE heatingzones SET "
       + "Name = ?, "
+      + "Enabled = ?, "
       + "MasterZone = ?, "
       + "IsMaster = ?, "
       + "TemperatureDeviceID = ?, "
@@ -689,6 +691,7 @@ exports.manage = function (request, response) {
       + "WHERE ID = ?";
     sqlstr = sql.format(sqlstr, [
       request.query.Name,
+      Enabled,
       request.query.MasterZone,
       isMaster,
       request.query.TemperatureDeviceID,
@@ -726,10 +729,11 @@ exports.manage = function (request, response) {
 
   function _duplicateZone(request) {
     var sqlstr = "INSERT heatingzones  "
-      + "(Name, MasterZone, TemperatureDeviceID, TemperatureSensorID, ControlDeviceID, ControlSensorID, TemperatureMax, TemperatureMin) "
-      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+      + "(Name, Enabled, MasterZone, TemperatureDeviceID, TemperatureSensorID, ControlDeviceID, ControlSensorID, TemperatureMax, TemperatureMin) "
+      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     sqlstr = sql.format(sqlstr, [
       request.query.Name,
+      false, // Make duplicated zone disabled 
       request.query.MasterZone,
       request.query.TemperatureDeviceID,
       request.query.TemperatureSensorID,
@@ -882,7 +886,7 @@ exports.manage = function (request, response) {
 }
 
 exports.temperatureDials = function (request, response) {
-  reloadZones(request.query.zoneID, response, 'temperatureDials');
+  reloadZones(request.query.zoneID, response, 'temperatureDials', false);
 }
 
 exports.getAllDeviceInfo = getAllDeviceInfo;

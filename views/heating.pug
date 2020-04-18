@@ -26,7 +26,7 @@ body
     table#zones
       thead
         tr
-          th="Zone"
+          th="Zone (Active)"
           th="Master"
           th="Min"
           th="Max"
@@ -46,14 +46,12 @@ body
               - var d = (val.overrideOn) ? "red" : (val.demand) ? "orange" : "cyan";
               - var tt = (val.overrideName) ? `tip="${val.overrideName}"` : '';
               td(title=val.overrideName)
-                input(type="text" name="Name" value=val.Name size="10" style=`background-color:${d}`)
+                input(type="text" name="Name" value=val.Name size="8" style=`background-color:${d}`)
                 |  #{val.ID}
+                input(type="checkbox", name="Enabled"  checked=(val.Enabled) ? "checked" : undefined)
               td
                 input(type="text" name="MasterZone" value=val.MasterZone size="1")
-                if (val.IsMaster)
-                  input(type="checkbox", name="IsMaster" checked)
-                else
-                  input(type="checkbox", name="IsMaster")
+                input(type="checkbox", name="IsMaster" checked=(val.IsMaster) ? "checked" : undefined)
               td
                 input(type="text" name="TemperatureMin" value=val.TemperatureMin size="1")
               td

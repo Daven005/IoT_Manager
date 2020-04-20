@@ -10,14 +10,15 @@ head
   title Sensors Graph
   include header
   script(src='/jq/jquery-ui.min.js')
-  script(src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.js")
+  script(src="/jq/jquery.jqplot.min.js")
   script(src="//cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.dateAxisRenderer.min.js")
   script(src="//cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.cursor.min.js")
   script(src="//cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.barRenderer.min.js")
   script(src="//cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.canvasTextRenderer.min.js")
   script(src="//cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.canvasAxisTickRenderer.min.js")
-  script(src="//cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.highlighter.min.js")
+  script(src="/jq/plugins/jqplot.highlighter.js")
   script(src="//cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/js/standalone/selectize.min.js")
+  script(src="/jq/plugins/jqplot.canvasOverlay.js")
   link(rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css")
   link(rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.css")
   link(rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/selectize.js/0.8.5/css/selectize.default.css")
@@ -51,7 +52,7 @@ head
         var sel = 0;
         var d = '!{data}'
         if (d) {
-          setupGraph(d, !{graphLabels}, !{graphTypes}, !{sensorIDs}, 'Hollies data');
+          setupGraph(d, !{graphLabels}, !{graphTypes}, !{sensorIDs}, !{JSON.stringify(settings)}, 'Hollies data');
         }
       } catch(e) { 
         alert(e); }
@@ -64,6 +65,7 @@ body
     if err
       .error
         != err
+    div `#{JSON.stringify(sql)}`
     form(action='/graph',method='get')
       div
         div.left
@@ -77,6 +79,7 @@ body
                   when "SensorName"
                   when "SensorType"
                     th=index
+              th="On/Off/Smooth"
             tbody
               - var idx = 0
               - var lastDeviceID = ""
@@ -101,7 +104,12 @@ body
                     each val, k in settings.selectedRows
                       if val.DeviceID == sensors[i].DeviceID && val.SensorID == sensors[i].SensorID
                         - isChecked = true
-                    input(type="checkbox" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}` checked=isChecked)
+                    input(type="radio" value="On" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}` checked=isChecked)
+                    On
+                    input(type="radio" value="Off" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}`)
+                    Off
+                    input(type="radio" value="Smooth" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}`)
+                    Smooth
                 - idx++
         div.left
           h3 Date

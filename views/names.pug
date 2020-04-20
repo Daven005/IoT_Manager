@@ -58,6 +58,10 @@ body
       .error
         != err
     div(style="text-align: right; font-size:small;")="(Select both Del and DelDev to delete everything for that device}"
+    form(action='/Manage/Sensors', method='get')
+        label(for='all') Show All:
+        input#all(name= 'all' type='checkbox' value='yes' `${(allDevices) ? "checked" : undefined}`)
+        input(type='submit' value='Reload')
     table(style="background-color: #e0e0e0" class="sensorList")
       thead
         tr

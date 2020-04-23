@@ -389,11 +389,29 @@ function publishAppInfo(DeviceID, SensorID, Value) {
           client.publish(topic, Value.toString());
           return result[0].SensorName;
         } catch (ex) {
-          console.log("Raw sensor error %s (DeviceID %s, SensorID %s, Value %j", ex.message, DeviceID, SensorID, Value);
+          console.log(`Raw sensor error ${ex.message} ${DeviceID}, ${SensorID}, Value ${Value}`);
         }
       }
    });
    // Allow it to return 'undefined' in error cases
+}
+
+function checkTempChangeWarning(deviceId, sensorId, delta) {
+    let sqlstr = sql.format('SELECT Location, Devices.Name AS DeviceName, Sensors.Name AS SensorName, WarnRate '+
+    'FROM Devices INNER JOIN Sensors ON Devices.DeviceID = Sensors.DeviceID WHERE Devices.DeviceID = ? AND SensorID = ?',
+    [deviceId, sensorId]);
+    db.query(sqlstr,  function(err, result) {
+        if (err) {
+            console.log(`Select WarnRate err: ${err}`);
+        } else {
+            if (result[0].WarnRate < 0.0) {
+                if (delta < result[0].WarnRate) {
+                    utils.notify(`Temperature drop ${delta}`,`Message`, 
+                        `${result[0].Location}-${result[0].DeviceName}`);
+                }
+            }
+        }
+    });
 }
 
 function insertSensorLogTime(DeviceID, SensorID, value, time) {
@@ -472,6 +490,7 @@ function processSensorValues(values, val) {
                     deviceState.setLatestTemperature(values.DeviceID, values.SensorID, val);
                     delta = deviceState.getTemperatureChange(values.DeviceID, values.SensorID);
                     checkInsertSensorLog(values.DeviceID, values.SensorID+'_delta', "TempDelta", delta);
+                    checkTempChangeWarning(values.DeviceID, values.SensorID, delta);
                     break;
                 case "Input":
                     deviceState.setLatestInput(values.DeviceID, values.SensorID, val);

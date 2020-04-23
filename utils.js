@@ -3,29 +3,32 @@ var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
+PushBullet = require('pushbullet');
+pusher = new PushBullet(conf.pushbullet.token);
+
 var transporter = nodemailer.createTransport(smtpTransport({
-   host: 'mail.norburys.me.uk',
-   port: 587,
+   host: config.email.host,
+   port: config.email.port,
    auth: {
-       user: 'david@norburys.me.uk',
-       pass: 'dislopalio-1'
+       user: config.email.user,
+       pass: config.email.pwd
    }
 }));
 
-transporter.verify(function(error, success) {
+transporter.verify((error, success) => {
    if (error) {
-        console.log("Nodemailer verify error: %j", error);
+        console.error(`Nodemailer verify error: ${error}`);
    } else {
         console.log('Nodemailer Server is ready to take our messages');
    }
 });
 
 exports.notify = function(msg, notifyType, device, reason) {
-  console.log("%s Notify: %s %s %s %j", notifyType, device, reason, moment().format("dd HH:mm"), msg);
+  console.log(`${snotifyType} Notify: ${device} ${reason} ${moment().format("dd HH:mm")} ${msg}`);
   if (notifyType == "Alarm") {
     var options = {
-       from: 'david@norburys.me.uk',
-       to: 'david@norburys.me.uk',
+       from: config.alarm.from,
+       to: config.alarm.to,
        subject: 'Alarm ',
        text: msg
     };
@@ -34,9 +37,11 @@ exports.notify = function(msg, notifyType, device, reason) {
     options.subject += ' at '+moment().format("dd HH:mm");
     transporter.sendMail(options, function(error, info){
       if (error) {
-          console.log("sendMail error: %j", error);
+          console.error(`sendMail error: ${error}`);
       }
     });
+  } else if (notifyType == "Message") {
+    pusher.note({}, )
   }
 }
 

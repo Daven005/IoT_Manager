@@ -4,7 +4,7 @@ var smtpTransport = require('nodemailer-smtp-transport');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 PushBullet = require('pushbullet');
-pusher = new PushBullet(conf.pushbullet.token);
+pusher = new PushBullet(config.pushbullet.token);
 
 var transporter = nodemailer.createTransport(smtpTransport({
    host: config.email.host,
@@ -24,7 +24,7 @@ transporter.verify((error, success) => {
 });
 
 exports.notify = function(msg, notifyType, device, reason) {
-  console.log(`${snotifyType} Notify: ${device} ${reason} ${moment().format("dd HH:mm")} ${msg}`);
+  console.log(`${notifyType} Notify: ${device} ${reason} ${moment().format("dd HH:mm")} ${msg}`);
   if (notifyType == "Alarm") {
     var options = {
        from: config.alarm.from,

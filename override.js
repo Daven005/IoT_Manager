@@ -1,9 +1,56 @@
 var login = require('./login');
 
-exports.output = function(request, response) {
-  var errorStr = "";
-  var topic = "None";
-  
+var errorStr = "";
+var topic = "None";
+var currentDevice = "All";
+
+exports.device = function(request, response) {  
+
+    function reload(response) {
+        var sqlstr = "SELECT Location, Name, DeviceID FROM devices ORDER BY Name, Location";
+        db.query(sqlstr, function(err, result) {
+          if (err) {
+            console.log(err);
+            errorStr += err.message;
+            result = [];
+          }
+          response.render('deviceOverride', {devices: result, selectedDevice: currentDevice, err: errorStr});
+        });
+    }
+
+    if (login.check(request, response)) {
+        if (request.query.Action == "Update") {
+            currentDevice = request.query.device;
+            Object.keys(request.query).forEach(val => {
+                let action = val.substring(0, 6);
+                let output = val.substring(6);
+                let setting = request.query[val];
+                let topic;
+                let value = 0;
+                if (action == 'Value-') {
+                    switch (setting) {
+                        case '1':
+                        case '0':
+                            topic = `/Raw/${request.query.device}/${output}/set/output`;
+                            value = setting;
+                            break;
+                        case 'Auto':
+                            topic = `/Raw/${request.query.device}/${output}/clear/output`;
+                            break;
+                    }
+                    if (setting != 'Leave') {
+                        client.publish(topic, value);
+                        console.log(`${topic}=${value}`);
+                    }
+                }
+            });
+        }
+    }
+    reload(response);
+}
+
+exports.output = function(request, response) {  
+
   function reload() {
     var sqlstr = "SELECT Location, Name, DeviceID, '0' as Output, '0' AS Value FROM devices ORDER BY Location, Name";
     db.query(sqlstr, function(err, result) {
@@ -31,7 +78,7 @@ exports.input = function(request, response) {
   var topic = "None";
   
   function reload() {
-    var sqlstr = "SELECT Location, Name, DeviceID, '0' as Input, '0' AS Value FROM devices ORDER BY Locatiom, Name";
+    var sqlstr = "SELECT Location, Name, DeviceID, '0' as Input, '0' AS Value FROM devices ORDER BY Location, Name";
     db.query(sqlstr, function(err, result) {
       if (err) {
         console.log(err);
@@ -57,7 +104,11 @@ exports.flow = function(request, response) {
   var topic = "None";
   
   function reload() {
-    var sqlstr = "SELECT Location, Name, DeviceID, '0' AS Value FROM devices ORDER BY Location, Name";
+    var sqlstr =  
+    "SELECT Location, Devices.Name AS DeviceName, devices.DeviceID AS DeviceID, '0' as Value FROM sensors "+
+    "INNER JOIN devices WHERE sensors.DeviceID = devices.DeviceID AND Type = 'Flow' "+
+    "ORDER BY location, devices.name";
+    // "SELECT Location, Name, DeviceID, '0' AS Value FROM devices ORDER BY Location, Name";
     db.query(sqlstr, function(err, result) {
       if (err) {
         console.log(err);
@@ -83,7 +134,10 @@ exports.pressure = function(request, response) {
   var topic = "None";
   
   function reload() {
-    var sqlstr = "SELECT Location, Name, DeviceID, '0' AS Value FROM devices ORDER BY Location, Name";
+    var sqlstr = 
+    "SELECT Location, Devices.Name AS DeviceName, devices.DeviceID AS DeviceID, '0' as Value FROM sensors "+
+    "INNER JOIN devices WHERE sensors.DeviceID = devices.DeviceID AND Type = 'Pressure' "+
+    "ORDER BY location, devices.name";
     db.query(sqlstr, function(err, result) {
       if (err) {
         console.log(err);
@@ -109,12 +163,7 @@ exports.temperature = function(request, response) {
   var topic = "None";
   
   function reload() {
-    var sqlstr = "select DeviceID, SensorID, location, name, sensorName, value, max(Time) as T from "+
-          "(select devices.name, devices.location, sensors.DeviceID, sensors.SensorID, sensors.Name as SensorName from sensors "+
-          "inner join devices  using(DeviceID) where sensors.type = 'Temp') as t "+
-          "join temperaturelog using(DeviceID, sensorID) "+
-          "group by deviceID, sensorID";
-    sqlstr = "SELECT Location, Devices.Name AS DeviceName, Sensors.Name AS SensorName, sensors.DeviceID, sensors.SensorID, mapping FROM sensors "+
+    var sqlstr = "SELECT Location, Devices.Name AS DeviceName, Sensors.Name AS SensorName, sensors.DeviceID, sensors.SensorID, mapping FROM sensors "+
               "INNER JOIN devices WHERE sensors.DeviceID = devices.DeviceID AND Type = 'Temp' "+
               "ORDER BY location, devices.name, sensors.name, sensors.sensorID";
     db.query(sqlstr, function(err, result) {

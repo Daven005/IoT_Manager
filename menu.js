@@ -40,7 +40,7 @@ exports.get = function (request, response) {
     subMenu = [];
     subMenu.push(makeMenuItem('/Manage/Sensors', 'Sensors'));
     subMenu.push(makeMenuItem('/Manage/Settings', 'Settings'));
-    //subMenu.push(makeMenuItem('/Manage/Devices', 'Devices'));
+    subMenu.push(makeMenuItem('/Manage/Devices', 'Device List'));
     subMenu.push(makeMenuItem('/Manage/Mapping', 'Update mapping'));
     menu.push(makeMenuItem('/Manage/Sensors', 'Manage', subMenu));
 
@@ -53,6 +53,7 @@ exports.get = function (request, response) {
 
     subMenu = [];
     subMenu.push(makeMenuItem('/Override/Output', 'Output'));
+    subMenu.push(makeMenuItem('/Override/Device', 'Device'));
     subMenu.push(makeMenuItem('/Override/Input', 'Input'));
     subMenu.push(makeMenuItem('/Override/Flow', 'Flow'));
     subMenu.push(makeMenuItem('/Override/Pressure', 'Pressure'));

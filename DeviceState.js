@@ -4,7 +4,9 @@ function DeviceState () {
 	this.state = [];
 }
 
-function init() {
+exports.init = init;
+
+function init(cb) {
 	var sqlstr = "SELECT devices.DeviceID AS deviceID, location, devices.name AS deviceName, sensorID, sensors.Name AS sensorName " +
 		"FROM devices inner join sensors ON devices.DeviceID = sensors.DeviceID " +
 		"WHERE sensors.type = 'Output'";
@@ -13,7 +15,8 @@ function init() {
 			deviceState.setName(r.deviceID, r.deviceName);
 			deviceState.setLocation(r.deviceID, r.location);
 			deviceState.setOutputName(r.deviceID, r.sensorID, r.sensorName);
-		});
+        });
+        if (cb) cb();
 	});
 }
 
@@ -268,7 +271,7 @@ DeviceState.prototype.findDeviceID = function(name, location) {
   return undefined;
 }
 
-DeviceState.prototype.deviceList = function() {
+DeviceState.prototype.deviceList = function() { // List of device Names
   var obj = [];
   for (_o in this.state) {
     obj.push(_o);
@@ -281,7 +284,7 @@ DeviceState.prototype.show = function() {
 	console.log(this);
 }
 
-DeviceState.prototype.list = function() {
+DeviceState.prototype.list = function() { // List of all device info
   var obj = [];
   for (_o in this.state) {
     obj[_o] = this.state[_o];

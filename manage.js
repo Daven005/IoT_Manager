@@ -111,6 +111,12 @@ exports.devices = function(request, response) {
   }
 }
 
+exports.deviceList = function(request, response) {
+    console.log(JSON.stringify(deviceState.list()));
+    console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    response.render('deviceList', {deviceList: deviceState.list()});
+}
+
 exports.sensors = function(request, response) {
   var errorStr = "";
 

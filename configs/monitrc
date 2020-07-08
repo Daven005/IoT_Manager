@@ -295,7 +295,7 @@
   check host EE-berry-ex4 with address 192.168.1.4
     if failed ping for 3 cycles then exec /home/iot/monit/pushbullet.sh
 #
-  check host EE-berry-ex5 with address 192.168.1.5
+  check host EE-berry-ex6 with address 192.168.1.6
     if failed ping for 5 cycles then exec /home/iot/monit/pushbullet.sh
 #
   check host Hollies-L with address 192.168.1.81

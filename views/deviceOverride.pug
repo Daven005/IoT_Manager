@@ -1,0 +1,39 @@
+doctype html
+head
+  title Override Device Outputs
+  include header
+
+body
+  #menu
+  h2 Override Device Outputs
+  if err
+    .error
+      != err
+  form(action='/Override/Device',method='get')
+    label Device:
+      select(name="device")
+        option(value="All") All
+        each val, i in devices
+          if (selectedDevice == devices[i].DeviceID)
+            option(value=devices[i].DeviceID selected)= devices[i].Name+':'+devices[i].Location
+          else
+            option(value=devices[i].DeviceID)= devices[i].Name+':'+devices[i].Location
+    table
+      thead
+        tr
+          th Output
+          th Setting
+      tbody
+        each _, idx in Array(6)
+          tr
+            td= idx
+            td
+              input(type="radio" name=`Value-${idx}` value="1")
+              | ON
+              input(type="radio" name=`Value-${idx}` value="0" )
+              | OFF
+              input(type="radio" name=`Value-${idx}` value="Auto")
+              | Auto
+              input(type="radio" name=`Value-${idx}` value="Leave" checked)
+              | Leave
+    input(type="submit" name= "Action" value="Update")

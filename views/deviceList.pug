@@ -1,0 +1,30 @@
+doctype html
+head
+  title Device List
+  include header
+  style.
+    button { margin: 10px }
+    #drawing { background-color: cyan; margin: 10px; max-width: 500px; float: left; }
+body
+  #menu
+  h2 Device List
+  if err
+    .error
+      != err
+  table
+    tbody
+      - for(var device in deviceList)
+        - var info = deviceList[device]
+        if (info.ipAddress && info.online)
+            tr
+            td
+                div= info.ipAddress
+            td
+                div= info.name
+            td
+                div= info.location
+            td
+                div= info.version
+            td
+                div= info.AP
+  

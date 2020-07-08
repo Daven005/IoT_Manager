@@ -1,5 +1,6 @@
 "use strict";
 global.config;
+var util = require('util');
 console.log("**********IoT Starting**********");
 require('./config').read(configLoaded); // See below
 
@@ -52,6 +53,8 @@ function configLoaded(cfg) {
     var dbs = require('./dbSetup');
     require('./modbus');
     global.tlc = require('./tlc');
+    console.log(`----------- ${util.inspect(tlc)}`);
+
     var mqtt = require('mqtt');
     global.client = mqtt.connect(config.mqtt.host, {
         protocolVersion: config.mqtt.protocolVersion,
@@ -67,6 +70,7 @@ function configLoaded(cfg) {
         client.publish('/Raw/Hollies000000/info', '{"Name": "Weather", "Location": "Outside"}'); 
     })
     dbs.init(() => { // Only called if successful
+        console.log(`dbs init done`);
         var sessionStoreOptions = {
             createDatabaseTable: true, // Whether or not to create the sessions database table, if one does not already exist. 
             schema: {
@@ -183,6 +187,7 @@ function setupWeb() {
     app.get("/dailyGraph", dailyGraph.show);
     app_mobile.get("/graph", graph.show);
     app.get("/Override/Output", override.output);
+    app.get("/Override/Device", override.device);
     app.get("/Override/Input", override.input);
     app.get("/Override/Flow", override.flow);
     app.get("/Override/Pressure", override.pressure);
@@ -207,7 +212,7 @@ function setupWeb() {
     app.post("/lights/playlist", lights.playlist);
 
     app.get('/Manage/Settings', manage.settings);
-    //app.get("/Manage/Devices", manage.devices);
+    app.get("/Manage/Devices", manage.deviceList);
     app.get("/Manage/Sensors", manage.sensors);
     app.get("/Manage/Mapping", manage.updateMapping);
 
@@ -255,25 +260,27 @@ function setupWeb() {
     app.get('/hollies/heating/getAllDeviceInfo', heating.getAllDeviceInfo);
     app.get('/hollies/heating/override', heating.externalSetOverride);
 
-    // app.get('/tlc/testPIR', tlc.testPIR);
-if (tlc) {
-    console.log(`+++++++++ tlC object ready`);
-    app.get('/tlc/scenes', tlc.showScenes);
-    app.post('/tlc/setScene', tlc.setScene);
-    app.get('/tlc/setScene', tlc.setScene);
-    app.post('/tlc/setChannels', tlc.setChannels);
-    app_mobile.get('/tlc/scenes', tlc.showMobileScenes);
-    app.get('/tlc/areas', tlc.areas);
-    app.get('/tlc/sceneAreaChannels', tlc.sceneAreaChannels);
-    app.get('/tlc/areaChannels', tlc.areaChannels);
-    app.get('/tlc/info', tlc.info);
-    app.get('/tlc/test', tlc.test);
-    app.get('/hollies/lightingChannels', tlc.setDesktopLightingChannels);
-    app.post('/hollies/setScene', tlc.setSceneDecode);
-    app_mobile.get('/hollies/lightingChannels', tlc.setMobileLightingChannels);
-    app.get('/hollies/lightingChannel', tlc.getLightingChannel);
-    app_mobile.get('/hollies/lightingChannel', tlc.getLightingChannel);
-    app.get('/hollies/lighting/getAllDeviceInfo', tlc.getAllDeviceInfo);
+ if (tlc) {
+    tlc.onReady(() => {
+        console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
+        app.get('/tlc/scenes', tlc.showScenes);
+        app.post('/tlc/setScene', tlc.setScene);
+        app.get('/tlc/setScene', tlc.setScene);
+        app.post('/tlc/setChannels', tlc.setChannels);
+        app_mobile.get('/tlc/scenes', tlc.showMobileScenes);
+        app.get('/tlc/areas', tlc.areas);
+        app.get('/tlc/sceneAreaChannels', tlc.sceneAreaChannels);
+        app.get('/tlc/areaChannels', tlc.areaChannels);
+        app.get('/tlc/info', tlc.info);
+        app.get('/tlc/test', tlc.test);
+        app.get('/hollies/lightingChannels', tlc.setDesktopLightingChannels);
+        app.post('/hollies/setScene', tlc.setSceneDecode);
+        app_mobile.get('/hollies/lightingChannels', tlc.setMobileLightingChannels);
+        app.get('/hollies/lightingChannel', tlc.getLightingChannel);
+        app_mobile.get('/hollies/lightingChannel', tlc.getLightingChannel);
+        app.get('/hollies/lighting/getAllDeviceInfo', tlc.getAllDeviceInfo);
+       // app.get('/tlc/testPIR', tlc.testPIR);
+    });
 } else {
     console.error(`No tlc object`);
 }

@@ -53,14 +53,14 @@ function udpServerMessageFunc(message, remote) {
     console.log("UDP msg: %j %s", response, ex.message);
   }
     if (response.TLc) {
-    var tlc = getTLc(response.TLc);
-    if (tlc) {
-      tlc.IPaddress = response.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');;
-      tlc.Version = response.Version.Major.toString() + '.' + response.Version.Minor.toString();
-      tlc.online = true;
-      tlc.errors = [];
+    var _tlc = getTLc(response.TLc);
+    if (_tlc) {
+      _tlc.IPaddress = response.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');;
+      _tlc.Version = response.Version.Major.toString() + '.' + response.Version.Minor.toString();
+      _tlc.online = true;
+      _tlc.errors = [];
       if (response.Errors) {
-        response.Errors.forEach((err) => { tlc.errors.push(err); });
+        response.Errors.forEach((err) => { _tlc.errors.push(err); });
       }
       if (enqTimer) {
         clearTimeout(enqTimer);
@@ -205,7 +205,7 @@ function getChannel(tlcName, channelID) {
 function updateScenes(cb) {
   let tlcCount = TLcList.length;
   allChannels = [];
-  TLcList.forEach(function (tlc) {
+  TLcList.forEach(function (_tlc) {
     // e.g. channels {"ID":5,"AreaID":0,"Name":"Bay green"},
     // e.g. areas {"ID":1,"Name":"Hall","LastScene":19},
     // e.g. channelvalues [255,0,0,0,0,0,0,0,0,0,255,255,255,0,0,0,255,255,0,255,255,0,255,0,0,0,0,0,255,255,255]
@@ -219,7 +219,7 @@ function updateScenes(cb) {
 
     const getTLcData = function (url) {
       return new Promise((resolve, reject) => {
-        rqInfo(tlc.Name, url, (result) => {
+        rqInfo(_tlc.Name, url, (result) => {
           if (result.error)
             reject(result.info);
           else {
@@ -229,7 +229,7 @@ function updateScenes(cb) {
       });
     }
 
-    if (tlc.online) {
+    if (_tlc.online) {
       getTLcData('areas')
         .then(_areas => {
           _areas.forEach(a => { areaNames[a.ID] = a.Name; });
@@ -241,21 +241,21 @@ function updateScenes(cb) {
         })
         .then(_channels => {
           _channels.forEach((c) => {
-            channels.push({id: c.ID, name: c.Name, tlcName: tlc.Name, areaName: areaNames[c.AreaID], currentValue: channelValues[c.ID]});
+            channels.push({id: c.ID, name: c.Name, tlcName: _tlc.Name, areaName: areaNames[c.AreaID], currentValue: channelValues[c.ID]});
           });
           Array.prototype.push.apply(allChannels, channels);
           return getTLcData('scenes');
         })
         .then(tlcScenes => {
           if (tlcScenes.length > 0) {
-            tlcScenes.forEach((scene) => { updateScene(tlc.Name, scene); });
+            tlcScenes.forEach((scene) => { updateScene(_tlc.Name, scene); });
           } else {
-            console.log(`No scenes from ${tlc.Name}`);
+            console.log(`No scenes from ${_tlc.Name}`);
           }
           return getTLcData('sceneChannels');
         })
         .then(tclSceneChannels => {
-          tclSceneChannels.forEach(sc => { updateSceneChannels(tlc.Name, sc); });
+          tclSceneChannels.forEach(sc => { updateSceneChannels(_tlc.Name, sc); });
           console.log(allScenes.length);
           if (--tlcCount == 0) {
             if (cb) cb();
@@ -263,7 +263,7 @@ function updateScenes(cb) {
         })
         .catch(e => console.log(e));
     } else {
-      console.log(`TLc ${tlc.Name} is offline`)
+      console.log(`TLc ${_tlc.Name} is offline`)
     }
 
     // e.g. allScenes {"ID":1, "Name": "Reading", "FadeIn":20, "Duration":0, "FadeOut":0, "FadePrev":false, "NextScene":255, "StartTime":"42:30"},
@@ -337,7 +337,7 @@ exports.getSceneAreaChannels = function (areaName, sceneName, cb) {
 
   var allTLcPromises = [];
   var channelInfo = [];
-  TLcList.forEach((tlc) => { allTLcPromises.push(getTLcData(tlc.Name, 'channelvalues'));});
+  TLcList.forEach((_tlc) => { allTLcPromises.push(getTLcData(_tlc.Name, 'channelvalues'));});
 
   Promise.all(allTLcPromises)
     .then((results) => {
@@ -390,7 +390,7 @@ exports.getAreaChannels = function (areaName, cb) {
   var allTLcPromises = [];
   var channelInfo = [];
   // Set up for parallel getting all (3) tlc info
-  TLcList.forEach((tlc) => {allTLcPromises.push(getTLcData(tlc.Name, 'channelvalues'));});
+  TLcList.forEach((_tlc) => {allTLcPromises.push(getTLcData(_tlc.Name, 'channelvalues'));});
 
   Promise.all(allTLcPromises)
     .then((results) => {
@@ -481,8 +481,8 @@ function send(tlcName, str) {
 }
 
 function getTLc(tlcName) {
-  tlc = TLcList.find((t) => { return t.Name == tlcName });
-  if (tlc) return tlc;
+  _tlc = TLcList.find((t) => { return t.Name == tlcName });
+  if (_tlc) return _tlc;
   console.log(`*** ${tlcName} is not defined`);
   return undefined;
 }

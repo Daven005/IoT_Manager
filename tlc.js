@@ -4,8 +4,9 @@ var login = require('./login');
 var async = require('async');
 var msg = require('./message');
 
-tlc_if.init(tlc_ifReady);
 var currentTLc;
+var status = 'loading';
+var callback = null;
 
 exports.testPIR = testPIR;
 exports.test = test;
@@ -22,6 +23,10 @@ exports.setMobileLightingChannels = setMobileLightingChannels;
 exports.getLightingChannel = getLightingChannel;
 exports.info = info;
 exports.getAllDeviceInfo = getAllDeviceInfo;
+exports.onReady = onReady;
+
+tlc_if.init(tlc_ifReady);
+status = 'loaded';
 
 const scene = { 
     boiler:   {id: "S0", TLc: "Hollies-F", on: "Boiler On",   raise: "Boiler On",  off: "Boiler Off",  lower: "Boiler Off"  }, 
@@ -34,33 +39,40 @@ const scene = {
     garage:   {id: "S7", TLc: "Hollies-G", on: "Bench On",    raise: "Shelves On", off: "All Off",     lower: "Bench Off"   }
 };
 
+function onReady(cb) {
+    callback = cb;
+    if (cb && status == 'ready') cb();
+}
+
 function checkTLcs() {
   tlc_if.checkTLcs(tlc_ifReady);
 }
 
 function tlc_ifReady() {
     console.log("tlc_ifReady");
-    tlc_if.list().forEach(function (tlc) {
-        if (tlc.IPaddress) {
-            msg.setDevice(tlc.Name, tlc);
+    tlc_if.list().forEach(function (_tlc) {
+        if (_tlc.IPaddress) {
+            msg.setDevice(_tlc.Name, _tlc);
         }
     });
 
     setInterval(temperatureCheck, 3 * 60 * 1000);
     temperatureCheck();
+    status = 'ready';
+    if (callback) callback();
 }
 
 function temperatureCheck() {
-  tlc_if.list().forEach(function(tlc) {
-    if (tlc.IPaddress) {
-      tlc_if.rqInfo(tlc.Name, 'temperatures', function(info) {
+  tlc_if.list().forEach(function(_tlc) {
+    if (_tlc.IPaddress) {
+      tlc_if.rqInfo(_tlc.Name, 'temperatures', function(info) {
         if (info.error) return;
         info.data.forEach(function(t) {
           if (t.ID) {
             if (t.Temp != '0.0') {
-                msg.setSensor(tlc.Name, t.ID, {Type:'Temp', Value: t.Temp});
+                msg.setSensor(_tlc.Name, t.ID, {Type:'Temp', Value: t.Temp});
             } else {
-                msg.setDevice(tlc.Name, tlc);
+                msg.setDevice(_tlc.Name, _tlc);
             }
           }
         });
@@ -326,16 +338,16 @@ function makeSceneList(tlc, scenes) {
 }
 
 function areasUpdate(response) {
-  function getScenes(tlc, callback) {
+  function getScenes(_tlc, callback) {
   
     function processScenes(scenes) {
       var sqlStr;
       var errorStr;
       
-      // console.log("******** processScenes %s - %j", tlc.Name, scenes);
+      // console.log("******** processScenes %s - %j", _tlc.Name, scenes);
       if (scenes.error) return callback(scenes.error);
-      var sceneList = makeSceneList(tlc.Name, scenes.data);
-      var sqlStr = "INSERT IGNORE INTO arealights (TLc, Scene) VALUES "+sceneList
+      var sceneList = makeSceneList(_tlc.Name, scenes.data);
+      var sqlStr = "INSERT IGNORE INTO arealights (_tlc, Scene) VALUES "+sceneList
       // console.log("Scenes %j", sqlStr);
       db.query(sqlStr, function(err, result) {
         if (err) return callback(err);
@@ -343,8 +355,8 @@ function areasUpdate(response) {
       });
     }
     
-    if (tlc.IPaddress) {
-      tlc_if.rqInfo(tlc.Name, 'scenes', processScenes);
+    if (_tlc.IPaddress) {
+      tlc_if.rqInfo(_tlc.Name, 'scenes', processScenes);
     } else {
       return callback();
     }
@@ -498,9 +510,9 @@ function setLightingChannels(request, response, renderer) {
     showChannels();
   }
   
-  tlc_if.list().forEach(function(tlc, key, map) {
-    if (tlc.IPaddress) {
-      actionList.set(tlc.Name, {areaNames: {retrieved: false}, channelNames: {retrieved: false}, channelSettings: {retrieved: false}});
+  tlc_if.list().forEach(function(_tlc, key, map) {
+    if (_tlc.IPaddress) {
+      actionList.set(_tlc.Name, {areaNames: {retrieved: false}, channelNames: {retrieved: false}, channelSettings: {retrieved: false}});
     }
   });
   nextAction();
@@ -525,5 +537,3 @@ function getAllDeviceInfo(request, response) {
   response.send(JSON.stringify(scene));
   response.end();
 }
-
-console.log(">>>>>>>>>>>>>>>>>>>>>>>>      tlC ready");

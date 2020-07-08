@@ -31,6 +31,7 @@
         "ping": "^0.2.2",
         "promise-mysql": "^3.3.1",
         "pug": "^2.0.3",
+        "pushbullet": "^2.4.0",
         "request": "^2.88.0",
         "sse-node": "^1.0.2",
         "sse-nodejs": "^0.1.0",

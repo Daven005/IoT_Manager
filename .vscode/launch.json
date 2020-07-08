@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
     {
         "type": "node",
         "name": "vscode-jest-tests",
@@ -102,8 +103,29 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Lights test",
+            "program": "${workspaceFolder}\\lights.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Startup test",
             "program": "${workspaceFolder}\\IOT.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "DeviceState test",
+            "program": "${workspaceFolder}\\deviceState.test.js",
+            "env": {"CONFIG":"pi-config.debug.json"}
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Pushbullet test",
+            "program": "${workspaceFolder}\\pushbullet.test.js",
             "env": {"CONFIG":"pi-config.debug.json"}
         }
     ]

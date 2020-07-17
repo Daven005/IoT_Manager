@@ -106,7 +106,11 @@ function powerJob() {
                         console.error(`House power error ${err}`);
                         housePower = 0;
                     } else {
+                        if (result[1]) {
                         housePower = -parseInt(result[1].Power.replace(/\,/g,'')); // Export is -ve. Remove comma
+                        } else {
+                            console.error(`managePower: no result`);
+                        }
                     }
                     let recordDate = moment(found.date).format("YYYY-MM-DD HH:00:00Z");
                     let sqlstr = sql.format("INSERT INTO sunPower (time, az, alt, cloud, HousePower, GaragePower) " +

@@ -97,6 +97,7 @@ function broadcast(address, str) {
 function init(initDone) {
   enqBroadcastCb = initDone;
   freeport(function (err, port) {
+      if (err) console.error(`No free port ${err}`);
     network.get_interfaces_list(function (err, list) {
       var i;
       for (i = 0; i < list.length; i++) {
@@ -111,7 +112,7 @@ function init(initDone) {
             enqTimer = setTimeout(enqBroadcastCb, 1000); // Allow longer time for initial response
           });
         }
-        return;
+        // return;
       }
       console.log("No wired interface available");
     });

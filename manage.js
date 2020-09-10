@@ -298,26 +298,39 @@ exports.sensors = function(request, response) {
        }
     });
   }
-  if (request.query.all) {
-    showAllDevices = request.query.all == 'yes';
-    reload();
-  } else if (request.query.row) {
-    if (login.check(request, response)) {
-      if (request.query.del == "yes") {
-        if (request.query.delDev == "yes") { // Delete everything wrt this device
-          deleteAll();
-        } else { // Just items
-          deleteItems();
-        }
-      } else if (request.query.delDev == "yes") {
-        deleteDevice();
-      } else {
-        updateItems();
-      }
+
+    function removeRetained(deviceID) {
+        client.publish(`/Raw/${deviceID}/info`, '', {retained: true});
+        client.publish(`/Raw/${deviceID}/mapping`, '', {retained: true});
+        deviceState.set(deviceID, false);
     }
-  } else {
-    reload();
-  }
+
+    if (request.query.all) {
+        showAllDevices = request.query.all == 'yes';
+        reload();
+    } else if (request.query.row) {
+        if (login.check(request, response)) {
+            if (request.query.del == "yes") {
+                if (request.query.delDev == "yes") { // Delete everything wrt this device
+                    deleteAll();
+                } else { // Just items
+                    deleteItems();
+                }
+            } else if (request.query.delDev == "yes") {
+                deleteDevice();
+            } else {
+                updateItems();
+            }
+        }
+    } else if (request.query.deviceID) { // Remove Retained
+        if (login.check(request, response)) {
+            removeRetained(request.query.deviceID);
+            reload();
+        }
+    } else {
+        showAllDevices = false;
+        reload();
+    }
 }
 
 exports.updateMapping = function (request, response) {

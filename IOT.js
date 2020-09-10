@@ -279,7 +279,6 @@ function setupWeb() {
         app.get('/hollies/lightingChannel', tlc.getLightingChannel);
         app_mobile.get('/hollies/lightingChannel', tlc.getLightingChannel);
         app.get('/hollies/lighting/getAllDeviceInfo', tlc.getAllDeviceInfo);
-       // app.get('/tlc/testPIR', tlc.testPIR);
     });
 } else {
     console.error(`No tlc object`);

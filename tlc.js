@@ -14,7 +14,7 @@ exports.showScenes = showScenes;
 exports.setScene = setScene;
 exports.setChannels = setChannels;
 exports.showMobileScenes = showMobileScenes;
-exports.decodeMHRV = decodeMHRV;
+exports.decodeMHRV = checkLights;
 exports.areas = areas;
 exports.checkTLcs = checkTLcs;
 exports.setSceneDecode = setSceneDecode;
@@ -79,47 +79,6 @@ function temperatureCheck() {
       });
     }
   });
-}
-
-function reloadPIR(response, params) {
-  var t = setTimeout(function() {
-	response.render('pir', {error: 'Refresh problem'});
-  }, 1000);
-  tlc_if.refresh('Hollies-F', "Toilet", "Toilet", function(channel, toiletValue) {
-    tlc_if.refresh('Hollies-F', "Utility", "Utility", function(channel, utilityValue) {
-      params.toilet = toiletValue;
-      params.utility = utilityValue;
-      clearTimeout(t);
-      response.render("pir", params);
-      return;
-    });
-  });
-}
-
-function testPIR(request, response) {
-  console.log("testPIR");
-  if (request.query.Action) {
-    switch(request.query.Action) {
-    case 'Light':
-    case 'Auto':
-    case 'Dark':
-      tlc_if.control(request.query.Action);
-      break;
-    case 'Toilet On':
-      tlc_if.trigger('Hollies-F', 'Toilet', 'Toilet', 'on', true);
-      break;
-    case 'Toilet Off':
-      tlc_if.trigger('Hollies-F', 'Toilet', 'Toilet', 'off', true);
-      break;
-    case 'Utility On':
-      tlc_if.trigger('Hollies-F', 'Utility', 'Utility', 'on', false);
-      break;
-    case 'Utility Off':
-      tlc_if.trigger('Hollies-F', 'Utility', 'Utility', 'off', false);
-      break;
-    }
-  }
-  reloadPIR(response, {tlcs: tlc_if.list(), state: tlc_if.state()});
 }
 
 function test(request, response) {
@@ -295,17 +254,14 @@ function showMobileScenes(request, response) {
   }
 }
 
-function decodeMHRV(action, payload) {
-  switch (action) {
-  case "Toilet Light PIR On":
-    // console.log("%j => %s", action, payload);
-    tlc_if.trigger('Hollies-F', 'Toilet', 'Toilet', (payload=='1') ? 'on' : 'off', true);
-    break;
-  case "Utility Light PIR On":  
-    // console.log("%j => %s", action, payload);
-    tlc_if.trigger('Hollies-F', 'Utility', 'Utility', (payload=='1') ? 'on' : 'off', false);
-    break;
-  }
+function checkLights(location, device, sensor, payload) {
+    forEach(config.TLc.lights, (rec) => {
+        if (rec.location == location && rec.device == device && rec.sensor == sensor) {
+            console.log(`${location}/${device}/${sensor}=>${tlcName}, ${area}, ${channel} = ${payload}`);
+            tlc_if.trigger(rec.tlcName, rec.area, rec.channel, (payload=='1') ? 'on' : 'off', true);
+            return;
+        }
+    });
 }
 
 function reloadAreas(response, window, currentArea) {

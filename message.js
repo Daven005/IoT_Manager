@@ -277,13 +277,14 @@ function processRawDeviceMessage(topicParts, payload) {
   try { //because of JSON.parse
     if (topicParts[3] == "offline") { // LWT from Broker
 		// NB can't parse payload as not JSON
-		deviceState.set(topicParts[3], false);
-		processDeviceOffline(topicParts[3]);
+		deviceState.set(topicParts[2], false);
+		processDeviceOffline(topicParts[2]);
     } else {
 		var values = JSON.parse(payload);
 		values.DeviceID = topicParts[2];
 		if (topicParts[3] == "info") {
-		  saveDeviceInfo(values);
+            // Note these MQTT msgs are retained so devices may appear to be available when not
+		    saveDeviceInfo(values);
 		} else if (topicParts[3] == "error") {
 		   processDeviceErrorMessage(values);
 		} else if (topicParts[3] == "alarm") {
@@ -300,7 +301,7 @@ function processRawDeviceMessage(topicParts, payload) {
 		}
 	}
   } catch (ex) {
-    console.log("processRawDeviceMessage error: %j, topic %j, payload %s", ex.message, topicParts, payload);
+    console.error(`processRawDeviceMessage error: ${ex.message}, topic ${topicParts}, payload ${payload}`);
   }
 }
 
@@ -575,10 +576,8 @@ function decodeMessage(topic, payload) {
         processSetMessage(topicParts, payload);
         break;
       default:
-        if (topicParts[3] == 'MHRV') {
-          tlc.decodeMHRV(topicParts[4], payload); // Only pass 'action'
-        }
-        processAppMessage(topicParts, payload);
+          tlc.checkLights(topicParts[2], topicParts[3], topicParts[4], payload);
+          processAppMessage(topicParts, payload);
       }
     } else if (topicParts[1] == 'Raw') {
       if (topicParts[3] == 'info' || topicParts[3] == 'error' || topicParts[3] == 'alarm' 

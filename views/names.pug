@@ -1,39 +1,41 @@
 mixin status(deviceState)
-  if typeof(deviceState) == 'undefined'
-    - st = 'color:red'
-    - tt = 'Device not yet visible'
-  else
-    if deviceState.online
-      - st = 'color:green'
-      - tt = 'Online since '+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version
-      if typeof(deviceState.rssi) != 'undefined'
-        - tt = tt + " RSSI:" + deviceState.rssi
-      if typeof(deviceState.channel) != 'undefined'
-        - tt = tt + " Channel:" + deviceState.channel
-      if typeof(deviceState.attempts) != 'undefined'
-        - tt = tt + " Attempts:" + deviceState.attempts
-      if typeof(deviceState.ipAddress) != 'undefined'
-        - tt = tt + " IP:" + deviceState.ipAddress
-      if typeof(deviceState.AP) != 'undefined'
-        - tt = tt + " AP:" + deviceState.AP
-      if typeof(deviceState.lastSet) != 'undefined'
-        - tt = tt + " Recent:" + moment(deviceState.lastSet).format("HH:mm DD/MM/YY")
-      - var now = moment(new Date()); 
-      - var end = moment(deviceState.lastSet);
-      - var duration = moment.duration(now.diff(end));
-      if (now.diff(end, 'minutes') >= 5)
-        - st = 'color:orange';
+    - showRow = allDevices
+    if typeof(deviceState) == 'undefined'
+        - st = 'color:red'
+        - tt = 'Device not yet visible'
     else
-      - st = 'background-color:red'
-      - tt = 'Offline since'+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version
-      if typeof(deviceState.ipAddress) != 'undefined'
-        - tt = tt + " IP:" + deviceState.ipAddress
-      if typeof(deviceState.AP) != 'undefined'
-        - tt = tt + " AP:" + deviceState.AP
-      if typeof(deviceState.lastSet) != 'undefined'
-        - tt = tt + " Recent:" + moment(deviceState.lastSet).format("HH:mm DD/MM/YY")
-      else
-        - tt = tt + " Recent: none"
+        if deviceState.online
+            - showRow = true
+            - st = 'color:green'
+            - tt = 'Online since '+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version
+            if typeof(deviceState.rssi) != 'undefined'
+                - tt = tt + " RSSI:" + deviceState.rssi
+            if typeof(deviceState.channel) != 'undefined'
+                - tt = tt + " Channel:" + deviceState.channel
+            if typeof(deviceState.attempts) != 'undefined'
+                - tt = tt + " Attempts:" + deviceState.attempts
+            if typeof(deviceState.ipAddress) != 'undefined'
+                - tt = tt + " IP:" + deviceState.ipAddress
+            if typeof(deviceState.AP) != 'undefined'
+                - tt = tt + " AP:" + deviceState.AP
+            if typeof(deviceState.lastSet) != 'undefined'
+                - tt = tt + " Recent:" + moment(deviceState.lastSet).format("HH:mm DD/MM/YY")
+            - var now = moment(new Date()); 
+            - var end = moment(deviceState.lastSet);
+            - var duration = moment.duration(now.diff(end));
+            if (now.diff(end, 'minutes') >= 5)
+                - st = 'color:orange';
+        else
+            - st = 'background-color:red'
+            - tt = 'Offline since'+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version
+            if typeof(deviceState.ipAddress) != 'undefined'
+                - tt = tt + " IP:" + deviceState.ipAddress
+            if typeof(deviceState.AP) != 'undefined'
+                - tt = tt + " AP:" + deviceState.AP
+            if typeof(deviceState.lastSet) != 'undefined'
+                - tt = tt + " Recent:" + moment(deviceState.lastSet).format("HH:mm DD/MM/YY")
+            else
+                - tt = tt + " Recent: none"
 doctype html
 head
   title Names
@@ -44,75 +46,88 @@ head
     .tooltip:hover:before {border: solid;border-color: #333 transparent;border-width: 6px 6px 0px 6px;bottom: 20px;content: "";left: 50%;position: absolute;z-index: 99;}
     .vertical {-moz-transform: rotate(-90deg); -webkit-transform: rotate(-90deg);)
   script.
-    $(document).ready(function(){
-      $(".sensorList tr:not(.accordion)").hide();
-      $(".sensorList tr:first-child").show();    
-      $(".sensorList tr.accordion").click(function(){
-          $(this).nextUntil("tr.accordion").fadeToggle(100);
-      });
-    })
+        $(document).ready(function(){
+            $(".sensorList tr:not(.accordion)").hide();
+            $(".sensorList tr:first-child").show();    
+            $(".sensorList tr.accordion").click(function(){
+                $(this).nextUntil("tr.accordion").fadeToggle(100);
+            });
+            $(".sensorList tr.accordion").bind('contextmenu', function(el){
+                if (confirm(`Set ${el.currentTarget.children[2].textContent} Offline?`))
+                    ;
+                return false;
+            });
+        })
 body
   #menu
   .main
     if err
-      .error
-        != err
+        .error
+            != err
     div(style="text-align: right; font-size:small;")="(Select both Del and DelDev to delete everything for that device}"
     form(action='/Manage/Sensors', method='get')
-        label(for='all') Show All:
-        input#all(name= 'all' type='checkbox' value='yes' `${(allDevices) ? "checked" : undefined}`)
+        label(for="all") Show All:
+        if (allDevices)
+            input#all(name="all" type="checkbox" value="yes" checked)
+        else
+            input#all(name="all" type="checkbox" value="yes")
         input(type='submit' value='Reload')
     table(style="background-color: #e0e0e0" class="sensorList")
-      thead
-        tr
-          each val, index in map[0]
-            th=index
-          th(class="vertical") Del
-          th(class="vertical") Del<br>Dev
-      tbody
-        - var idx = 0
-        - var lastDeviceID = ""
-        - var st
-        - var tt
-        each val, i in map
-          if lastDeviceID != map[i].DeviceID
-            - lastDeviceID = map[i].DeviceID
-            +status(devices[map[i].DeviceID])
-            tr(style="background-color: #c0c0c0" class="accordion")
-              td=map[i].Location
-              td(colspan='2')=map[i].DeviceName
-              td(style=st)
-                a(title=tt class='tooltip')=map[i].DeviceID
-              td(colspan="9")
-          form(action='/Manage/Sensors',method='get')
-            tr(id='row'+i)
-              each val, j in map[i]
-                case j
-                  when "Mapping"
-                  when "Updates"
-                  when "Inputs"
-                  when "Outputs"
-                  when "deleteAfter"
-                    td
-                      input(type="text", size="3"  name=j, value=val)
-                  when "SensorType"
-                    td=val
-                  when  "DeviceID"
-                    +status(devices[val])
-                    td(style=st)
-                      a(title=tt class='tooltip')=val
-                      input(type="hidden", name=j, value=val)
-                  when "SensorID"
-                    td=val
-                      input(type="hidden", name=j, value=val)
-                  default  
-                    td
-                      input(type="text", size="20"  name=j, value=val)
-              td
-                input(type="checkbox" name="del" value="yes")
-              td
-                input(type="checkbox" name="delDev" value="yes")
-              td
-                input(type="submit" value="Update")
-                input(type="hidden" name="row" value=idx)
-          - idx++
+        thead
+            tr
+                each val, index in map[0]
+                    th=index
+                th(class="vertical") Del
+                th(class="vertical") Del<br>Dev
+        tbody
+            - var idx = 0
+            - var lastDeviceID = ""
+            - var st, tt, showRow
+            each val, i in map
+                if lastDeviceID != map[i].DeviceID
+                    // New device
+                    - lastDeviceID = map[i].DeviceID
+                    +status(devices[map[i].DeviceID])
+                    if (showRow)
+                        tr(style="background-color: #c0c0c0" class="accordion")
+                            td=map[i].Location
+                            td(colspan='2')=map[i].DeviceName
+                            td(style=st)
+                                a(title=tt class='tooltip')=map[i].DeviceID
+                            td(colspan="9")
+                                form(action='/Manage/Sensors' method='get' style="text-align:right")
+                                    input(type="hidden" name="deviceID" value=lastDeviceID)
+                                    input(type='submit' name="unRetain" value="Remove Retained" style="padding:0px 3px; font-size:9pt; border-width:1px")
+                if (showRow)
+                        form(action='/Manage/Sensors',method='get')
+                            tr(id='row'+i)
+                                each val, j in map[i]
+                                    case j
+                                        when "Mapping"
+                                        when "Updates"
+                                        when "Inputs"
+                                        when "Outputs"
+                                        when "deleteAfter"
+                                            td
+                                                input(type="text", size="3"  name=j, value=val)
+                                        when "SensorType"
+                                            td=val
+                                        when  "DeviceID"
+                                            +status(devices[val])
+                                            td(style=st)
+                                                a(title=tt class='tooltip')=val
+                                                input(type="hidden", name=j, value=val)
+                                        when "SensorID"
+                                            td=val
+                                                input(type="hidden", name=j, value=val)
+                                        default  
+                                            td
+                                                input(type="text", size="20"  name=j, value=val)
+                                td
+                                    input(type="checkbox" name="del" value="yes")
+                                td
+                                    input(type="checkbox" name="delDev" value="yes")
+                                td
+                                    input(type="submit" value="Update")
+                                    input(type="hidden" name="row" value=idx)
+            - idx++

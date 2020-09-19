@@ -1,0 +1,45 @@
+doctype html
+head
+    title TLc Edit
+    include header
+    link(rel="stylesheet" href="/views/tlcEdit.css")
+    script(src='/views/tlcEdit.js')
+    script.
+        var tlcConfig= !{JSON.stringify(tlcConfig)};
+
+body
+    #menu
+    h2 TLc Edit Configuration
+    if err
+        .error
+            != err
+    div(style="display: block; float: left; max-width: 1000px")
+        table(style="table-layout: fixed;width: 100%;padding:10px")
+            tr
+                td(style="vertical-align: top")
+                    label(for="tlC") Choose TLc:
+                    select(name="tlC" id="tlC")
+                        option none
+                        each tlc, field in tlcConfig
+                            option= tlc.Name
+                    h3 Meta Info
+                    div#meta.ipFields
+                td
+                    h3 System Info
+                    div#system.ipFields
+            tr
+                td(style="vertical-align: top")
+                    label(for="section") Section
+                    select(name="section" id="section")
+                        option none
+                        option Area
+                        option Scene
+                        option Trigger
+                    div#sectionData.ipFields
+                td(style="vertical-align: top")
+                    label(for="subSection") Sub Section
+                    select(name="subSection" id="subSection")
+                        option none
+                        option(value="Channels" disabled="disabled") Channels
+                        option(value="Switches" disabled="disabled") Switches
+                    div#subSectionData.ipFields

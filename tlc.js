@@ -8,13 +8,12 @@ var currentTLc;
 var status = 'loading';
 var callback = null;
 
-exports.testPIR = testPIR;
 exports.test = test;
 exports.showScenes = showScenes;
 exports.setScene = setScene;
 exports.setChannels = setChannels;
 exports.showMobileScenes = showMobileScenes;
-exports.decodeMHRV = checkLights;
+exports.checkLights = checkLights;
 exports.areas = areas;
 exports.checkTLcs = checkTLcs;
 exports.setSceneDecode = setSceneDecode;
@@ -255,10 +254,10 @@ function showMobileScenes(request, response) {
 }
 
 function checkLights(location, device, sensor, payload) {
-    forEach(config.TLc.lights, (rec) => {
+    config.TLc.lights.forEach((rec) => {
         if (rec.location == location && rec.device == device && rec.sensor == sensor) {
-            console.log(`${location}/${device}/${sensor}=>${tlcName}, ${area}, ${channel} = ${payload}`);
-            tlc_if.trigger(rec.tlcName, rec.area, rec.channel, (payload=='1') ? 'on' : 'off', true);
+            console.log(`${location}/${device}/${sensor}=>${rec.tlcName}, ${rec.area}, ${rec.channel} = ${payload}`);
+            tlc_if.trigger(rec.tlcName, rec.area, rec.channel, (payload=='1') ? 'on' : 'off', rec.filter);
             return;
         }
     });

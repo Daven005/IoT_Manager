@@ -46,6 +46,8 @@ var dashboard = require('./dashboard');
 var pond = require('./pond');
 var watering = require('./watering');
 var camera = require('./camera');
+var tlcEdit = require('./tlcEdit');
+
 function configLoaded(cfg) {
     global.config = cfg;
 
@@ -53,7 +55,6 @@ function configLoaded(cfg) {
     var dbs = require('./dbSetup');
     require('./modbus');
     global.tlc = require('./tlc');
-    console.log(`----------- ${util.inspect(tlc)}`);
 
     var mqtt = require('mqtt');
     global.client = mqtt.connect(config.mqtt.host, {
@@ -262,7 +263,7 @@ function setupWeb() {
 
  if (tlc) {
     tlc.onReady(() => {
-        console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
+        // console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
         app.get('/tlc/scenes', tlc.showScenes);
         app.post('/tlc/setScene', tlc.setScene);
         app.get('/tlc/setScene', tlc.setScene);
@@ -279,6 +280,10 @@ function setupWeb() {
         app.get('/hollies/lightingChannel', tlc.getLightingChannel);
         app_mobile.get('/hollies/lightingChannel', tlc.getLightingChannel);
         app.get('/hollies/lighting/getAllDeviceInfo', tlc.getAllDeviceInfo);
+        tlcEdit.onReady(() => {
+            app.get("/tlcEdit", tlcEdit.show);
+            app.get("/tlcEdit/getMeta", tlcEdit.getMeta);
+        });
     });
 } else {
     console.error(`No tlc object`);
@@ -301,6 +306,7 @@ function setupWeb() {
 
     app_mobile.get("/Camera", camera.load);
     app_mobile.get("/Camera/action", camera.action);
+
 
     // app.get("/charge/rates", charge.rates);
     // app.get("/charge/status", charge.status);

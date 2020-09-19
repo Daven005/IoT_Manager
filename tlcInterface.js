@@ -95,28 +95,32 @@ function broadcast(address, str) {
 }
 
 function init(initDone) {
-  enqBroadcastCb = initDone;
-  freeport(function (err, port) {
-      if (err) console.error(`No free port ${err}`);
-    network.get_interfaces_list(function (err, list) {
-      var i;
-      for (i = 0; i < list.length; i++) {
-        if (list[i].type == 'Wired') {
-          udpServer.bind(port, list[i].ip_address, function () {
-            var address = udpServer.address();
-            var p = address.address.split('.');
-            broadcastAddress = p[0] + '.' + p[1] + '.' + p[2] + '.255';
+    enqBroadcastCb = initDone;
+    freeport(function (err, port) {
+        if (err) console.error(`No free port ${err}`);
+        network.get_interfaces_list(function (err, list) {
+            var i;
+            for (i = 0; i < list.length; i++) {
+                if (list[i].type == 'Wired') {
+                    try {
+                        udpServer.bind(port, list[i].ip_address, function () {
+                            var address = udpServer.address();
+                            var p = address.address.split('.');
+                            broadcastAddress = p[0] + '.' + p[1] + '.' + p[2] + '.255';
 
-            console.log('UDP udpServer listening on ' + address.address + ":" + address.port);
-            broadcast(broadcastAddress, '{"enq":"TLc"}');
-            enqTimer = setTimeout(enqBroadcastCb, 1000); // Allow longer time for initial response
-          });
-        }
-        // return;
-      }
-      console.log("No wired interface available");
+                            console.log('UDP udpServer listening on ' + address.address + ":" + address.port);
+                            broadcast(broadcastAddress, '{"enq":"TLc"}');
+                            enqTimer = setTimeout(enqBroadcastCb, 1000); // Allow longer time for initial response
+                        });
+                    } catch (ex) {
+                        console.error(`UDP bind error: ${ex}`);
+                    }
+                }
+                // return;
+            }
+            console.log("No wired interface available");
+        });
     });
-  });
 }
 
 function checkTLcs(cb) {
@@ -482,10 +486,10 @@ function send(tlcName, str) {
 }
 
 function getTLc(tlcName) {
-  _tlc = TLcList.find((t) => { return t.Name == tlcName });
-  if (_tlc) return _tlc;
-  console.log(`*** ${tlcName} is not defined`);
-  return undefined;
+    _tlc = TLcList.find((t) => { return t.Name == tlcName });
+    if (_tlc) return _tlc;
+    console.error(`*** tlcName "${tlcName}" is not defined`);
+    return undefined;
 }
 
 function list() {

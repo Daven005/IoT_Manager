@@ -17,28 +17,36 @@ body
         table(style="table-layout: fixed;width: 100%;padding:10px")
             tr
                 td(style="vertical-align: top")
-                    label(for="tlC") Choose TLc:
-                    select(name="tlC" id="tlC")
-                        option none
-                        each tlc, field in tlcConfig
-                            option= tlc.Name
+                    div
+                        label(for="tlC") Choose TLc:
+                        select#tlc.loadSection(name="tlC")
+                            option none
+                            each tlc, field in tlcConfig
+                                option= tlc.Name
+                        button#save(title="Save current configuration based on Meta Version") Save
+                        button#upload(title="Upload all data to selected TLc") Upload
+                        button#download(title="Download (and overwrite) all data from selected TLc") Download
+                        fieldset
+                            button#read Read
+                            select#readList
+                            button#delete Delete
                     h3 Meta Info
                     div#meta.ipFields
                 td
                     h3 System Info
                     div#system.ipFields
             tr
-                td(style="vertical-align: top")
+                td#dataSections(style="vertical-align: top")
                     label(for="section") Section
-                    select(name="section" id="section")
+                    select(name="section" id="section" class="loadSection")
                         option none
                         option Area
                         option Scene
                         option Trigger
                     div#sectionData.ipFields
-                td(style="vertical-align: top")
+                td#dataSubSections(style="vertical-align: top")
                     label(for="subSection") Sub Section
-                    select(name="subSection" id="subSection")
+                    select(name="subSection" id="subSection" class="loadSection")
                         option none
                         option(value="Channels" disabled="disabled") Channels
                         option(value="Switches" disabled="disabled") Switches

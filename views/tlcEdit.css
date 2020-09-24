@@ -26,12 +26,25 @@ button {
     border-radius: 5px;
 }
 
+button.help {
+    background-color: rgba(116, 243, 43, 0.521);
+    color: black;
+    margin-top: 1px;
+    margin-right: 2px;
+    position:absolute;
+    top:0;
+    right:0;   
+}
+
 td {
     padding:10px;
 }
 
-select {
+.loadSection {
     font-size: 1.5em;
+}
+select {
+    font-size: 1em;
 }
 
 .ipFields {
@@ -44,13 +57,40 @@ select {
     border: solid;
 }
 
+.helpDiv {
+    position: absolute;
+    width: 500px;
+    background: rgb(246, 247, 193);
+    color: rgb(0, 122, 6);
+}
+
+.sliderDiv {
+    position: absolute;
+    width: 400px;
+    height: 75px;
+    background: rgb(246, 247, 193);
+}
+
+#slider {
+    width: 90%;
+    margin: 2px;
+}
+
+.helpDone {
+    position: absolute;
+    top: 0;
+    right: 0
+}
+
 div h3 {
   margin: .5em 0;
   display: block;
   background: rgba(56, 8, 231, 0.78);
   color: #fefefe;
   padding: .75em;
-  border-radius: 0.15em;
+  border-radius: 0.25em;
+  position: relative;
+  width: 100%;
 }
 
 div h3:hover {

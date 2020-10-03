@@ -15,7 +15,7 @@ if [ "$1" = "wkg" ] || [ "$1" = "fbk" ] ; then
         cp $C/hostname.$2 /etc/hostname
         cp $C/dnsmasq.$1.conf /etc/dnsmasq.conf
         cp $C/dhcpcd.$1.$2.conf /etc/dhcpcd.conf
-        cp $C/mosquitto.bridge.$1.conf /etc/mosquitton.conf.d
+        cp $C/mosquitto.bridge.$1.conf /etc/mosquitto.conf.d
     else
         ERR="Bad IOT ($2) Should be 1 or 2"
     fi
@@ -29,6 +29,7 @@ if [ "$ERR" != "-" ] ; then
 fi
 if [ "$3" = "all" ] ; then
     cp $C/dnsmasq.blacklist.conf /etc/dnsmasq.d
+    cp $C/p.blacklist.conf /etc/dnsmasq.d
     cp $C/dnsmasq.sethost.conf /etc/dnsmasq.d
     cp $C/50-server.cnf /etc/mysql/mariadb.conf.d
     cp $C/mariadb.cnf /etc/mysql

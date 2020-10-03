@@ -49,26 +49,37 @@ function enqTimeoutCb() {
 function udpServerMessageFunc(message, remote) {
   try {
     var response = JSON.parse(message);
+    /* Should be like:
+        {"TLc":"Hollies-L",
+        "Version":{"Major":0,"Minor":73},
+        "IPaddress":"192.168.001.081",
+        "snMatches":true,
+        "Errors":[{"Section":1,"Error":1,"Count":32,"Message":"Corrupt SwitchPlate msg 2"},...]
+        }
+        or
+        {"OSC"}
+    */
   } catch(ex) {
     console.log("UDP msg: %j %s", response, ex.message);
   }
     if (response.TLc) {
-    var _tlc = getTLc(response.TLc);
-    if (_tlc) {
-      _tlc.IPaddress = response.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');;
-      _tlc.Version = response.Version.Major.toString() + '.' + response.Version.Minor.toString();
-      _tlc.online = true;
-      _tlc.errors = [];
-      if (response.Errors) {
-        response.Errors.forEach((err) => { _tlc.errors.push(err); });
-      }
-      if (enqTimer) {
-        clearTimeout(enqTimer);
-      }
-      enqTimer = setTimeout(enqTimeoutCb, 500);
-    } else {
-      console.log("TLc %j not in TLcList", response.TLc);
-    }
+        var _tlc = getTLc(response.TLc);
+        if (_tlc) {
+            _tlc.IPaddress = response.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');;
+            _tlc.Version = response.Version.Major.toString() + '.' + response.Version.Minor.toString();
+            _tlc.online = true;
+            _tlc.errors = [];
+            if (response.Errors) {
+                response.Errors.forEach((err) => { _tlc.errors.push(err); });
+            }
+            if (enqTimer) {
+                clearTimeout(enqTimer);
+            }
+            enqTimer = setTimeout(enqTimeoutCb, 500);
+        } else {
+            console.error(`TLc ${response.TLc} not in TLcList`);
+            addTLc(response.TLc, response.IPaddress, `${response.Version.Major}.${response.Version.Minor}`)
+        }
   } else if (response.OSC) {
     console.log(remote.address + ':' + remote.port + ' - ' + message);
     var parts = response.OSC[0].split('-');
@@ -136,21 +147,22 @@ function checkTLcs(cb) {
 }
 
 function rqInfo(tlcName, info, cb, param) {
-  var options = {
-    timeout: 1000,
-    host: "",
-    port: config.TLc.http_port,
-  };
-  if (getTLc(tlcName))
-    options.host = getTLc(tlcName).IPaddress;
-  else {
-    var obj = {
-      error: true,
-      info: `${tlcName} not online`
+    var options = {
+        timeout: 1000,
+        host: "",
+        port: config.TLc.http_port,
     };
-    cb(obj);
-    return;
-  }
+    tlc = getTLc(tlcName);
+    if (t) {
+        if (t.serNo.length > 6) {
+            options.host = getTLc(tlcName).IPaddress;
+        } else {
+            cb({ error: true, info: `${tlcName} not online` });
+        }
+    } else {
+        cb({ error: true, info: `${tlcName} not registered in config` });
+        return;
+    }
 
   options.path = '/' + info + '?serialNo=' + getTLc(tlcName).serNo
   if (param) {
@@ -268,7 +280,8 @@ function updateScenes(cb) {
         })
         .catch(e => console.log(e));
     } else {
-      console.log(`TLc ${_tlc.Name} is offline`)
+      console.log(`TLc ${_tlc.Name} is offline`);
+      if (cb) cb();
     }
 
     // e.g. allScenes {"ID":1, "Name": "Reading", "FadeIn":20, "Duration":0, "FadeOut":0, "FadePrev":false, "NextScene":255, "StartTime":"42:30"},
@@ -490,6 +503,19 @@ function getTLc(tlcName) {
     if (_tlc) return _tlc;
     console.error(`*** tlcName "${tlcName}" is not defined`);
     return undefined;
+}
+
+function addTLc(tlcName, ipAddress, version) {
+    var newTLc = {
+        Name: tlcName,
+        serNo: '',
+        online: false,
+        IPaddress: ipAddress,
+        Version: version,
+        Location: 'Not registered'
+    };
+    TLcList.push(newTLc);
+    return newTLc;
 }
 
 function list() {

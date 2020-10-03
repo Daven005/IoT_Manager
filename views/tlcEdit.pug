@@ -2,6 +2,7 @@ doctype html
 head
     title TLc Edit
     include header
+    link(rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css")
     link(rel="stylesheet" href="/views/tlcEdit.css")
     script(src='/views/tlcEdit.js')
     script.
@@ -18,22 +19,28 @@ body
             tr
                 td(style="vertical-align: top")
                     div
+                        h3#selectTLcs Select TLc
+                            button.help ?
                         label(for="tlC") Choose TLc:
                         select#tlc.loadSection(name="tlC")
                             option none
                             each tlc, field in tlcConfig
                                 option= tlc.Name
-                        button#save(title="Save current configuration based on Meta Version") Save
-                        button#upload(title="Upload all data to selected TLc") Upload
-                        button#download(title="Download (and overwrite) all data from selected TLc") Download
+                        button#save.tlcOperation(title="Save current configuration based on Meta Version") Save
+                        button#upload.tlcOperation(title="Upload all data to selected TLc") Upload
+                        button#download.tlcOperation(title="Download (and overwrite) all data from selected TLc") Download
                         fieldset
                             button#read Read
-                            select#readList
+                            label File:
+                                select#readList
                             button#delete Delete
-                    h3 Meta Info
+                            button#display Display
+                    h3#metaInfo Meta Info
+                        button.help ?
                     div#meta.ipFields
                 td
-                    h3 System Info
+                    h3#systemInfo System Info
+                        button.help ?
                     div#system.ipFields
             tr
                 td#dataSections(style="vertical-align: top")

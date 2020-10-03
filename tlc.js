@@ -7,6 +7,7 @@ var msg = require('./message');
 var currentTLc;
 var status = 'loading';
 var callback = null;
+var timerID = null;
 
 exports.test = test;
 exports.showScenes = showScenes;
@@ -474,17 +475,23 @@ function setLightingChannels(request, response, renderer) {
 }
 
 function info(request, response) {
-  function tlcsResponded() {
-    response.render('TLcInfo', {map: tlc_if.list()});
-  }
-   
-  setTimeout(() => response.render('TLcInfo', {err: "Timed Out", map: tlc_if.list()}), 5000);
+    function tlcsResponded() {
+        response.render('TLcInfo', { map: tlc_if.list() });
+    }
 
-  if (request.query.action == 'Clear') {
-    tlc_if.rqInfo(request.query.tlc, 'errors', () => tlc_if.checkTLcs(tlcsResponded), 'Clear=1');
-  } else {
-    tlc_if.checkTLcs(tlcsResponded);
-  }
+    if (!timerID) { // Stop tring to send request if already waiting for the response
+        timerID = setTimeout(() => {
+            timerID = null;
+            response.render('TLcInfo', { err: "Timed Out", map: tlc_if.list() })
+        }
+            , 5000);
+    }
+
+    if (request.query.action == 'Clear') {
+        tlc_if.rqInfo(request.query.tlc, 'errors', () => tlc_if.checkTLcs(tlcsResponded), 'Clear=1');
+    } else {
+        tlc_if.checkTLcs(tlcsResponded);
+    }
 }
 
 function getAllDeviceInfo(request, response) {

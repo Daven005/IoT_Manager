@@ -1,0 +1,30 @@
+{"rules": [
+    { "name": "depth",
+    "match": { "nibbleCount": 10, "nibbles": [0,0,2,0,["Z",0],["Y",0],["X",0],["X",1],["X",2],["X",3]] },
+    "meaning": [
+        { "field": "Z", "type": "bitField", 
+        "bits": [null, null, 
+        {"name": "metric", "description": "Metric display units"}, 
+        {"name": "Anchor alarm", "description": "Metric display units"}]
+        }]
+    },
+    { "field": "Y", "type": "bitField", "bits": [
+    {"name": "faulty", "description": "Transducer defective"},
+    {"name": "deep", "description": "Deep Alarm"},
+    {"name": "shallow", "description": "Shallow alarm"},
+    null] 
+    },
+    { "field": "X", "type": "word", "name": "depth", "description": "Depth below transducer", "unit": "feet", "scale": 0.1},
+  { "name": "apparentWindAngle",
+    "match": { "nibbleCount": 8, "nibbles": [0,1,1,0,["X",0],["X",1],["X",2],["X",3] ] },
+    "meaning": [ 
+      { "field": "X", "type": "word", "name": "angle", "description": "Apparent wind angle", "unit": "degrees", "scale": 0.5}
+    ]
+  },
+  { "name": "apparentWindSpeed",
+    "match": { "nibbleCount": 8, "nibbles": [0,1,1,0,["X",0],["X",1],["Y",0],0 ] },
+    "meaning": [ 
+      { "field": "X", "type": "word", "name": "speed", "description": "Apparent wind speed", "unit": "knots", "scale": 0.1}
+    ]
+  }
+] }

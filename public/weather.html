@@ -62,7 +62,6 @@
                     str = str + data.hourly.data[i].cloudCover + '</td><td>'
                     str = str + data.hourly.data[i].precipIntensity + '</td>'
                     str = str + '<td id="rain' + i + '">' + data.hourly.data[i].precipProbability + '</td><td>'
-                    str = str + data.hourly.data[i].precipProbability + '</td><td>';
                     str = str + data.hourly.data[i].pressure + '</td></tr>';
                 }
                 $('#Hourly').html(str);

@@ -24,6 +24,7 @@ div.hideRec {
 }
 
 button {
+    height: 1.9em;
     border: 2px solid black;
     background-color: rgba(116, 243, 43, 0.521);
     color: black;
@@ -48,7 +49,8 @@ button.help {
     resize: both;
     width: 95%;
     height: 400px;
-    z-index: 99;
+    background-color: rgb(177, 177, 245);
+    z-index: 999;
 }
 
 td {
@@ -76,6 +78,13 @@ select {
 
 fieldset {
     margin: 5px;
+}
+
+label {
+    text-align: right;
+    clear: both;
+    float: left;
+    margin-right:15px;
 }
 
 label.standAlone {
@@ -107,7 +116,8 @@ label.standAlone {
 }
 
 .swSlider {
-    width: 90%;
+    width: 95%;
+    min-width: 150px;
     background-image:linear-gradient(to left, #222, #eee);
     margin: 3px;
 }
@@ -131,7 +141,7 @@ div h3 {
   padding: .75em;
   border-radius: 0.25em;
   position: relative;
-  width: 95%;
+  width: 98%;
 }
 
 div h3:hover {

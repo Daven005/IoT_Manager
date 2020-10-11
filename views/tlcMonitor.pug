@@ -1,0 +1,29 @@
+doctype html
+head
+    title TLc Monitor
+    include header
+    - //link(rel="stylesheet" href="/jq/jquery-ui.css")
+    link(rel="stylesheet" href="/views/tlcMonitor.css")
+    script(src='/views/tlcMonitor.js')
+    script(src="/jq/socket.io.js")
+    script.
+        var tlcConfig= !{JSON.stringify(tlcConfig)};
+
+body
+    #menu
+    h2 TLc Monitor
+    if err
+        .error
+            != err
+    div
+        label(for="tlC") Choose TLc:
+        select#tlc.loadSection(name="tlC")
+            option none
+            each tlc, field in tlcConfig
+                option= tlc.Name
+        div
+            input(type="textarea").viewer
+            div
+                input(type="text").cmdLine
+                button.cmd Send
+        div#status Waiting

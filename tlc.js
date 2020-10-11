@@ -24,6 +24,7 @@ exports.getLightingChannel = getLightingChannel;
 exports.info = info;
 exports.getAllDeviceInfo = getAllDeviceInfo;
 exports.onReady = onReady;
+exports.status1 = function () { return status;};
 
 tlc_if.init(tlc_ifReady);
 status = 'loaded';
@@ -59,6 +60,7 @@ function tlc_ifReady() {
     setInterval(temperatureCheck, 3 * 60 * 1000);
     temperatureCheck();
     status = 'ready';
+    console.log("Done setting tlc devices");
     if (callback) callback();
 }
 
@@ -499,3 +501,5 @@ function getAllDeviceInfo(request, response) {
   response.send(JSON.stringify(scene));
   response.end();
 }
+
+status = "loaded";

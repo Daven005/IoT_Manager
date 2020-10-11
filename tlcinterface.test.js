@@ -13,9 +13,9 @@ function configLoaded(cfg) {
     }
     tlc_if.init(() => {
         console.log('done');
-        // tlc_if.getAreaChannels('Lounge', (result) => {
-        //     console.log(`done ${JSON.stringify(result, null, 2)}`);
-        // });
+        tlc_if.getAreaChannels('Lounge', (result) => {
+            console.log(`done ${JSON.stringify(result, null, 2)}`);
+        });
         let c; let t; let s;
         for (c=0.0; c<=1.0; c+=0.5) {
             s = `Cloud = ${c} `;

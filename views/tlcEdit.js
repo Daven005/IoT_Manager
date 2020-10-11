@@ -17,6 +17,7 @@ const boolPattern = `^(?:true|false|)$`;
 
 const allSections = [
     { name: 'system', list: 'sysinfo' },
+    // { name: 'getmeta', list: 'meta' }, - Can't include meta as does not support callback
     { name: 'areas', list: 'arealist' },
     { name: 'scenes', list: 'scenelist' },
     { name: 'channels', list: 'channellist' },
@@ -38,7 +39,7 @@ $(function () {
     $('#upload').on('click', uploadConfig);
     $('#download').on('click', downloadConfig);
     $('button.help').on('click', showHelp);
-    $('button.tlcOperation').removeProp('disabled').css('opacity', 0.3);
+    $('button.tlcOperation').prop('disabled',true).css('opacity', 0.3);
     makeReadList();
 });
 
@@ -110,7 +111,7 @@ function checkFieldStatus(record) {
 /* #region  Create Inputs */
 
 function addInput(label, id, fieldName, value, pattern, title) {
-    let str = `<label style="margin-left: 5px;" class="${fieldName}lbl">${label}: `;
+    let str = `<label style="margin-left: 5px;" class="${fieldName}lbl">${label}:&nbsp;`;
     str += `<input type="text" class="${fieldName}" name="${fieldName}" id="${id}" `;
     str += `value="${value}"`;
     if (pattern) str += ` pattern="${pattern}"`;
@@ -121,6 +122,16 @@ function addInput(label, id, fieldName, value, pattern, title) {
 
 function addSceneSpin(label, id, fieldName, value, pattern, title) {
     return addSpin('scenelist', -1, label, id, fieldName, (value == 255) ? -1 : value, title);
+}
+
+function addSceneAnySpin(label, id, fieldName, value, pattern, title) {
+    let str = addSpin('scenelist', -1, label, id, fieldName, (value == 255) ? -1 : value, title);
+    let insertStr = ''
+    insertStr += `<option value="61" ${(61 == value) ? ' selected' : undefined}>61: **Any ON**</option>`;
+    insertStr += `<option value="62" ${(62 == value) ? ' selected' : undefined}>62: **Any OFF**</option>`;
+    let findStr = '</select>';
+    insertStr += findStr;
+    return str.replace('</select>', insertStr);
 }
 
 function addAreaSpin(label, id, fieldName, value, pattern, title) {
@@ -138,7 +149,7 @@ function addSwitchPlateSpin(label, id, fieldName, value, pattern, title) {
 
 function addSwitchButtonSpin(label, id, fieldName, value, pattern, title) {
     let str = `<label style="margin-left: 5px;">${label}: `;
-    str += `<select class="${fieldName}" name="${fieldName}" id="${id}" `;
+    str += `<select class="${fieldName}" name="${fieldName}" id="${id}"&nbsp;`;
     if (title) str += ` title="${title}"`;
     str += `>`;
     let idx = 0;
@@ -154,7 +165,7 @@ function addSwitchButtonSpin(label, id, fieldName, value, pattern, title) {
 
 function addSwitchButtonActionSpin(label, id, fieldName, value, pattern, title) {
     let str = `<label style="margin-left: 5px;">${label}: `;
-    str += `<select class="${fieldName}" name="${fieldName}" id="${id}" `;
+    str += `<select class="${fieldName}" name="${fieldName}" id="${id}"&nbsp;`;
     if (title) str += ` title="${title}"`;
     str += `>`;
     let idx = 0;
@@ -167,7 +178,7 @@ function addSwitchButtonActionSpin(label, id, fieldName, value, pattern, title) 
 }
 
 function addSpin(list, defaultOption, label, id, fieldName, value, title) {
-    let str = `<label style="margin-left: 5px;" class="${fieldName}lbl">${label}: `;
+    let str = `<label style="margin-left: 5px;" class="${fieldName}lbl">${label}:&nbsp;`;
     str += `<select class="${fieldName}" name="${fieldName}" id="${id}" `;
     if (title) str += ` title="${title}"`;
     str += `>`;
@@ -186,7 +197,7 @@ function addSpin(list, defaultOption, label, id, fieldName, value, title) {
 
 function addCheckBox(label, id, fieldName, value, title) {
     let str = `<label style="margin-left: 5px;" class="${fieldName}lbl">${label}: `;
-    str += `<input type="checkbox" class="${fieldName}" name="${fieldName}" id="${id}" `;
+    str += `<input type="checkbox" class="${fieldName}" name="${fieldName}" id="${id}"&nbsp;`;
     if (title) str += ` title="${title}"`;
     if (value) str += ` checked="checked"`;
     str += ` value="true">`;
@@ -224,27 +235,30 @@ function readConfig() {
     if (v) {
         try {
             let config = JSON.parse(localStorage.getItem(v));
-            let tlcName = config.sysinfo.Name;
+            let newTLcName = config.sysinfo.Name;
             if (tlc == 'none') {
-                let t = tlcConfig.find(t => t.Name == tlcName);
+                let t = tlcConfig.find(t => t.Name == newTLcName);
                 if (!t) {
-                    $('.error').html(`${tlcName} is not registered with IoT Manager`);
+                    $('.error').html(`${newTLcName} is not registered with IoT Manager`);
                     return; // TODO create a new tlcConfig entry ??
                 }
                 t.config = config;
-                $('select.loadSection').val(tlc = tlcName);
+                $('select.loadSection').val(tlc = newTLcName);
+                $('button.tlcOperation').prop('disabled',false).css('opacity', 1);
                 resetAllSections(t);
             } else {
-                if (tlc != tlcName) {
-                    if (confirm(`File "${v}" contains info for "${tlcName}" not "${tlc}". Change to "${tlcName}"?`)) {
-                        let t = tlcConfig.find(t => t.Name == tlcName);
+                if (tlc != newTLcName) {
+                    if (confirm(`File "${v}" contains info for "${newTLcName}" not "${tlc}". Change to "${newTLcName}"?`)) {
+                        let t = tlcConfig.find(t => t.Name == newTLcName);
                         t.config = config;
-                        $('select.loadSection').val(tlc = tlcName);
+                        $('select.loadSection').val(tlc = newTLcName);
+                        $('button.tlcOperation').prop('disabled',false).css('opacity', 1);
                         resetAllSections(t);
                     }
                 } else {
-                    let t = tlcConfig.find(t => t.Name == tlcName);
+                    let t = tlcConfig.find(t => t.Name == newTLcName);
                     t.config = config;
+                    $('button.tlcOperation').prop('disabled',false).css('opacity', 1);
                     resetAllSections(t);
                 }
             }
@@ -288,6 +302,7 @@ function deleteConfig() {
 
 function uploadConfig() {
     var t = tlcConfig.find(t => t.Name == tlc);
+    var tc = t.config;
     if (!t.online) {
         $('.error').text(`${tlc} is offline`);
         return;
@@ -297,14 +312,32 @@ function uploadConfig() {
     allSections.forEach(s => { if (!t.config[s.list]) notLoaded.push(s.list) });
     if (notLoaded.length > 0) { $('.error').text(`${notLoaded} have not been set up`); return; }
     if (!confirm(`Upload configuration ${t.config.meta.Version} to file ${t.config.meta.File} on TLc ${tlc} ?`)) return;
+    xmitConfig = {...t.config};
+    delete xmitConfig.scenechannellist;
+    xmitConfig.scenelist.forEach(s => {s.Channels = []});
+    tc.scenechannellist.forEach(sc => {
+        xmitConfig.scenelist.find(s => s.ID == sc.SceneID).Channels.push(sc.Channel);
+        console.log(sc.SceneID);
+    });
+    tc.channellist.forEach(ch => {
+        var area = tc.arealist.find(a => a.ID == ch.AreaID);
+        ch.Area = area.Name;
+        console.log("Done");
+    });
+    
     // TODO Post config and request load
 }
 
 function downloadConfig() {
+    $('button.tlcOperation').prop('disabled', true).css('opacity', 0.3);
+    var t = tlcConfig.find(t => t.Name == tlc);
     var promises = allSections.map(item => getList(item.name).then((y) => y));
     Promise.all(promises).then(results => {
         results.forEach((r, idx) => t.config[allSections[idx].list] = r.info);
         resetAllSections();
+        makeSystemTable(t.config.sysinfo);
+        makeMetaTable(t.config.meta);
+        $('button.tlcOperation').prop('disabled',false).css('opacity', 1);
     });
 }
 /* #endregion */
@@ -348,10 +381,10 @@ function getSelectTLcsHelp() {
     str += 'or by choosing the name of a local storage file dropdown and clicking the adjacent Read button.</p>';
     str += '<p>The (edited) settings can be saved to a local storage file by clicking the Save button.';
     str += 'The name of the file will be that in the Meta section (see Meta help). ';
-    str += 'To delete a local storage file select the required fiel from the dropdown and click Delete.</p>';
+    str += 'To delete a local storage file select the required field from the dropdown and click Delete.</p>';
     str += '<p>Click Upload (TODO) to send the updated settings to the chosen TLc.';
-    str += 'The current settings can be re-downloaded from the from the chosen TLc by clicking Download.</p>';
-    str += '';
+    str += 'The current settings can be re-downloaded from the from the chosen TLc by clicking Download \
+            or rereading them from localStorage.</p>';
 
     return str;
 }
@@ -361,7 +394,8 @@ function tlcChanged(event) {
     tlc = this.value;
     if (tlc == 'none') {
         resetAllSections(); 
-        return;    
+        $('button.tlcOperation').prop('disabled', true).css('opacity', 0.3);
+        return;
     }
     var t = tlcConfig.find(t => t.Name == tlc);
     if (!t) { // 'none' ?
@@ -369,49 +403,55 @@ function tlcChanged(event) {
         $('button.tlcOperation').prop('disabled', true).css('opacity', 0.3);
         return;
     }
-    if (t.config) {
-        if (t.config.sysinfo) {
-            makeSystemTable(t.config.sysinfo);
-        } else {
-            getSection('system', (data) => {
-                updataSystem(data);
-                if (!t.meta) {
-                    makeMetaTable(t.config.meta);
-                } else {
-                    getMeta(updateMeta);
-                }
+    if (!t.config) t.config = [];
+    var names = [];
+    getMeta((data) => {
+        m = data.find((m) => m.meta.Type == "Config");
+        t.config.meta = m.meta;
+        if (!t.config.sysinfo) names.push({ name: 'system', list: 'sysinfo' });
+        // if (!t.config.meta) names.push({ name: 'getmeta', list: 'meta' });
+        var promises = names.map(item => getList(item.name).then((y) => y));
+        Promise.all(promises)
+            .then(results => {
+                results.forEach((r, idx) => {
+                    t.config[names[idx].list] = r.info
+                });
+                makeSystemTable(t.config.sysinfo);
+                makeMetaTable(t.config.meta);
+                $('button.tlcOperation').prop('disabled', false).css('opacity', 1);
+                $('#section').val('none');
+                $('#sectionData').empty();
+                $('#subSection').val('none');
+                $('#subSectionData').empty();
+            })
+            .catch(err => {
+                $('.error').html(`Downloading System/Meta Error ${JSON.stringify(err)}`);
+                return err;
             });
-        }
-        if (!t.config.meta) {
-            makeMetaTable(t.config.meta);
-        } else {
-            getMeta(updateMeta);
-        }
-    } else {
-        getSection('system', (data) => {
-            updateSystem(data);
-            getMeta(updateMeta);
-        });
-    }
-    $('#section').val('none');
-    $('#sectionData').empty();
-    $('#subSection').val('none');
-    $('#subSectionData').empty();
+    })
 }
 
 function showJSON() {
-    if ($('body').find('#jsonDiv').length > 0) return;
+    if ($('body').find('#jsonDiv').length > 0) {
+        $('.error').text(`Close Display first`);
+        return;
+    }
     var t = tlcConfig.find(t => t.Name == tlc);
-    let displayStr = JSON.stringify(t.config, null, 4);
-    displayStr = displayStr.replace('],', '],\n');
+    if (t) tc = t.config; else tc = null;
+    if (!tc) {
+        $('.error').text(`No config information for TLc "${tlc}"`);
+        return;
+    }
+    let displayStr = JSON.stringify(tc, null, 4);
     $('.error').empty();
     var p = $(this).parent();
     let str = '<div id="jsonDiv" class="jsonDiv">';
-    str += `<p><h4>JSON for: ${tlc}</h4> <button class="jsonDone">X</button></p>`;
+    str += `<p><h4>JSON for: ${tlc}&nbsp;&nbsp;&nbsp;&nbsp;<button class="jsonDone">X</button></h4></p>`;
     str += `<textarea class="jsonDisplay">${displayStr}</textarea>`;
     str += '</div>';
     $(p).append(str);
     $('#jsonDiv').draggable();
+    $('#jsonDiv').resizable();
     $('.jsonDone').on('click', () => { $('#jsonDiv').remove() });
     return false;
 }
@@ -423,7 +463,6 @@ function updateSystem(data) {
     var t = tlcConfig.find(t => t.Name == tlc);
     if (!t.config) t.config = {};
     t.config.sysinfo = data.info;
-    $('button.tlcOperation').removeProp('disabled').css('opacity', 1);
 }
 
 function makeSystemTable(data) {
@@ -506,7 +545,7 @@ function systemAction(data) {
 /* #region  Meta */
 function getMeta(cb) {
     var t = tlcConfig.find(t => t.Name == tlc);
-    url = `/tlcEdit/getMeta?tlc=${t.Name}`; // Needs to be done via host
+    url = `/tlc/Edit/getMeta?tlc=${t.Name}`; // Needs to be done via host
     $.getJSON(url, cb)
         .fail(function (jqxhr, textStatus, error) {
             var err = textStatus + ", " + error;
@@ -608,7 +647,8 @@ function sectionChanged(event) {
                     $('#dataSections').removeAttr('colspan');
                     $('#dataSubSections').show();
                     makeAreaTable(t.config.arealist);
-                });
+                })
+                .catch(err => $('.error').html(`Downloading Area Error ${JSON.stringify(err)}`));
             }
             break;
         case "Scene":
@@ -624,7 +664,8 @@ function sectionChanged(event) {
                     $('#dataSections').removeAttr('colspan');
                     $('#dataSubSections').show();
                     makeSceneTable(t.config.scenelist);
-                });
+                })
+                .catch(err => $('.error').html(`Downloading Scene Error ${JSON.stringify(err)}`));
             }
             break;
         case "Trigger":
@@ -643,7 +684,7 @@ function sectionChanged(event) {
                     $('#dataSubSections').hide();
                     makeTriggerTable(t.config.triggerlist);
                 })
-                    .catch(err => $('.error').html(`Downloading Error ${JSON.stringify(err)}`));
+                    .catch(err => $('.error').html(`Downloading Trigger Error ${JSON.stringify(err)}`));
             }
             break;
     }
@@ -806,7 +847,7 @@ function getAreasHelp() {
     str += `<p>Note that if an <i>area ID</i> is changed you are given the option to \
             update the referencing IDs `;
     str += `in the channel and sitch records. If you change the Area name without changing the ID `;
-    str += `the channel record will (TODO) be updated as it also contains the name.</p>`;
+    str += `the channel record will be updated when the configuration is uploaded as it also contains the name.</p>`;
     str += `<p>Note also that scenes can control channels that are in different areas, \
             e.g. to turn all off.</p>`
     str += `<p><u>General Notes</u> (These also apply to other sections). \
@@ -868,7 +909,6 @@ function makeSceneTable(scenelist) {
         str += '<fieldset><legend>Follow-On</legend>';
         str += addSceneSpin('NextScene', 'NextScene' + idx, 'NextScene',
             scene.NextScene, numberPattern, `0-${MAXSCENE - 1}`);
-        // TODO encode/decode StartTime field
         str += addInput('StartTime', 'StartTime' + idx, 'StartTime',
             scene.StartTime, timePattern, "0-42:ss in steps of 10S");
         str += addCheckBox('FadePrev', 'FadePrev' + idx, 'FadePrev',
@@ -1019,8 +1059,6 @@ function getScenesHelp() {
     str += `<p>If the FadeOut and Duration fields are both 0 the Scene will last indefinitely.</p>`;
     str += `<p>The Follow-On fields enable another Scene to be started after the time set by the Duration value.\
             </p>`
-    // TODO More help
-    str += '';
     return str;
 }
 
@@ -1039,7 +1077,8 @@ function getTriggersHelp() {
 
     str += '<p>This is a list of events that can cause a change of scene. ';
     str += 'The list is scanned to find a record that matches and the selected scene activated.</p>';
-    str += '<p>The main criterea for triggering the scene is usually a button on the specified <i>Switch Plate</i> being pressed.</p>';
+    str += '<p>The main criterea for triggering the scene is usually a button on the specified \
+            <i>Switch Plate</i> being pressed.</p>';
     // TODO More help
     return str;
 }
@@ -1062,28 +1101,32 @@ function makeTriggerTable(triggerlist) {
         str += addSceneSpin('<strong>Start</strong> Scene', 'triggerSceneID' + idx, 'triggerSceneID',
             trigger.SceneID, numberPattern, `0-${MAXSCENE - 1}`);
 
-        str += addCheckBox('<strong>and</strong> if Filters Enabled', 'FiltersEnabled' + idx, 'FiltersEnabled',
+        let filterStr = addCheckBox('<strong>and</strong> if Filters Enabled', 'FiltersEnabled' + idx, 'FiltersEnabled',
             trigger.FiltersEnabled, "true or false");
+
+        str += `<fieldset><legend>${filterStr}</legend>`;
 
         str += '<fieldset><legend><strong>then</strong> check State of</legend>';
         str += addSwitchPlateSpin('SWplate', 'stSWplate' + idx, 'stSWplate',
-            trigger.IPstate1.swPlate, numberPattern, "0-255");
-        str += addSwitchButtonActionSpin('SWbtn', 'stSWbtn' + idx, 'stSWbtn',
+            trigger.IPstate1.swPlate, numberPattern, `0-${MAXSWITCHPLATE-1}`);
+        str += addSwitchButtonSpin('SWbtn', 'stSWbtn' + idx, 'stSWbtn',
             trigger.IPstate1.swBtn, numberPattern, "0-15");
         str += addInput('is', 'stState' + idx, 'stState',
-            trigger.IPstate1.state, numberPattern, "0-255");
+            trigger.IPstate1.state, numberPattern, "0-1");
         str += '</fieldset>';
 
-        str += addCheckBox('Filters <strong>And</strong>', 'FiltersAnd' + idx, 'FiltersAnd',
-            trigger.AndFilters, "true or false");
+        str += addCheckBox('<strong>AND / OR</strong>', 'FiltersAnd' + idx, 'FiltersAnd',
+            trigger.AndFilters, "true (AND) or false (OR)");
 
         str += '<fieldset><legend>Last Scene</legend>';
         str += addAreaSpin('AreaID', 'lsAreaID' + idx, 'lsAreaID',
-            trigger.LastScene.AreaID, numberPattern,`0-${MAXAREA-1}`);
-        str += addSceneSpin('SceneID', 'lsSceneID' + idx, 'lsSceneID',
+            trigger.LastScene.AreaID, numberPattern,`0-${MAXAREA-1}, 61, 62`);
+        str += addSceneAnySpin('SceneID', 'lsSceneID' + idx, 'lsSceneID',
             trigger.LastScene.notScene, boolPattern, `0-${MAXSCENE-1}`);
-        str += addCheckBox('! Scene', 'notScene' + idx, 'notScene',
-            trigger.LastScene.notScene, "true or false");
+        str += addCheckBox('NOT Scene', 'notScene' + idx, 'notScene',
+            trigger.LastScene.notScene, "true (NOT Scene) or false (IS Scene)");
+        str += '</fieldset>';
+
         str += '</fieldset>';
 
         str += '<button class="triggerAction">Update</button>';
@@ -1104,13 +1147,13 @@ function makeTriggerTable(triggerlist) {
         str += addSceneSpin('Start Scene', 'triggerSceneID-new', 'triggerSceneID',
             -1, numberPattern, `0-${MAXSCENE - 1}`);
 
-        str += addCheckBox('and if Filters Enabled', 'FiltersEnabled-new', 'FiltersEnabled',
+        str += addCheckBox('<strong>and</strong> if Filters Enabled', 'FiltersEnabled-new', 'FiltersEnabled',
             false, "true or false");
 
-        str += '<fieldset><legend>then check State of</legend>';
+        str += '<fieldset><legend><strong>then</strong> check State of</legend>';
         str += addSwitchPlateSpin('SWplate', 'stSWplate-new', 'stSWplate',
             -1, numberPattern, "0-255");
-        str += addSwitchButtonActionSpin('SWbtn', 'stSWbtn-new', 'stSWbtn',
+        str += addSwitchButtonSpin('SWbtn', 'stSWbtn-new', 'stSWbtn',
             -1, numberPattern, "0-7");
         str += addInput('is', 'stState-new', 'stState',
             0, numberPattern, "0-255");
@@ -1134,9 +1177,9 @@ function makeTriggerTable(triggerlist) {
     }
     $('#sectionData').html(str);
     $('.triggerSceneIDlbl,.FiltersAndlbl,.FiltersEnabledlbl').addClass('standAlone');
-    $('.triggerSceneID,.lsAreaID,.lsSceneID').css('width', '12em')
-    $('.ipSWplate,.ipSWbtn,.ipAction').css('width', '8em');
-    $('.stSWplate,.stSWbtn,.stState').css('width', '8em');
+    $('.triggerSceneID,.lsAreaID,.lsSceneID').css('width', '10em')
+    $('.ipSWbtn,.ipAction,.stSWbtn,.stState').css('width', '8em');
+    $('.ipSWplate,.stSWplate,').css('width','10em');
     $('.triggerAction').on('click', triggerAction);
     $('.triggerAdd').on('click', triggerAdd);
     $('.triggerDelete').on('click', triggerDelete);
@@ -1320,7 +1363,7 @@ function subSectionChanged(event) {
                 case 'Scene':
                     let selectedScene = $('#sectionData .selected .sceneID').val();
                     if (t.config) {
-
+                        if (!t.config.arealist) names.push({ name: 'areas', list: 'arealist' });
                         if (!t.config.scenechannellist) names.push({ name: 'scenechannels', list: 'scenechannellist' });
                         if (!t.config.channellist) names.push({ name: 'channels', list: 'channellist' });
                         if (!t.config.scenelist) names.push({ name: 'scenes', list: 'scenelist' });
@@ -1766,9 +1809,19 @@ function closeSlider() {
 }
 
 function updateChannelValue() {
-    let val = $(this).val();
-    let x = $(this).parent().parent().find('.ChannelValue').val(val);
-    // TODO Send update channel value message
+    var t = tlcConfig.find(t => t.Name == tlc);
+    var tc = t.config;
+    let chnlStart = $(this).parent().parent().find('.ChannelStartID').val();
+    let channel = tc.channellist.find(c => c.ID ==chnlStart);
+    var req = {
+        tlc: tlc, 
+        area: tc.arealist.find(a => a.ID == channel.AreaID).Name, 
+        name: channel.Name, 
+        value: $(this).val()
+    }
+    $.ajax({url: '/hollies/lightingChannel', method: 'GET', data: req})
+    .then(data => console.log(`set channel ${data}`))
+    .fail(err => console.log(`Error: ${JSON.stringify(err)}`));
 }
 
 function sceneChannelDelete() {
@@ -1793,7 +1846,7 @@ function makeSceneChannelTable(scenechannelslist, selectedScene) {
         str += addSceneSpin('SceneID', 'channelSceneID' + idx, 'channelSceneID',
             channel.SceneID, numberPattern, `0-${MAXSCENE - 1}`);
         str += addInput('ChannelValue', 'ChannelValue' + idx, 'ChannelValue',
-            channel.Channel.value, numberPattern, `0-255`);
+            channel.Channel.value, numberPattern, `0-255 (right click to show slider)`);
         str += '<fieldset>';
         str += addChannelSpin('ChannelID', 'ChannelStartID' + idx, 'ChannelStartID',
             channel.Channel.ID, namePattern, `0 to ${MAXCHANNEL - 1}`);

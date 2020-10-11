@@ -69,7 +69,9 @@ exports.get = function (request, response) {
     subMenu = [];
     subMenu.push(makeMenuItem('/tlc/scenes', 'Show Scenes'));
     subMenu.push(makeMenuItem('/tlc/areas', 'Update Areas'));
-    subMenu.push(makeMenuItem('/tlc/testPIR', 'Test PIR'));
+    subMenu.push(makeMenuItem('/tlc/info', 'Info'));
+    subMenu.push(makeMenuItem('/tlc/Edit', 'Edit'));
+    subMenu.push(makeMenuItem('/tlc/Monitor', 'Monitor'));
     menu.push(makeMenuItem('/tlc/info', 'TLc', subMenu));
 
     subMenu = [];

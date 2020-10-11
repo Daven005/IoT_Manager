@@ -8,7 +8,7 @@ var express = require('express');
 var session = require('express-session');
 var MySQLStore = require('express-mysql-session')(session);
 var path = require('path');
-var app = express();
+global.app = express(); // Used by tlcMonitor
 var app_mobile = express();
 var app_guest = express();
 var bodyParser = require('body-parser');
@@ -47,6 +47,7 @@ var pond = require('./pond');
 var watering = require('./watering');
 var camera = require('./camera');
 var tlcEdit = require('./tlcEdit');
+var tlcMonitor = require('./tlcMonitor');
 
 function configLoaded(cfg) {
     global.config = cfg;
@@ -261,30 +262,37 @@ function setupWeb() {
     app.get('/hollies/heating/getAllDeviceInfo', heating.getAllDeviceInfo);
     app.get('/hollies/heating/override', heating.externalSetOverride);
 
- if (tlc) {
-    tlc.onReady(() => {
-        // console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
-        app.get('/tlc/scenes', tlc.showScenes);
-        app.post('/tlc/setScene', tlc.setScene);
-        app.get('/tlc/setScene', tlc.setScene);
-        app.post('/tlc/setChannels', tlc.setChannels);
-        app_mobile.get('/tlc/scenes', tlc.showMobileScenes);
-        app.get('/tlc/areas', tlc.areas);
-        app.get('/tlc/sceneAreaChannels', tlc.sceneAreaChannels);
-        app.get('/tlc/areaChannels', tlc.areaChannels);
-        app.get('/tlc/info', tlc.info);
-        app.get('/tlc/test', tlc.test);
-        app.get('/hollies/lightingChannels', tlc.setDesktopLightingChannels);
-        app.post('/hollies/setScene', tlc.setSceneDecode);
-        app_mobile.get('/hollies/lightingChannels', tlc.setMobileLightingChannels);
-        app.get('/hollies/lightingChannel', tlc.getLightingChannel);
-        app_mobile.get('/hollies/lightingChannel', tlc.getLightingChannel);
-        app.get('/hollies/lighting/getAllDeviceInfo', tlc.getAllDeviceInfo);
-        tlcEdit.onReady(() => {
-            app.get("/tlcEdit", tlcEdit.show);
-            app.get("/tlcEdit/getMeta", tlcEdit.getMeta);
+    if (tlc) {
+        console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
+        tlc.onReady(() => {
+            console.log(`tlc status (1): ${tlc.status1()}`);
+            setTimeout(() => {
+                console.log(`tlc status (2): ${tlc.status1()}`);
+                app.get('/tlc/scenes', tlc.showScenes);
+                app.post('/tlc/setScene', tlc.setScene);
+                app.get('/tlc/setScene', tlc.setScene);
+                app.post('/tlc/setChannels', tlc.setChannels);
+                app_mobile.get('/tlc/scenes', tlc.showMobileScenes);
+                app.get('/tlc/areas', tlc.areas);
+                app.get('/tlc/sceneAreaChannels', tlc.sceneAreaChannels);
+                app.get('/tlc/areaChannels', tlc.areaChannels);
+                app.get('/tlc/info', tlc.info);
+                app.get('/tlc/test', tlc.test);
+                app.get('/hollies/lightingChannels', tlc.setDesktopLightingChannels);
+                app.post('/hollies/setScene', tlc.setSceneDecode);
+                app_mobile.get('/hollies/lightingChannels', tlc.setMobileLightingChannels);
+                app.get('/hollies/lightingChannel', tlc.getLightingChannel);
+                app_mobile.get('/hollies/lightingChannel', tlc.getLightingChannel);
+                app.get('/hollies/lighting/getAllDeviceInfo', tlc.getAllDeviceInfo);
+                tlcEdit.onReady(() => {
+                    // console.log(`+++++++++ TLcEdit object ready: ${util.inspect(tlcEdit)}`);
+                    app.get("/tlc/Edit", tlcEdit.show);
+                    app.get("/tlc/Edit/getMeta", tlcEdit.getMeta);
+                    app.get('/tlc/Monitor', tlcMonitor.show);
+                    app.get('/tlc/Monitor/open', tlcMonitor.open);
+                });
+            }, 500);
         });
-    });
 } else {
     console.error(`No tlc object`);
 }
@@ -306,7 +314,6 @@ function setupWeb() {
 
     app_mobile.get("/Camera", camera.load);
     app_mobile.get("/Camera/action", camera.action);
-
 
     // app.get("/charge/rates", charge.rates);
     // app.get("/charge/status", charge.status);

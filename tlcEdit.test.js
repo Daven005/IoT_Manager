@@ -17,5 +17,3 @@ function configLoaded(cfg) {
         })
     });
 }
-
-

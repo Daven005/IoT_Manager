@@ -1,0 +1,20 @@
+.viewer {
+    min-width: 400px;
+    min-height: 500px;
+}
+
+.cmdLine {
+    min-width: 400px;
+}
+
+button {
+    height: 1.9em;
+    border: 2px solid black;
+    background-color: rgba(116, 243, 43, 0.521);
+    color: black;
+    padding: 2px;
+    margin: 2px;
+    font-size: 1.3em;
+    cursor: pointer;
+    border-radius: 5px;
+}

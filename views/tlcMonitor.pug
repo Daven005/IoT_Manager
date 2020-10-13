@@ -8,22 +8,23 @@ head
     script(src="/jq/socket.io.js")
     script.
         var tlcConfig= !{JSON.stringify(tlcConfig)};
-
+        var port = !{JSON.stringify(port)};
 body
     #menu
     h2 TLc Monitor
-    if err
-        .error
-            != err
+    .error
+        != err
     div
         label(for="tlC") Choose TLc:
         select#tlc.loadSection(name="tlC")
             option none
             each tlc, field in tlcConfig
                 option= tlc.Name
+        button#tlcStatus ?
         div
-            input(type="textarea").viewer
+            textarea#viewer
             div
-                input(type="text").cmdLine
-                button.cmd Send
+                input(type="text")#cmdLine
+                button#cmd Send
+                button#close Close
         div#status Waiting

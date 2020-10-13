@@ -15,11 +15,11 @@ require('./config').read(configLoaded);
 function configLoaded(cfg) {
     global.config = cfg;
     try {
-        var tlcMonitor = require('./tlcMonitor');
+        var tlcMonitor = require('./tlcMonitor.old');
         app.get('/tlc/Monitor', tlcMonitor.show);
         app.get('/tlc/Monitor/open', tlcMonitor.open);
-        app.listen(8099);
-} catch(e) {
+        app.listen(8099, '0.0.0.0', () =>{console.log('Listening')});
+    } catch (e) {
         console.log(e.stack)
     }
 }

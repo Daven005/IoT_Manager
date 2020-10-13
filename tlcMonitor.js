@@ -1,100 +1,84 @@
 "use strict";
-// var tlc_if = require('./tlcInterface');
-
-let server = require('http').createServer(app);
-let io = require('socket.io')(server);
-
-const PORT = process.env.PORT || 5001;
-
-var tlcConfig;
+var tlc_if = require('./tlcInterface');
+const net = require('net');
+const io = require('socket.io')
+const server = io.listen(config.TLc.IoT_Manager_port);
 var tlc = 'none';
-var browserConnectionStatus = 'open';
-var serverConnectionStatus = 'closed';
+var tlcConnection;
+var tlcStatus = 'unconnected';
 
-const tlc_if_list = [  
-    {"Name": "Hollies-F", "serNo": "2810eb3e040000", "online": false, IPaddress: '192.168.1.82', "Location": "Family"},
-    {"Name": "Hollies-L", "serNo": "28f34bb6040000", "online": false, IPaddress: '192.168.1.81', "Location": "Lounge"},
-    {"Name": "Hollies-G", "serNo": "28ffd928681402", "online": false, IPaddress: '192.168.1.83', "Location": "Garage"},
-    {"Name": "Hollies-Test", "serNo": "28c52d3f040000", "online": false, IPaddress: '192.168.1.214', "Location": "Office"} 
-];
+server.on('connection', (socket) => {
+    console.log(`Browser Connection`);
+    
+    socket.on('tlc', (data) => {
+        console.log(`Connect to: ${data}`);
+        connectToTLc(data, socket);
+    });
+    socket.on('status', () => {
+        let msg = `Status rq = (${tlcStatus}`;
+        if (tlcConnection) msg += `, ${tlcConnection.readyState})`;
+        console.log(msg);
+        socket.emit('info', msg);
+    });
+    socket.on('cmd', (data) => {
+        console.log(`Cmd: ${data}`);
+        writeTLc(data);
+    });
+    socket.on('close', (data) => {
+        console.log(`Browser close rq`);
+        closeTLc();
+    });
+    socket.on('disconnect', (e) => {
+        console.log("Browser disconnected");
+    });
+    socket.emit('info', 'IoT Manager connected\n');
+});
 
-exports.show = function(request, response) {
-    response.render('tlcMonitor',  {err: "", tlcConfig: tlcConfig});
+function getTLcConfig() {
+    return JSON.parse(tlc = JSON.stringify(tlc_if.list())); // Re parse as now should have IP addresses
 }
 
-exports.open = function(request, response) {
-    function browserClose(s) {
-        if (browserConnectionStatus == 'open') {
-            response.end(`{"result": "${s}"}`);
-            browserConnectionStatus = 'closed';
-        }
-    }
-    function connectToTLc(socket) {
-        try {
-            var tlcConnection = net.createConnection(config.TLc.http_port, t.IPaddress, () => {
-                console.log('TLc Connected');
-                tlcConnection.write(`GET /InstallationMonitor?SerialNo=${t.serNo}\n\n`);
-            });
+function writeTLc(data) {
+    if (tlcConnection)
+        tlcConnection.write(`${data}\n`);
+}
 
-            tlcConnection.on('data', function (data) {
-                browserClose('connected');
+function closeTLc(status) {
+    if (tlcConnection) {
+        tlcConnection.end();
+    }
+    tlcStatus = status;
+}
+
+function connectToTLc(tlc, socket) {
+    try {
+        let tlcConfig = getTLcConfig()
+        let t = tlcConfig.find((t) => t.Name == tlc);
+        tlcConnection = net.createConnection(config.TLc.http_port, t.IPaddress, () => {
+            console.log(`TLc (${tlc}) Connected`);
+            tlcStatus = 'connected';
+            tlcConnection.write(`GET /InstallationMonitor?SerialNo=${t.serNo}\n\n`);
+            tlcConnection.setKeepAlive(true, 2000);
+            tlcConnection.on('data', (data) => {
+                tlcStatus = 'talking';
                 console.log(`TLc response ${data}`);
-                bfr += data;
-                io.emit('text', data);
+                socket.emit('text', data.toString());
             });
-
-            tlcConnection.on('close', function () {
+            tlcConnection.on('close', () => {
                 console.log('Connection closed');
-                browserClose("tlcConnection Closed");
+                closeTLc('closed');
             });
-
             tlcConnection.on('error', (reason) => {
-                console.error(`tlcConnection error ${JSON.stringify(reason)}`);
+                console.error(`tlcConnection error `, reason);
+                closeTLc('error');
             });
-
-            socket.on('disconnect', () => {
-                console.log(`Socket ${socket.id} disconnected.`);
-                browserClose('Sever disconnected');
-            });
-            socket.on('error', (reason) => {
-                console.error(`io socket error ${JSON.stringify(reason)}`);
-                browserClose('Server error');
-            });        
-        } catch (ex) {
-            console.error(`tlcConnection catch error: ${ex.message}`);
-        }
-    }
-    var bfr = '';
-    // tlcConfig = JSON.parse(tlc = JSON.stringify(tlc_if.list())); // Re parse as now should have IP addresses
-    tlcConfig = JSON.parse(tlc = JSON.stringify(tlc_if_list)); // TEST VERSION Re parse as now should have IP addresses
-    tlc = request.query.tlc;
-    t = tlcConfig.find(t => t.Name == tlc);
-    try { // Set up Monitor Server
-        if (serverConnectionStatus != 'closed') {
-            let errMsg;
-            console.error(`Server already ${serverConnectionStatus}`);
-            server.close((err) => {
-                if (err) {
-                    console.error(errMsg = `Server Close error: ${err}`);
-                    browserClose(errMsg);
-                }
-            });
-        }
-        server.listen(PORT, (e) => {
-            serverConnectionStatus = 'listening';
-            console.log(`Server started listening on ${PORT}`);
-            if (e) console.error(`${e.message}`);
         });
-
-        server.on('connection', (socket) => {
-            console.log(`Socket ${socket.id} connected.`);
-            connectToTLc(socket);
-            browserClose("Server Connected");
-        });
-
-    } catch (ex) {
-        let errMsg;
-        console.error(errMsg = `Server catch error: ${ex.message}`);
-        browserClose(errMsg);
+    } catch (e) {
+        console.error(`tlcConnection catch error: ${e.message}`);
+        closeTLc('error');
     }
+}
+
+exports.show = function(request, response) {
+    response.render('tlcMonitor',  {err: "", tlcConfig: getTLcConfig(), port: config.TLc.IoT_Manager_port});
 }

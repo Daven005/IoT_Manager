@@ -190,11 +190,12 @@ function rqInfo(tlcName, info, cb, param) {
             cb(obj);
         });
     });
-    req.on('error', function (e) {
-        console.log("rqInfo error: %j", e);
+    req.on('error', (e) => {
+        console.error("rqInfo error: %j", e);
+        console.log(e.stack);
         cb({ error: true, info: e.message, reqInfo: info, tlc: tlcName });
         if (!enqBroadcastCb) { // No enqBroadcastCb in progress
-            checkTLcs(function () {
+            checkTLcs(() => {
                 console.log("Rechecked TLc IP addresses");
             });
         } else {
@@ -236,7 +237,7 @@ function updateScenes(cb) {
             return new Promise((resolve, reject) => {
                 rqInfo(_tlc.Name, url, (result) => {
                     if (result.error)
-                        reject(result.info);
+                        reject(result);
                     else {
                         resolve(result.data);
                     }

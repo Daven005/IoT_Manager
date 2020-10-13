@@ -1,10 +1,13 @@
-.viewer {
+#viewer {
     min-width: 400px;
-    min-height: 500px;
+    min-height: 200px;
+    resize: both;
+    overflow: auto;
 }
 
-.cmdLine {
-    min-width: 400px;
+#cmdLine {
+    min-width: 200px;
+    font-size: 1em;
 }
 
 button {

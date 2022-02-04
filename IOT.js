@@ -2,6 +2,9 @@
 global.config;
 var util = require('util');
 console.log("**********IoT Starting**********");
+process.on('uncaughtException', (err) => { 
+    console.log(err);
+});
 require('./config').read(configLoaded); // See below
 
 var express = require('express');
@@ -43,6 +46,7 @@ var manage = require('./manage');
 var heating = require('./heating');
 var signal = require('./signal');
 var dashboard = require('./dashboard');
+var commands = require('./commands');
 var pond = require('./pond');
 var watering = require('./watering');
 var camera = require('./camera');
@@ -70,6 +74,8 @@ function configLoaded(cfg) {
         client.subscribe('/App/#');
         client.subscribe('/Raw/#');
         client.publish('/Raw/Hollies000000/info', '{"Name": "Weather", "Location": "Outside"}'); 
+        client.publish('/Raw/HolliesHouse/info', '{"Name": "Roof PV", "Location": "Outside"}'); 
+        client.publish('/Raw/HolliesGarage/info', '{"Name": "Roof PV", "Location": "Garage"}'); 
     })
     dbs.init(() => { // Only called if successful
         console.log(`dbs init done`);
@@ -91,7 +97,7 @@ function configLoaded(cfg) {
             store: sessionStore,
             resave: false,
             saveUninitialized: false,
-            maxAge: 1 * 60 * 60 * 1000, // how long the session will stay valid in ms
+            maxAge: 4 * 60 * 60 * 1000, // (4 hours) how long the session will stay valid in ms
             cookie: {
                 httpOnly: true, // when true, cookie is not accessible from javascript
                 secure: false // when true, cookie will only be sent over SSL. use key 'secureProxy' instead if you handle SSL not in your node process
@@ -182,6 +188,9 @@ function setupIntervalFunctions() {
 
     monitor.checkNetwork();
     setInterval(monitor.checkNetwork, 5 * 60 * 1000);
+
+    global.PV = require('./processPV');
+    PV.init();
 }
 
 function setupWeb() {
@@ -215,6 +224,7 @@ function setupWeb() {
 
     app.get('/Manage/Settings', manage.settings);
     app.get("/Manage/Devices", manage.deviceList);
+    app.get("/Manage/DeviceState", manage.showDeviceState);
     app.get("/Manage/Sensors", manage.sensors);
     app.get("/Manage/Mapping", manage.updateMapping);
 
@@ -263,7 +273,7 @@ function setupWeb() {
     app.get('/hollies/heating/override', heating.externalSetOverride);
 
     if (tlc) {
-        console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
+        // console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
         tlc.onReady(() => {
             console.log(`tlc status (1): ${tlc.status1()}`);
             setTimeout(() => {
@@ -289,7 +299,7 @@ function setupWeb() {
                     app.get("/tlc/Edit", tlcEdit.show);
                     app.get("/tlc/Edit/getMeta", tlcEdit.getMeta);
                     app.get('/tlc/Monitor', tlcMonitor.show);
-                    app.get('/tlc/Monitor/open', tlcMonitor.open);
+                    // app.get('/tlc/Monitor/open', tlcMonitor.open);
                 });
             }, 500);
         });
@@ -298,6 +308,8 @@ function setupWeb() {
 }
     app.get("/Dashboard", dashboard.get);
     app_mobile.get("/Dashboard", dashboard.get);
+
+    app.get("/Commands", commands.get);
 
     app.get("/Pond", pond.show);
     app.get("/Pond/schedule", pond.schedule);

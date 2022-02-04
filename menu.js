@@ -34,6 +34,7 @@ exports.get = function (request, response) {
     getfiles('graph').forEach(function (entry) {
         subMenu.push(makeMenuItem('/graph?read=' + entry, 'Read: ' + entry));
     });
+    subMenu.push(makeMenuItem('/graphPower', 'Solar Power'));
     subMenu.push(makeMenuItem('/dailyGraph', 'Daily Graph'));
     menu.push(makeMenuItem('/graph?new=1', 'Graph', subMenu));
 
@@ -91,6 +92,7 @@ exports.get = function (request, response) {
     othersMenu.push(makeMenuItem('http://' + ip + ':' + config.browser.mobilePort + '/', 'Mobile View'));
 
     menu.push(makeMenuItem('/errors', 'Other', othersMenu));
+    menu.push(makeMenuItem('/comamnds', 'Commands', othersMenu));
 
     if (request.loggedIn)
         menu.push(makeMenuItem('/login?logout=1', 'Log Out'));

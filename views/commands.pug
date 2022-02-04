@@ -1,0 +1,21 @@
+doctype html
+head
+  title Errors
+  include header
+
+body
+  #menu
+  h2 Commands
+  if err
+    .error
+      != err
+  else
+    div
+      form(action='/errors', method='get')
+        input(type="submit" name="Action" value="Solcast")
+        |&nbsp;- 
+        input(type="submit" name="Action" value="Save")
+        |&nbsp;- 
+        input(type="submit" name="Action" value="DeleteAll")
+        br
+        

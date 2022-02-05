@@ -88,11 +88,11 @@ exports.get = function (request, response) {
     othersMenu.push(makeMenuItem('/tides', 'Tides'));
     othersMenu.push(makeMenuItem('/Watering/schedule', 'Watering'));
     othersMenu.push(makeMenuItem('/public/weather.html', 'Weather'));
+    othersMenu.push(makeMenuItem('/Commands', 'Commands'));
     var ip = request.connection.localAddress.replace('::ffff:', '');
     othersMenu.push(makeMenuItem('http://' + ip + ':' + config.browser.mobilePort + '/', 'Mobile View'));
 
     menu.push(makeMenuItem('/errors', 'Other', othersMenu));
-    menu.push(makeMenuItem('/comamnds', 'Commands', othersMenu));
 
     if (request.loggedIn)
         menu.push(makeMenuItem('/login?logout=1', 'Log Out'));

@@ -23,8 +23,9 @@ mixin status(deviceState)
             - var now = moment(new Date()); 
             - var end = moment(deviceState.lastSet);
             - var duration = moment.duration(now.diff(end));
-            if (now.diff(end, 'minutes') >= 5)
+            if (now.diff(end, 'minutes') >= 10)
                 - st = 'color:orange';
+                - tt = tt + " Gone quiet"
         else
             - st = 'background-color:red'
             - tt = 'Offline since'+moment(deviceState.firstSet).format("HH:mm DD/MM/YY")+' V:'+deviceState.version
@@ -45,6 +46,7 @@ head
     .tooltip:hover:after {background: #333;background: rgba(0,0,0,.8);border-radius: 5px;bottom: 26px;color: #fff;content: attr(title);left: 20%;padding: 5px 15px;position: absolute;z-index: 98;width: 220px;}
     .tooltip:hover:before {border: solid;border-color: #333 transparent;border-width: 6px 6px 0px 6px;bottom: 20px;content: "";left: 50%;position: absolute;z-index: 99;}
     .vertical {-moz-transform: rotate(-90deg); -webkit-transform: rotate(-90deg);)
+    headerButton {padding:0px 3px; font-size:9pt; border-width:1px; vertical-align: bottom; display: inline}
   script.
         $(document).ready(function(){
             $(".sensorList tr:not(.accordion)").hide();
@@ -56,6 +58,11 @@ head
                 if (confirm(`Set ${el.currentTarget.children[2].textContent} Offline?`))
                     ;
                 return false;
+            });
+            $(".headerButton").on('click', (el) => {
+                el.preventDefault();
+                let id = $(this).attr('data-id');
+                alert(id)
             });
         })
 body
@@ -94,10 +101,11 @@ body
                             td(colspan='2')=map[i].DeviceName
                             td(style=st)
                                 a(title=tt class='tooltip')=map[i].DeviceID
-                            td(colspan="9")
-                                form(action='/Manage/Sensors' method='get' style="text-align:right")
+                            td(colspan="9" style="text-align:right")
+                                button(data-id=lastDeviceID class="headerButton") Update Device
+                                form(action='/Manage/Sensors' method='get' style="display: inline; text-align:right")
                                     input(type="hidden" name="deviceID" value=lastDeviceID)
-                                    input(type='submit' name="unRetain" value="Remove Retained" style="padding:0px 3px; font-size:9pt; border-width:1px")
+                                    input(type='submit' name="unRetain" value="Remove Retained" class="headerButton")
                 if (showRow)
                         form(action='/Manage/Sensors',method='get')
                             tr(id='row'+i)

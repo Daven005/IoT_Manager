@@ -163,6 +163,9 @@ function saveDeviceInfo(values) {
         if (values.AP) {
             deviceState.setAP(values.DeviceID, values.AP);
         }
+        if (values.online && values.online == 'Always') {
+            deviceState.setAlwaysOnline(values.DeviceID);
+        }
     });
 }
 
@@ -500,6 +503,7 @@ function processSensorValues(values, val) {
                         checkTempChangeWarning(values.DeviceID, values.SensorID, delta);
                         break;
                     case "Power":
+                        deviceState.setLatestInput(values.DeviceID, values.SensorID, val);
                         break;
                     case "Input":
                         deviceState.setLatestInput(values.DeviceID, values.SensorID, val);

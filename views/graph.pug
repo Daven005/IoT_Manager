@@ -38,7 +38,7 @@ head
   script(type='text/javascript').
     var graphData; // For doing sums
     var sel = 0; // select which data
-    $(function(){
+    $(() => {
       try {
         $("#clearSel").click(function(){ 
           $('input:checkbox').removeAttr('checked'); 
@@ -52,6 +52,7 @@ head
         var sel = 0;
         var d = '!{data}'
         if (d) {
+          - console.log('setupGraph', !{JSON.stringify(settings)})
           setupGraph(d, !{graphLabels}, !{graphTypes}, !{sensorIDs}, !{JSON.stringify(settings)}, 'Hollies data');
         }
       } catch(e) { 
@@ -79,11 +80,11 @@ body
                   when "SensorName"
                   when "SensorType"
                     th=index
-              th="On/Off/Smooth"
+              th="On/Off/Smooth/Negate"
             tbody
               - var idx = 0
               - var lastDeviceID = ""
-              - var isChecked
+              - let onChecked, offChecked, smoothChecked, negateChecked
               each val, i in sensors
                 if lastDeviceID != sensors[i].DeviceID
                   - lastDeviceID = sensors[i].DeviceID
@@ -100,16 +101,21 @@ body
                       when "SensorType"
                         td=val
                   td
-                    - isChecked = false
+                    - onChecked = smoothChecked = negateChecked = false
                     each val, k in settings.selectedRows
                       if val.DeviceID == sensors[i].DeviceID && val.SensorID == sensors[i].SensorID
-                        - isChecked = true
-                    input(type="radio" value="On" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}` checked=isChecked)
-                    On
+                        - console.log(`g${JSON.stringify(val)}`)
+                        if val.negate
+                            - negateChecked = true
+                        if val.smooth
+                            - smoothChecked = true
+                        else 
+                            - onChecked = true
+
+                    input(type="radio" value="On" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}` checked=onChecked)
                     input(type="radio" value="Off" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}`)
-                    Off
-                    input(type="radio" value="Smooth" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}`)
-                    Smooth
+                    input(type="radio" value="Smooth" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}` checked=smoothChecked)
+                    input(type="checkbox" value="Negate" name=`row-${sensors[i].DeviceID}/${sensors[i].SensorID}` checked=negateChecked)
                 - idx++
         div.left
           h3 Date
@@ -145,5 +151,4 @@ body
   div.left
     input(type="button" value="Sum" onclick="$('#sum').html(doSum(parseInt($('#series').html()), parseInt($('#coord1').html()), parseInt($('#coord2').html())));")
   div.left =
-  divdiv.left#sum
-  
+  divdiv.left#sum  

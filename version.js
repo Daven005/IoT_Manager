@@ -1,1 +1,1 @@
-exports.version = {major: 2, minor: 3, patch: 0, build: 0};
+exports.version = {major: 2, minor: 4, patch: 0, build: 0};

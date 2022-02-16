@@ -18,14 +18,14 @@ exports.settings = function (request, response) {
         }
         var query1 = db.query(sqlstr1, function (err, result1) {
             if (err) {
-                console.log(err);
+                console.error(err);
                 errorStr = err.message;
                 result1 = [];
             }
             var sqlstr2 = "SELECT Location, Name, DeviceID FROM devices ORDER BY Name, Location";
             var query2 = db.query(sqlstr2, function (err, result2) {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                     errorStr += err.message;
                     result2 = [];
                 }
@@ -43,7 +43,7 @@ exports.settings = function (request, response) {
         sqlstr += '("' + request.query.DeviceID + '", ' + request.query.ID + ', ' + request.query.Value + ', "' + request.query.valueName + '")';
         sqlstr += ' ON DUPLICATE KEY UPDATE setValues.Value=VALUES(setValues.Value), setValues.Name=VALUES(setValues.Name)';
         db.query(sqlstr, function (err, result) {
-            if (err) { console.log(err); }
+            if (err) { console.error(err); }
             reload(currentDevice);
         });
     }
@@ -73,7 +73,7 @@ exports.devices = function (request, response) {
     function reload() {
         var query = db.query(utils.sqlDeviceCounts(), function (err, result) {
             if (err) {
-                console.log(err);
+                console.error(err);
                 errorStr = err.message;
             }
             response.render('devices', { map: result, err: errorStr, devices: deviceState.list() });
@@ -86,7 +86,7 @@ exports.devices = function (request, response) {
             sqlstr = sql.format(sqlstr, [request.query.DeviceID, deleteTime]);
             db.query(sqlstr, function (err, result) {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                     errorStr = err.message;
                 }
                 if (err || result.affectedRows > 0) {
@@ -95,7 +95,7 @@ exports.devices = function (request, response) {
                 }
             });
         } catch (err) {
-            console.log(err);
+            console.error(err);
             reload();
         }
     }
@@ -127,7 +127,7 @@ exports.sensors = function (request, response) {
     function reload() {
         var query = db.query(utils.sqlDevicesSensors(true), function (err, result) {
             if (err) {
-                console.log(err);
+                console.error(err);
                 errorStr = err.message;
             }
             response.render('names', { map: result, err: errorStr, devices: deviceState.list(), allDevices: showAllDevices });
@@ -140,7 +140,7 @@ exports.sensors = function (request, response) {
             sqlstr = sql.format(sqlstr, [request.query.DeviceID]);
             db.query(sqlstr, function (err, result) {
                 if (err) {
-                    console.log(err)
+                    console.error(err)
                     errorStr = err.message
                 }
                 if (result[0].LogCount > 0) {
@@ -150,14 +150,14 @@ exports.sensors = function (request, response) {
                     sqlstr = sql.format(sqlstr, [request.query.DeviceID])
                     db.query(sqlstr, function (err, result) {
                         if (err) {
-                            console.log(err)
+                            console.error(err)
                             errorStr = err.message
                         } else {
                             sqlstr = "DELETE FROM Devices WHERE DeviceID = ?"
                             sqlstr = sql.format(sqlstr, [request.query.DeviceID])
                             db.query(sqlstr, function (err, result) {
                                 if (err) {
-                                    console.log(err)
+                                    console.error(err)
                                     errorStr = err.message
                                 }
                                 if (err || result.affectedRows > 0) {
@@ -170,7 +170,7 @@ exports.sensors = function (request, response) {
                 reload();
             });
         } catch (ex) {
-            console.log(err);
+            console.error(err);
             reload();
         }
     }
@@ -181,7 +181,7 @@ exports.sensors = function (request, response) {
             sqlstr = sql.format(sqlstr, [request.query.DeviceID, request.query.SensorID]);
             db.query(sqlstr, function (err, result) {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                     errorStr = err.message;
                 }
                 if (err || result.affectedRows > 0) {
@@ -192,7 +192,7 @@ exports.sensors = function (request, response) {
                     sqlstr = sql.format(sqlstr, [request.query.DeviceID, request.query.SensorID])
                     db.query(sqlstr, function (err, result) {
                         if (err) {
-                            console.log(err)
+                            console.error(err)
                             errorStr = err.message
                         }
                         if (err || result.affectedRows > 0) {
@@ -202,7 +202,7 @@ exports.sensors = function (request, response) {
                             sqlstr = sql.format(sqlstr, [request.query.DeviceID])
                             db.query(sqlstr, function (err, result) {
                                 if (err) {
-                                    console.log(err)
+                                    console.error(err)
                                     errorStr = err.message
                                 }
                                 if (err || result.affectedRows > 0) {
@@ -215,7 +215,7 @@ exports.sensors = function (request, response) {
                 }
             });
         } catch (err) {
-            console.log(err);
+            console.error(err);
             reload();
         }
     }
@@ -227,7 +227,7 @@ exports.sensors = function (request, response) {
             sqlstr = sql.format(sqlstr, [request.query.DeviceID]);
             db.query(sqlstr, function (err, result) {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                     errorStr = err.message;
                     reload();
                 } else {
@@ -236,7 +236,7 @@ exports.sensors = function (request, response) {
                     sqlstr = sql.format(sqlstr, [request.query.DeviceID])
                     db.query(sqlstr, function (err, result) {
                         if (err) {
-                            console.log(err)
+                            console.error(err)
                             errorStr = err.message;
                             reload();
                         } else {
@@ -245,7 +245,7 @@ exports.sensors = function (request, response) {
                             sqlstr = sql.format(sqlstr, [request.query.DeviceID])
                             db.query(sqlstr, function (err, result) {
                                 if (err) {
-                                    console.log(err);
+                                    console.error(err);
                                     errorStr = err.message;
                                 }
                                 msgStr += "Device '" + request.query.DeviceName + "' deleted<br>";
@@ -257,7 +257,7 @@ exports.sensors = function (request, response) {
                 }
             });
         } catch (err) {
-            console.log(err);
+            console.error(err);
             reload();
         }
     }
@@ -267,7 +267,7 @@ exports.sensors = function (request, response) {
         sqlstr = sql.format(sqlstr, [request.query.Location, request.query.DeviceName, request.query.Updates, request.query.Inputs, request.query.Outputs, request.query.DeviceID]);
         db.query(sqlstr, function (err, result) {
             if (err) {
-                console.log(err);
+                console.error(err);
                 errorStr = err.message;
                 reload();
             } else {
@@ -292,7 +292,7 @@ exports.sensors = function (request, response) {
                     sqlstr = sql.format(sqlstr, [request.query.SensorName, request.query.Mapping, request.query.deleteAfter, request.query.DeviceID, request.query.SensorID]);
                     db.query(sqlstr, function (err, result) {
                         if (err) {
-                            console.log(err);
+                            console.error(err);
                             errorStr = err.message;
                             response.render('Names', { map: result, err: errorStr });
                         } else {
@@ -368,8 +368,7 @@ exports.updateMapping = function (request, response) {
         }
 
         if (err) {
-            console.log(err);
-            console.log(sqlStr);
+            console.error(err, sqlStr);
             errorStr = err.message;
             response.render('mapping', { map: result, err: errorStr });
         } else {

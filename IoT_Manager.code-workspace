@@ -9,6 +9,12 @@
         {
             "name": "SeaTalk",
             "path": "C:\\Users\\User\\Documents\\PlatformIO\\Projects\\SeaTalk"
+        },
+        {
+            "path": "C:\\Users\\User\\Downloads\\jquery.jqplot.1.0.9"
+        },
+        {
+            "path": "..\\BT_spkr"
         }
     ],
     "settings": {

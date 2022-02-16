@@ -21,30 +21,50 @@ function init(cb) {
 }
 
 DeviceState.prototype.set = function(DeviceID, isOnline) {
-  try {
-    var t = Date.now()
-    var record = this.state[DeviceID];
-    if (typeof record == 'undefined') {
-      record = {online: isOnline, firstSet: t, lastSet: t, version: '-'}
-    } else {
-      if (record.online == isOnline) {
-        record.lastSet = t;
+    try {
+      var t = Date.now()
+      var record = this.state[DeviceID];
+      if (typeof record == 'undefined') {
+        record = {online: isOnline, firstSet: t, lastSet: t, version: '-'}
       } else {
-        record.online = isOnline;
-        record.firstSet = t;
-        record.lastSet = t;
-        // Leave record.version alone
+        if (record.online == isOnline) {
+          record.lastSet = t;
+        } else {
+          record.online = isOnline;
+          record.firstSet = t;
+          record.lastSet = t;
+          // Leave record.version alone
+        }
       }
+      this.state[DeviceID] = record;
+    } catch (err) {
+      console.log(err);
+      console.log(DeviceID);
+      console.log(isOnline);
+      console.log(record);
     }
-    this.state[DeviceID] = record;
-  } catch (err) {
-    console.log(err);
-    console.log(DeviceID);
-    console.log(isOnline);
-    console.log(record);
-  }
 }
 
+  DeviceState.prototype.setAlwaysOnline = function(DeviceID) {
+    try {
+      var t = Date.now()
+      var record = this.state[DeviceID];
+      if (typeof record == 'undefined') {
+        record = {alwaysOnline: true, online: true, firstSet: t, lastSet: t, version: '-'}
+      } else {
+          record.lastSet = t;
+          record.alwaysOnline = true;
+          record.online = true;
+      }
+      this.state[DeviceID] = record;
+    } catch (err) {
+      console.error(err);
+      console.error(DeviceID);
+      console.error(isOnline);
+      console.error(record);
+    }
+}
+    
 DeviceState.prototype.setRSSI = function(DeviceID, r) {
     var record = this.state[DeviceID];
     if (typeof record == 'undefined') {
@@ -263,7 +283,7 @@ DeviceState.prototype.getAttempts = function(DeviceID) {
 
 DeviceState.prototype.findDeviceID = function(name, location) {
   for (DeviceID in this.state) {
-    if (this.state[DeviceID].online && this.state[DeviceID].name == name) {
+    if (this.state[DeviceID].physioph && this.state[DeviceID].name == name) {
 		if (typeof location == 'undefined') return DeviceID; // Return first found if no location
 		if (this.state[DeviceID].location == location) return DeviceID;
 	}
@@ -281,7 +301,7 @@ DeviceState.prototype.deviceList = function() { // List of device Names
 }
 
 DeviceState.prototype.show = function() {
-	console.log(this);
+	return JSON.stringify(this.state);
 }
 
 DeviceState.prototype.list = function() { // List of all device info

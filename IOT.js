@@ -74,8 +74,6 @@ function configLoaded(cfg) {
         client.subscribe('/App/#');
         client.subscribe('/Raw/#');
         client.publish('/Raw/Hollies000000/info', '{"Name": "Weather", "Location": "Outside"}'); 
-        client.publish('/Raw/HolliesHouse/info', '{"Name": "Roof PV", "Location": "Outside"}'); 
-        client.publish('/Raw/HolliesGarage/info', '{"Name": "Roof PV", "Location": "Garage"}'); 
     })
     dbs.init(() => { // Only called if successful
         console.log(`dbs init done`);
@@ -309,6 +307,7 @@ function setupWeb() {
     app.get("/Dashboard", dashboard.get);
     app_mobile.get("/Dashboard", dashboard.get);
 
+    // See app.post("/Commands/PassiveL"... in commands.js
     app.get("/Commands", commands.get);
 
     app.get("/Pond", pond.show);

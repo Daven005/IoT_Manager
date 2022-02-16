@@ -76,4 +76,3 @@ exports.saveTypeUrl = function(path) {
   if (!path) return false;
   return !(path == '/menu' || path == '/login' || path == '/loginResponse' || path == "/favicon.ico")
 }
-

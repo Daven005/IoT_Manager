@@ -259,8 +259,17 @@ function showMobileScenes(request, response) {
 function checkLights(location, device, sensor, payload) {
     config.TLc.lights.forEach((rec) => {
         if (rec.location == location && rec.device == device && rec.sensor == sensor) {
-            console.log(`${location}/${device}/${sensor}=>${rec.tlcName}, ${rec.area}, ${rec.channel} = ${payload}`);
-            tlc_if.trigger(rec.tlcName, rec.area, rec.channel, (payload=='1') ? 'on' : 'off', rec.filter);
+            if (rec.scene) {
+                if (payload == '1') {
+                    console.log(`${location}/${device}/${sensor}=>${rec.tlcName}, ${rec.scene}`);
+                    tlc_if.showScene(rec.tlcName, rec.scene);
+                }
+            } else if (rec.area) {
+                console.log(`${location}/${device}/${sensor}=>${rec.tlcName}, ${rec.area}, ${rec.channel} = ${payload}`);
+                tlc_if.trigger(rec.tlcName, rec.area, rec.channel, (payload=='1') ? 'on' : 'off', rec.filter);
+            } else {
+                console.error(`Bad record ${rec}`);
+            }
             return;
         }
     });

@@ -328,6 +328,9 @@ function validateValue(value, type) {
         case 'PIR FAN ON':
             return_b = (value == 0 || value == 1);
             break;
+        case "AirQual":
+            return_b = (0 <= value && value <= 500);
+            break;
         case "Hum":
             return_b = (0 <= value && value <= 100);
             break;
@@ -439,7 +442,7 @@ function insertSensorLog(DeviceID, SensorID, value, time) {
                 console.error(`Insert Log table err: ${err} - ${sqlstr}`);
             }
         });
-    } else if (arguments.length == 4 && time != undefined){
+    } else if (arguments.length == 4 && time != undefined) {
         insertSensorLogTime(DeviceID, SensorID, value, time);
     } else {
         console.error('Bad parameters to insertSensorLog: ', arguments.length, time);

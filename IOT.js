@@ -272,10 +272,10 @@ function setupWeb() {
 
     if (tlc) {
         // console.log(`+++++++++ tlC object ready: ${util.inspect(tlc)}`);
-        tlc.onReady(() => {
+        // tlc.onReady(() => {
             console.log(`tlc status (1): ${tlc.status1()}`);
-            setTimeout(() => {
-                console.log(`tlc status (2): ${tlc.status1()}`);
+            // setTimeout(() => {
+                // console.log(`tlc status (2): ${tlc.status1()}`);
                 app.get('/tlc/scenes', tlc.showScenes);
                 app.post('/tlc/setScene', tlc.setScene);
                 app.get('/tlc/setScene', tlc.setScene);
@@ -299,8 +299,8 @@ function setupWeb() {
                     app.get('/tlc/Monitor', tlcMonitor.show);
                     // app.get('/tlc/Monitor/open', tlcMonitor.open);
                 });
-            }, 500);
-        });
+            // }, 500);
+        // });
 } else {
     console.error(`No tlc object`);
 }

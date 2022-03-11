@@ -4,16 +4,12 @@ var network = require('network');
 var http = require('http');
 var weather = require('./weather');
 
-var udpServer = dgram.createSocket('udp4');
 var TLcList = config.TLc.list;
 var allScenes = [];
 var allChannels = [];
-var areaChannels = [];
 
 var enqTimer = null;
 var enqBroadcastCb = null;
-var updateScenesCb = null;
-var updateChannelValuesCb = null;
 var broadcastAddress;
 var refreshCompleteCb;
 var controlState = 'Auto';
@@ -31,11 +27,11 @@ exports.state = state;
 exports.checkTLcs = checkTLcs;
 exports.updateScenes = updateScenes;
 
-
-udpServer.on('message', udpServerMessageFunc);
+var udpServervar;
 
 function enqTimeoutCb() {
-    TLcList.forEach(function (t) { // Deal with TLcs going offline
+    console.log("### Tlc enqTimeoutCb");
+    TLcList.forEach((t) => { // Deal with TLcs going offline
         if (!t.online) t.ip = null;
     });
     if (enqBroadcastCb) {
@@ -47,6 +43,7 @@ function enqTimeoutCb() {
 }
 
 function udpServerMessageFunc(message, remote) {
+    console.log("### UDP msg")
     try {
         var response = JSON.parse(message);
         /* Should be like:
@@ -60,7 +57,7 @@ function udpServerMessageFunc(message, remote) {
             {"OSC"}
         */
     } catch (ex) {
-        console.log("UDP msg: %j %s", response, ex.message);
+        console.error("UDP msg: %j %s", response, ex.message);
     }
     if (response.TLc) {
         var _tlc = getTLc(response.TLc);
@@ -76,6 +73,7 @@ function udpServerMessageFunc(message, remote) {
                 clearTimeout(enqTimer);
             }
             enqTimer = setTimeout(enqTimeoutCb, 500);
+            console.log("### Reset enqTimer");
         } else {
             console.error(`TLc ${response.TLc} not in TLcList`);
             addTLc(response.TLc, response.IPaddress, `${response.Version.Major}.${response.Version.Minor}`)
@@ -98,7 +96,7 @@ function broadcast(address, str) {
 
     console.log("tlc:-> %s", str);
     udpServer.setBroadcast(true);
-    udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, address, function (err, bytes) {
+    udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, address, (err, bytes) => {
         if (err) {
             console.log("Broadcast error: %j", err);
         }
@@ -107,29 +105,36 @@ function broadcast(address, str) {
 
 function init(initDone) {
     enqBroadcastCb = initDone;
-    freeport(function (err, port) {
+    udpServer = dgram.createSocket('udp4');
+    udpServer.on('message', udpServerMessageFunc);
+    udpServer.on('error', (err) => {
+        console.error(`UDP error ${err}`);
+    });
+    freeport((err, port) => {
         if (err) console.error(`No free port ${err}`);
-        network.get_interfaces_list(function (err, list) {
+        network.get_interfaces_list((err, list) => {
             var i;
             for (i = 0; i < list.length; i++) {
+                console.log(`IFs: ${JSON.stringify(list[i])}`)
                 if (list[i].type == 'Wired') {
                     try {
-                        udpServer.bind(port, list[i].ip_address, function () {
+                        udpServer.bind(port, list[i].ip_address, () => {
                             var address = udpServer.address();
                             var p = address.address.split('.');
-                            broadcastAddress = p[0] + '.' + p[1] + '.' + p[2] + '.255';
+                            broadcastAddress = `${p[0]}.${p[1]}.${p[2]}.255`;
 
                             console.log('UDP udpServer listening on ' + address.address + ":" + address.port);
                             broadcast(broadcastAddress, '{"enq":"TLc"}');
-                            enqTimer = setTimeout(enqBroadcastCb, 1000); // Allow longer time for initial response
+                            console.log("### Start timeout");
+                            enqTimer = setTimeout(enqTimeoutCb, 1000); // Allow longer time for initial response
                         });
                     } catch (ex) {
                         console.error(`UDP bind error: ${ex}`);
                     }
+                    return;
                 }
-                // return;
             }
-            console.log("No wired interface available");
+            console.error("No wired interface available");
         });
     });
 }
@@ -140,7 +145,7 @@ function checkTLcs(cb) {
         return; // Already doing it
     }
     enqBroadcastCb = cb;
-    TLcList.forEach((t) => { t.online = false  });
+    TLcList.forEach((t) => { t.online = false });
     broadcast(broadcastAddress, '{"enq":"TLc"}');
 }
 

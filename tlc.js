@@ -9,19 +9,18 @@ var status = 'loading';
 var callback = null;
 var timerID = null;
 
-exports.test = test;
 exports.showScenes = showScenes;
 exports.setScene = setScene;
 exports.setChannels = setChannels;
 exports.showMobileScenes = showMobileScenes;
 exports.checkLights = checkLights;
 exports.areas = areas;
-exports.checkTLcs = checkTLcs;
 exports.setSceneDecode = setSceneDecode;
 exports.setDesktopLightingChannels = setDesktopLightingChannels;
 exports.setMobileLightingChannels = setMobileLightingChannels;
 exports.getLightingChannel = getLightingChannel;
 exports.info = info;
+exports.test = test;
 exports.getAllDeviceInfo = getAllDeviceInfo;
 exports.onReady = onReady;
 exports.status1 = function () { return status;};
@@ -45,13 +44,9 @@ function onReady(cb) {
     if (cb && status == 'ready') cb();
 }
 
-function checkTLcs() {
-  tlc_if.checkTLcs(tlc_ifReady);
-}
-
 function tlc_ifReady() {
-    console.log("tlc_ifReady");
-    tlc_if.list().forEach(function (_tlc) {
+    console.log("### tlc_ifReady");
+    tlc_if.list().forEach((_tlc) => {
         if (_tlc.IPaddress) {
             msg.setDevice(_tlc.Name, _tlc);
         }
@@ -67,7 +62,7 @@ function tlc_ifReady() {
 function temperatureCheck() {
   tlc_if.list().forEach(function(_tlc) {
     if (_tlc.IPaddress) {
-      tlc_if.rqInfo(_tlc.Name, 'temperatures', function(info) {
+      tlc_if.rqInfo(_tlc.Name, 'temperatures', (info) => {
         if (info.error) return;
         info.data.forEach(function(t) {
           if (t.ID) {
@@ -333,7 +328,7 @@ function areasUpdate(response) {
     console.log("gotAllScenes %j", err);
     reloadAreas(response, 'areas');
   }
-  tlc_if.checkTLcs(function() {
+  tlc_if.checkTLcs(() => {
     async.forEach(tlc_if.list(), getScenes, gotAllScenes);
   });
 }
@@ -495,7 +490,7 @@ function info(request, response) {
             timerID = null;
             response.render('TLcInfo', { err: "Timed Out", map: tlc_if.list() })
         }
-            , 5000);
+        , 5000);
     }
 
     if (request.query.action == 'Clear') {

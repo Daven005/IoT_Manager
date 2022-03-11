@@ -11,6 +11,7 @@ require('./config').read((cfg) => {
             var dsm = require('./DeviceState.js'); // Module
             try {
                 dsm.init(() => {
+
                     deviceState.setLatestTemperature('a', 'x1', 10.2);
                     assert((x = deviceState.getLatestTemperature('a', 'x1')) == 10.2, `${x} is wrong latest`);
 
@@ -22,6 +23,7 @@ require('./config').read((cfg) => {
                     console.log(deviceState.getTemperatureChange('a', 'x1'));
                     console.dir(deviceState.list(), {depth: null});
 
+                    deviceState.show();
                 });
             } catch (e) {
                 console.log(e.stack);

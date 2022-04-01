@@ -331,6 +331,15 @@ function validateValue(value, type) {
         case "AirQual":
             return_b = (0 <= value && value <= 500);
             break;
+        case "CO2":
+            return_b = (0 <= value && value <= 5000);
+            break;
+        case "TVOC":
+            return_b = (0 <= value && value <= 10);
+            break;
+        case "HCHO":
+            return_b = (0 <= value && value <= 5);
+            break;
         case "Hum":
             return_b = (0 <= value && value <= 100);
             break;

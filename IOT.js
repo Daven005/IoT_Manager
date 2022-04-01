@@ -224,6 +224,7 @@ function setupWeb() {
     app.get("/Manage/Devices", manage.deviceList);
     app.get("/Manage/DeviceState", manage.showDeviceState);
     app.get("/Manage/Sensors", manage.sensors);
+    app.get("/Manage/Sensors/getDeviceInfo", manage.getDeviceInfo);
     app.get("/Manage/Mapping", manage.updateMapping);
 
     app.get("/Heating/temperatureDevice", heating.temperatureDevice);

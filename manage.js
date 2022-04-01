@@ -35,29 +35,31 @@ exports.settings = function (request, response) {
         });
     }
 
-    function updateSetting(request) {
+    function updateSetting(rq) {
 
-        client.publish('/Raw/' + request.query.DeviceID + '/' + request.query.ID + '/set/setting', request.query.Value, { retain: true });
+        client.publish('/Raw/' + rq.DeviceID + '/' + rq.ID + '/set/setting', rq.Value, { retain: true });
 
         var sqlstr = 'INSERT INTO setValues (DeviceID, ID, Value, Name) VALUES';
-        sqlstr += '("' + request.query.DeviceID + '", ' + request.query.ID + ', ' + request.query.Value + ', "' + request.query.valueName + '")';
-        sqlstr += ' ON DUPLICATE KEY UPDATE setValues.Value=VALUES(setValues.Value), setValues.Name=VALUES(setValues.Name)';
+        sqlstr += '(?, ?, ? ,?) ';
+        sqlstr += 'ON DUPLICATE KEY UPDATE setValues.Value=VALUES(setValues.Value), setValues.Name=VALUES(setValues.Name)';
+        sqlstr = sql.format(sqlstr, [rq.DeviceID, rq.ID, rq.Value, rq.valueName]);
         db.query(sqlstr, function (err, result) {
             if (err) { console.error(err); }
             reload(currentDevice);
         });
     }
 
-    if (request.query.Action == "Update") {
-        if (request.query.row) {
+    var rq = request.query;
+    if (rq.Action == "Update") {
+        if (rq.row) {
             if (login.check(request, response)) {
-                updateSetting(request);
+                updateSetting(rq);
             }
         } else {
             reload(currentDevice);
         }
-    } else if (request.query.Action == "Select") {
-        reload(request.query.device);
+    } else if (rq.Action == "Select") {
+        reload(rq.device);
     } else {
         reload(currentDevice);
     }
@@ -83,14 +85,14 @@ exports.devices = function (request, response) {
     function deleteItems(deleteTime) {
         try {
             var sqlstr = "DELETE FROM temperaturelog WHERE DeviceID = ? AND time < ?";
-            sqlstr = sql.format(sqlstr, [request.query.DeviceID, deleteTime]);
+            sqlstr = sql.format(sqlstr, [rq.DeviceID, deleteTime]);
             db.query(sqlstr, function (err, result) {
                 if (err) {
                     console.error(err);
                     errorStr = err.message;
                 }
                 if (err || result.affectedRows > 0) {
-                    errorStr += result.affectedRows + " entries for '" + request.query.DeviceID + "' deleted from the Temperature Log<br>";
+                    errorStr += result.affectedRows + " entries for '" + rq.DeviceID + "' deleted from the Temperature Log<br>";
                     reload();
                 }
             });
@@ -100,13 +102,14 @@ exports.devices = function (request, response) {
         }
     }
 
-    if (request.query.row) {
+    var rq = request.query;
+    if (rq.row) {
         if (login.check(request, response)) {
-            if (request.query.delMonth == "yes") {
+            if (rq.delMonth == "yes") {
                 deleteItems(moment().subtract(1, "month").toISOString());
-            } else if (request.query.delWeek == "yes") {
+            } else if (rq.delWeek == "yes") {
                 deleteItems(moment().subtract(1, "week").toISOString());
-            } else if (request.query.delAll == "yes") {
+            } else if (rq.delAll == "yes") {
                 deleteItems(moment().toISOString());
             }
         }
@@ -116,8 +119,6 @@ exports.devices = function (request, response) {
 }
 
 exports.deviceList = function (request, response) {
-    console.log(JSON.stringify(deviceState.list()));
-    console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<")
     response.render('deviceList', { deviceList: deviceState.list() });
 }
 
@@ -134,11 +135,11 @@ exports.sensors = function (request, response) {
         });
     }
 
-    function deleteDevice() {
+    function deleteDevice(rq) {
         try {
             var sqlstr = "SELECT COUNT(*) AS LogCount FROM temperaturelog WHERE DeviceID = ?";
-            sqlstr = sql.format(sqlstr, [request.query.DeviceID]);
-            db.query(sqlstr, function (err, result) {
+            sqlstr = sql.format(sqlstr, [rq.DeviceID]);
+            db.query(sqlstr, (err, result) => {
                 if (err) {
                     console.error(err)
                     errorStr = err.message
@@ -147,21 +148,22 @@ exports.sensors = function (request, response) {
                     errorStr = "Delete all data first";
                 } else {
                     sqlstr = "DELETE FROM Sensors WHERE DeviceID = ?"
-                    sqlstr = sql.format(sqlstr, [request.query.DeviceID])
-                    db.query(sqlstr, function (err, result) {
+                    sqlstr = sql.format(sqlstr, [rq.DeviceID])
+                    db.query(sqlstr, (err, result) => {
                         if (err) {
                             console.error(err)
                             errorStr = err.message
                         } else {
                             sqlstr = "DELETE FROM Devices WHERE DeviceID = ?"
-                            sqlstr = sql.format(sqlstr, [request.query.DeviceID])
-                            db.query(sqlstr, function (err, result) {
+                            sqlstr = sql.format(sqlstr, [rq.DeviceID])
+                            db.query(sqlstr, (err, result) => {
                                 if (err) {
                                     console.error(err)
                                     errorStr = err.message
                                 }
                                 if (err || result.affectedRows > 0) {
-                                    errorStr += "Device '" + request.query.name + "' deleted<br>"
+                                    errorStr += "Device '" + rq.name + "' deleted<br>"
+                                    deviceState.delete(rq.DeviceID);
                                 }
                             });
                         }
@@ -175,38 +177,38 @@ exports.sensors = function (request, response) {
         }
     }
 
-    function deleteItems() {
+    function deleteItems(rq) {
         try {
             var sqlstr = "DELETE FROM temperaturelog WHERE DeviceID = ? AND SensorID = ?";
-            sqlstr = sql.format(sqlstr, [request.query.DeviceID, request.query.SensorID]);
+            sqlstr = sql.format(sqlstr, [rq.DeviceID, rq.SensorID]);
             db.query(sqlstr, function (err, result) {
                 if (err) {
                     console.error(err);
                     errorStr = err.message;
                 }
                 if (err || result.affectedRows > 0) {
-                    errorStr += result.affectedRows + " entries for '" + request.query.SensorName + "' deleted from the Temperature Log<br>";
+                    errorStr += result.affectedRows + " entries for '" + rq.SensorName + "' deleted from the Temperature Log<br>";
                     reload();
                 } else {
                     sqlstr = "DELETE FROM Sensors WHERE DeviceID = ? AND SensorID = ?"
-                    sqlstr = sql.format(sqlstr, [request.query.DeviceID, request.query.SensorID])
+                    sqlstr = sql.format(sqlstr, [rq.DeviceID, rq.SensorID])
                     db.query(sqlstr, function (err, result) {
                         if (err) {
                             console.error(err)
                             errorStr = err.message
                         }
                         if (err || result.affectedRows > 0) {
-                            errorStr += "Sensor '" + request.query.SensorName + "' deleted<br>"
+                            errorStr += "Sensor '" + rq.SensorName + "' deleted<br>"
                         } else {
                             sqlstr = "DELETE FROM Devices WHERE DeviceID = ?"
-                            sqlstr = sql.format(sqlstr, [request.query.DeviceID])
+                            sqlstr = sql.format(sqlstr, [rq.DeviceID])
                             db.query(sqlstr, function (err, result) {
                                 if (err) {
                                     console.error(err)
                                     errorStr = err.message
                                 }
                                 if (err || result.affectedRows > 0) {
-                                    errorStr += "Device '" + request.query.DeviceName + "' deleted<br>"
+                                    errorStr += "Device '" + rq.DeviceName + "' deleted<br>"
                                 }
                             });
                         }
@@ -220,11 +222,11 @@ exports.sensors = function (request, response) {
         }
     }
 
-    function deleteAll() {
+    function deleteAll(rq) {
         try {
             var msgStr = "";
             var sqlstr = "DELETE FROM temperaturelog WHERE DeviceID = ?";
-            sqlstr = sql.format(sqlstr, [request.query.DeviceID]);
+            sqlstr = sql.format(sqlstr, [rq.DeviceID]);
             db.query(sqlstr, function (err, result) {
                 if (err) {
                     console.error(err);
@@ -233,7 +235,7 @@ exports.sensors = function (request, response) {
                 } else {
                     msgStr = result.affectedRows + " entries deleted from TemperatureLog<br>";
                     sqlstr = "DELETE FROM Sensors WHERE DeviceID = ?"
-                    sqlstr = sql.format(sqlstr, [request.query.DeviceID])
+                    sqlstr = sql.format(sqlstr, [rq.DeviceID])
                     db.query(sqlstr, function (err, result) {
                         if (err) {
                             console.error(err)
@@ -242,13 +244,13 @@ exports.sensors = function (request, response) {
                         } else {
                             msgStr += result.affectedRows + " entries deleted from Sensors<br>";
                             sqlstr = "DELETE FROM Devices WHERE DeviceID = ?";
-                            sqlstr = sql.format(sqlstr, [request.query.DeviceID])
+                            sqlstr = sql.format(sqlstr, [rq.DeviceID])
                             db.query(sqlstr, function (err, result) {
                                 if (err) {
                                     console.error(err);
                                     errorStr = err.message;
                                 }
-                                msgStr += "Device '" + request.query.DeviceName + "' deleted<br>";
+                                msgStr += "Device '" + rq.DeviceName + "' deleted<br>";
                             });
                         }
                     });
@@ -262,43 +264,30 @@ exports.sensors = function (request, response) {
         }
     }
 
-    function updateItems() {
-        var sqlstr = "UPDATE Devices SET Location = ?, Name = ?, Updates =?, Inputs = ?, Outputs = ? WHERE DeviceID = ?";
-        sqlstr = sql.format(sqlstr, [request.query.Location, request.query.DeviceName, request.query.Updates, request.query.Inputs, request.query.Outputs, request.query.DeviceID]);
+    function updateItems(rq) {
+        var sqlstr = "UPDATE Devices SET Updates =?, Inputs = ?, Outputs = ? WHERE DeviceID = ?";
+        sqlstr = sql.format(sqlstr, [rq.Location, rq.DeviceName, rq.Updates, rq.Inputs, rq.Outputs, rq.DeviceID]);
         db.query(sqlstr, function (err, result) {
             if (err) {
                 console.error(err);
                 errorStr = err.message;
                 reload();
             } else {
-                client.publish('/Raw/' + request.query.DeviceID + '/set/location', request.query.Location, { retain: true });
-                client.publish('/Raw/' + request.query.DeviceID + '/set/name', request.query.DeviceName, { retain: true });
-                client.publish('/Raw/' + request.query.DeviceID + '/set/updates', request.query.Updates, { retain: true });
-                client.publish('/Raw/' + request.query.DeviceID + '/set/inputs', request.query.Inputs, { retain: true });
-                client.publish('/Raw/' + request.query.DeviceID + '/set/outputs', request.query.Outputs, { retain: true });
-                client.publish('/Raw/' + request.query.DeviceID + '/set/deviceParams',
-                    JSON.stringify({
-                        location: request.query.Location,
-                        name: request.query.DeviceName,
-                        updates: request.query.Updates,
-                        inputs: request.query.Inputs,
-                        outputs: request.query.Outputs
-                    }),
-                    { retain: true });
+                publishDeviceParams(rq, rq.DeviceID);
 
                 setTimeout(() => { // To avoid too many MQTT msgs  in one block
                     sqlstr = "UPDATE Sensors SET Name = ?, Mapping = ?, deleteAfter = ? WHERE DeviceID = ? and SensorID = ?";
-                    if (!isNumeric(request.query.Mapping)) { request.query.Mapping = undefined; }
-                    sqlstr = sql.format(sqlstr, [request.query.SensorName, request.query.Mapping, request.query.deleteAfter, request.query.DeviceID, request.query.SensorID]);
+                    if (!isNumeric(rq.Mapping)) { rq.Mapping = undefined; }
+                    sqlstr = sql.format(sqlstr, [rq.SensorName, rq.Mapping, rq.deleteAfter, rq.DeviceID, rq.SensorID]);
                     db.query(sqlstr, function (err, result) {
                         if (err) {
                             console.error(err);
                             errorStr = err.message;
                             response.render('Names', { map: result, err: errorStr });
                         } else {
-                            client.publish('/Raw/' + request.query.DeviceID + '/' + request.query.SensorID + '/set/mapping', request.query.Mapping); // Must come first
-                            client.publish('/Raw/' + request.query.DeviceID + '/' + request.query.SensorID + '/set/name',
-                                JSON.stringify({ 'name': request.query.SensorName, 'map': request.query.Mapping }), { retain: true });
+                            client.publish('/Raw/' + rq.DeviceID + '/' + rq.SensorID + '/set/mapping', rq.Mapping); // Must come first
+                            client.publish('/Raw/' + rq.DeviceID + '/' + rq.SensorID + '/set/name',
+                                JSON.stringify({ 'name': rq.SensorName, 'map': rq.Mapping }), { retain: true });
                             reload();
                         }
                     }, 1000);
@@ -313,31 +302,72 @@ exports.sensors = function (request, response) {
         deviceState.set(deviceID, false);
     }
 
-    if (request.query.all) {
-        showAllDevices = request.query.all == 'yes';
+    var rq = request.query;
+    if (rq.all) {
+        showAllDevices = rq.all == 'yes';
         reload();
-    } else if (request.query.row) {
+    } else if (rq.row) {
         if (login.check(request, response)) {
-            if (request.query.del == "yes") {
-                if (request.query.delDev == "yes") { // Delete everything wrt this device
-                    deleteAll();
+            if (rq.del == "yes") {
+                if (rq.delDev == "yes") { // Delete everything wrt this device
+                    deleteAll(rq);
                 } else { // Just items
-                    deleteItems();
+                    deleteItems(rq);
                 }
-            } else if (request.query.delDev == "yes") {
-                deleteDevice();
+            } else if (rq.delDev == "yes") {
+                deleteDevice(rq);
             } else {
-                updateItems();
+                updateItems(rq);
             }
         }
-    } else if (request.query.deviceID) { // Remove Retained
+    } else if (rq.deviceID) { // Remove Retained
         if (login.check(request, response)) {
-            removeRetained(request.query.deviceID);
+            removeRetained(rq.deviceID);
             reload();
         }
     } else {
         showAllDevices = false;
         reload();
+    }
+}
+
+exports.getDeviceInfo = function (request, response) {
+    response.setHeader('Content-Type', 'application/json');
+    var rq = request.query;
+    if (rq.device) {
+        if (rq.Command) {
+            client.publish(`/Raw/${rq.device}/${rq.Command}`);
+        }
+        if (rq.Location) { //Update
+            let sqlstr = `UPDATE devices SET Location=?, Name=?, Updates=?, Inputs=?, Outputs=?
+                WHERE deviceID=?`;
+            sqlstr = sql.format(sqlstr,
+                [rq.Location, rq.DeviceName, rq.Updates, rq.Inputs, rq.Outputs, rq.device]);
+            console.log(sqlstr);
+            db.query(sqlstr, (err, result) => {
+                if (err) { console.error(err); } else {
+                    reload(rq.device);
+                }
+            });
+        } else {
+            reload(rq.device);
+        }
+    } else {
+        response.end("Bad request");
+    }
+
+    function reload(device) {
+        let sqlstr = 
+            "SELECT Location, Name As DeviceName, Updates, Inputs, Outputs FROM devices WHERE deviceID = ?";
+        sqlstr = sql.format(sqlstr, [device]);
+        db.query(sqlstr, (err, result) => {
+            if (err) {
+                console.error(err);
+                errorStr = err.message;
+            }
+            publishDeviceParams(rq, device);
+            response.end(JSON.stringify(result[0]));
+        });
     }
 }
 
@@ -377,3 +407,21 @@ exports.updateMapping = function (request, response) {
         }
     });
 }
+
+function publishDeviceParams(rq, device) {
+    // client.publish('/Raw/' + device + '/set/location', rq.Location, { retain: true });
+    // client.publish('/Raw/' + device + '/set/name', rq.DeviceName, { retain: true });
+    client.publish('/Raw/' + device + '/set/updates', rq.Updates, { retain: true });
+    client.publish('/Raw/' + device + '/set/inputs', rq.Inputs, { retain: true });
+    client.publish('/Raw/' + device + '/set/outputs', rq.Outputs, { retain: true });
+    client.publish('/Raw/' + device + '/set/deviceParams',
+        JSON.stringify({
+            location: rq.Location,
+            name: rq.DeviceName,
+            updates: rq.Updates,
+            inputs: rq.Inputs,
+            outputs: rq.Outputs
+        }),
+        { retain: true });
+}
+

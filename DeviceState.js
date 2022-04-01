@@ -20,6 +20,10 @@ function init(cb) {
 	});
 }
 
+DeviceState.prototype.delete = function(DeviceID) {
+    this.state[DeviceID] = undefined;
+}
+
 DeviceState.prototype.set = function(DeviceID, isOnline) {
     try {
       var t = Date.now()
@@ -229,7 +233,8 @@ DeviceState.prototype.setOutputName = function(device, op, name) {
 }
 
 DeviceState.prototype.get = function(DeviceID) {
-  return this.state[DeviceID];
+  console.log(this.state[DeviceID]);
+    return this.state[DeviceID];
 }
 
 DeviceState.prototype.getLatestTemperature = function(deviceId, sensorId) {
@@ -283,7 +288,7 @@ DeviceState.prototype.getAttempts = function(DeviceID) {
 
 DeviceState.prototype.findDeviceID = function(name, location) {
   for (DeviceID in this.state) {
-    if (this.state[DeviceID].physioph && this.state[DeviceID].name == name) {
+    if (/*this.state[DeviceID].physioph && */ this.state[DeviceID].name == name) {
 		if (typeof location == 'undefined') return DeviceID; // Return first found if no location
 		if (this.state[DeviceID].location == location) return DeviceID;
 	}

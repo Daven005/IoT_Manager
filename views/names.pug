@@ -45,32 +45,103 @@ head
     .tooltip {display: inline; position: relative;}
     .tooltip:hover:after {background: #333;background: rgba(0,0,0,.8);border-radius: 5px;bottom: 26px;color: #fff;content: attr(title);left: 20%;padding: 5px 15px;position: absolute;z-index: 98;width: 220px;}
     .tooltip:hover:before {border: solid;border-color: #333 transparent;border-width: 6px 6px 0px 6px;bottom: 20px;content: "";left: 50%;position: absolute;z-index: 99;}
-    .vertical {-moz-transform: rotate(-90deg); -webkit-transform: rotate(-90deg);)
-    headerButton {padding:0px 3px; font-size:9pt; border-width:1px; vertical-align: bottom; display: inline}
+    .vertical {-moz-transform: rotate(-90deg); -webkit-transform: rotate(-90deg);}
+    .headerButton {padding:1px 3px; background: #eee; font-size:9pt; border-width:1px; vertical-align: bottom; display: inline}
+    .popup {display:none; background: #eef; padding: 5px; border: 2px;
+            position:fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 5000; width: 350px;);}
+    #pHeader {background: #ccc; text-align: center;}
+    #pForm {background: #fff; display: none;}
+    #closePopup {background: #88f; float: right;}
+    #updatePopup {text-align: left; display:none;}
+    .pending {background: #f88;}
+    .done {background: #8f8;}
+    #pForm input[type=text] {border: 1px; padding: 2px; margin: 2px; float: right; text-align: left;}
+    btn {margin: 1px; boder: 1px; border-radius: 5px;}
+    .inline {display: flex; justify-content: space-between; background: #ccc}
+    
   script.
-        $(document).ready(function(){
+        $(() => {
             $(".sensorList tr:not(.accordion)").hide();
             $(".sensorList tr:first-child").show();    
-            $(".sensorList tr.accordion").click(function(){
+            $(".sensorList tr.accordion").click(function() {
                 $(this).nextUntil("tr.accordion").fadeToggle(100);
             });
-            $(".sensorList tr.accordion").bind('contextmenu', function(el){
+            $(".sensorList tr.accordion").bind('contextmenu', function(el) {
                 if (confirm(`Set ${el.currentTarget.children[2].textContent} Offline?`))
                     ;
                 return false;
             });
-            $(".headerButton").on('click', (el) => {
-                el.preventDefault();
-                let id = $(this).attr('data-id');
-                alert(id)
+            $("#closePopup").click(() => {
+                $(".popup").hide()})
+            $("#updatePopup").click(() => {
+                $("#pForm").submit()})
+            $('#pForm').on('submit', function(e) {
+                e.preventDefault();
+                let form = e.target;
+                $('#updatePopup').addClass('pending');
+                $('#updatePopup').removeClass('done');
+                $.ajax({
+                    type: "GET",
+                    url: '/Manage/Sensors/getDeviceInfo',
+                    data: $(form).serialize(), // serialises the form's elements.
+                    success: (data) => {
+                        reload (data);
+                        $('#updatePopup').removeClass('pending');
+                        $('#updatePopup').addClass('done');
+                    },
+                    error: (data) => {
+                        console.error('An error occurred.', data);
+                    }
+                });
             });
-        })
+        });
+
+        function getDeviceInfo(el) {
+            //- el.preventDefault();
+            let id = $(el).data("deviceid");
+            $('.popup').show();
+            $.getJSON(`/Manage/Sensors/getDeviceInfo?device=${id}`, (result) => {
+                $("#pHeader").html(`Device ${id}`);
+                $("#CommandLbl").html(`Command: /Raw/${id}/`);
+                $("#pForm").show();
+                $('#updatePopup').show();
+                $('#updatePopup').addClass('done');
+                $('#pForm input[type=hidden]').val(id);
+                $('#pForm .params input[type=text]').val(id);
+                reload(result);
+            });
+            return false;
+        }
+
+        function reload(result) {
+            $.each(result, (i, field) => {
+                if (i != 'DeviceID') {
+                    $(`#`+i).val(field);
+                }
+            });
+        }
+
 body
   #menu
   .main
     if err
         .error
             != err
+    .popup 
+        div#pHeader Device Settings
+        div#pContent 
+            form#pForm(action="" name="" method="get")
+                input(type="hidden" id="DeviceID" name="device")
+                each val, index in ["Location", "DeviceName", "Updates", "Inputs", "Outputs"]
+                    .inline
+                        label(for=`${val}`) #{val}
+                        input(type="text" class="params" id=`${val}` name=`${val}`)
+                .inline 
+                    label(for=`Command` id="CommandLbl") Command: /Raw/
+                    input(type="text" id="Command" name="Command" value="")
+        .formAction 
+            btn#updatePopup() Update 
+            btn#closePopup Close
     div(style="text-align: right; font-size:small;")="(Select both Del and DelDev to delete everything for that device}"
     form(action='/Manage/Sensors', method='get')
         label(for="all") Show All:
@@ -83,7 +154,13 @@ body
         thead
             tr
                 each val, index in map[0]
-                    th=index
+                    case index
+                        when "Updates"
+                        when "Inputs"
+                        when "Outputs"
+                            // index
+                        default
+                            th=index
                 th(class="vertical") Del
                 th(class="vertical") Del<br>Dev
         tbody
@@ -102,7 +179,7 @@ body
                             td(style=st)
                                 a(title=tt class='tooltip')=map[i].DeviceID
                             td(colspan="9" style="text-align:right")
-                                button(data-id=lastDeviceID class="headerButton") Update Device
+                                btn(data-deviceID=lastDeviceID class="headerButton" onclick="getDeviceInfo(this)") Update Device
                                 form(action='/Manage/Sensors' method='get' style="display: inline; text-align:right")
                                     input(type="hidden" name="deviceID" value=lastDeviceID)
                                     input(type='submit' name="unRetain" value="Remove Retained" class="headerButton")
@@ -111,14 +188,17 @@ body
                             tr(id='row'+i)
                                 each val, j in map[i]
                                     case j
-                                        when "Mapping"
                                         when "Updates"
                                         when "Inputs"
                                         when "Outputs"
+                                            // val
+                                        when "Mapping"
                                         when "deleteAfter"
                                             td
                                                 input(type="text", size="3"  name=j, value=val)
                                         when "SensorType"
+                                        when "Location"
+                                        when "DeviceName"
                                             td=val
                                         when  "DeviceID"
                                             +status(devices[val])

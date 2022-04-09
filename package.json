@@ -16,7 +16,7 @@
         "is-my-json-valid": "^2.19.0",
         "isnumeric": "^0.3.3",
         "jade": "^1.11.0",
-        "moment": "^2.24.0",
+        "moment": "^2.29.2",
         "moment-timezone": "^0.5.23",
         "mqtt": "^2.18.8",
         "mysql": "^2.16.0",

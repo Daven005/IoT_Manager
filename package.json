@@ -34,7 +34,7 @@
         "pug": "^2.0.3",
         "pushbullet": "^2.4.0",
         "request": "^2.88.0",
-        "socket.io": "^2.3.0",
+        "socket.io": "^2.5.0",
         "sse-node": "^1.0.2",
         "sse-nodejs": "^0.1.0",
         "struct": "0.0.12",

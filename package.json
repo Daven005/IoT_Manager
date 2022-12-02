@@ -21,7 +21,7 @@
         "moment-timezone": "^0.5.23",
         "mqtt": "^2.18.8",
         "mysql": "^2.16.0",
-        "netmask": "^1.0.6",
+        "netmask": "^2.0.1",
         "network": "^0.4.1",
         "nexe": "^2.0.0-rc.34",
         "node-aplay": "^1.0.3",

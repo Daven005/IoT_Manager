@@ -368,6 +368,7 @@ exports.getDeviceInfo = function (request, response) {
       console.log(sqlstr);
       db.query(sqlstr, (err, result) => {
         if (err) { console.error(err); } else {
+          publishDeviceParams(rq, rq.device);
           reload(rq.device);
         }
       });
@@ -430,8 +431,9 @@ exports.updateMapping = function (request, response) {
 }
 
 function publishDeviceParams(rq, device) {
-  // client.publish('/Raw/' + device + '/set/location', rq.Location, { retain: true });
-  // client.publish('/Raw/' + device + '/set/name', rq.DeviceName, { retain: true });
+  console.log("publishDeviceParams: ", device);
+  client.publish('/Raw/' + device + '/set/location', rq.Location, { retain: true });
+  client.publish('/Raw/' + device + '/set/name', rq.DeviceName, { retain: true });
   client.publish('/Raw/' + device + '/set/updates', rq.Updates, { retain: true });
   client.publish('/Raw/' + device + '/set/inputs', rq.Inputs, { retain: true });
   client.publish('/Raw/' + device + '/set/outputs', rq.Outputs, { retain: true });

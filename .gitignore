@@ -8,3 +8,9 @@ jq/
 *.pcap
 ERRORS.js
 /.gitattributes
+ALARMS.js
+public/test1.html
+graph/MHRV.js
+public/test1.js
+public/testAcc.html
+graph/rainwater.js

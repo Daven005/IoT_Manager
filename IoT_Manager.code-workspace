@@ -4,17 +4,11 @@
             "path": "."
         },
         {
-            "path": "\\\\iot1\\iot\\onvif"
-        },
-        {
-            "name": "SeaTalk",
-            "path": "C:\\Users\\User\\Documents\\PlatformIO\\Projects\\SeaTalk"
-        },
-        {
             "path": "C:\\Users\\User\\Downloads\\jquery.jqplot.1.0.9"
         },
         {
-            "path": "..\\BT_spkr"
+            "name": "220409-201703-wemos_d1_mini32",
+            "path": "C:\\Users\\User\\Documents\\PlatformIO\\Projects\\220409-201703-wemos_d1_mini32"
         }
     ],
     "settings": {

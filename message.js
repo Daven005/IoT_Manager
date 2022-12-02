@@ -85,8 +85,24 @@ function saveDeviceSettings(DeviceID, settings) {
     sqlstr += ' ON DUPLICATE KEY UPDATE Value=VALUES(Value)';
     // console.log(`saveDeviceSettings: ${sqlstr}`);
     db.query(sqlstr, function (err, result) {
-        if (err) { console.log("saveDeviceSettings: %j", err); }
+        if (err) { console.error("saveDeviceSettings: %j", err); }
     });
+}
+
+function saveDeviceSettingsNames(DeviceID, settingsNames) {
+  var idx;
+  var sqlstr = 'INSERT INTO setValues (DeviceID, ID, Name) VALUES';
+  for (idx = 0; idx < settingsNames.length; idx++) {
+      if (idx != 0) {
+          sqlstr += ', ';
+      }
+      sqlstr += `("${DeviceID}", ${idx}, "${settingsNames[idx]}")`;
+  }
+  sqlstr += ' ON DUPLICATE KEY UPDATE Name=VALUES(Name)';
+  // console.log(`saveDeviceSettingsNames: ${sqlstr}`);
+  db.query(sqlstr, function (err, result) {
+      if (err) { console.error("saveDeviceSettingsNames: %j", err); }
+  });  
 }
 
 function saveDeviceInfo(values) {
@@ -95,13 +111,16 @@ function saveDeviceInfo(values) {
         "INSERT INTO Devices (DeviceID, Location, Name) VALUES(?, ?, ?) " +
         "ON DUPLICATE KEY UPDATE Location=VALUES(Location), Name=VALUES(Name)",
         [values.DeviceID, values.Location, values.Name]);
-    // console.log(`saveDeviceInfo: ${values}, ${sqlstr}`);
+    // console.log(`saveDeviceInfo: ${JSON.stringify(values)}`);
     db.query(sqlstr, function (err, result) {
         if (err) {
             console.log("saveDeviceInfo error: %j, sql = %s", err, sqlstr);
         }
         if (values.Settings) {
             saveDeviceSettings(values.DeviceID, values.Settings);
+        }
+        if (values.SettingsNames) {
+            saveDeviceSettingsNames(values.DeviceID, values.SettingsNames);
         }
         if (values.RSSI) {
             r = validateValue(values.RSSI, "RSSI");

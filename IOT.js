@@ -189,6 +189,9 @@ function setupIntervalFunctions() {
 
     global.PV = require('./processPV');
     PV.init();
+
+    global.WD = require('./workdays');
+    WD.init(() => console.log("Workdays set up"));
 }
 
 function setupWeb() {
@@ -246,6 +249,10 @@ function setupWeb() {
     app_mobile.get("/Heating/rooms", heating.temperatureDials);
     app_mobile.get("/Heating/zones", heating.zonesInfo);
     app.get("/Heating/zones", heating.zonesInfo);
+
+    app.get("/Heating/workdays", heating.workdays);
+    app_mobile.get("/Heating/workdays", heating.workdays);
+    app_guest.get("/Heating/workdays", heating.workdays);
 
     app_guest.get("/", heating.guestOverrides);
 

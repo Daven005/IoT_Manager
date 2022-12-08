@@ -1,6 +1,7 @@
 "use strict";
 var processHeating = require('./processHeating');
 var login = require('./login');
+var wd = require('./workdays');
 const EXTERNAL_NAME = 'Alexa';
 
 exports.temperatureDevice = function (request, response) {
@@ -78,7 +79,7 @@ function _mobileOverrides(request, response, zoneFilter) {
       sqlstr += ` AND heatingzones.Name LIKE "${zoneFilter}%"`; // Guest1/2/2m
     }
     sqlstr += " ORDER BY heatingzones.Name";
-    console.log(sqlstr);
+    // console.log(sqlstr);
     db.query(sqlstr, function (err, result) {
       if (err) {
         console.log(`mobile ${errorStr = err.message} ${sqlstr}`);
@@ -112,7 +113,7 @@ function _mobileOverrides(request, response, zoneFilter) {
     ]);
     db.query(sqlstr, function (err) {
       if (err) { console.log("updateOverride %j SQL = %s request= %j", err, sqlstr, request); errorStr = "Empty values?"; }
-      processHeating.load(`_updateOverride`, () => {_reload(request.query.zoneID)});
+      processHeating.load(`_updateOverride`, () => { _reload(request.query.zoneID) });
     });
   }
 
@@ -133,6 +134,66 @@ function _mobileOverrides(request, response, zoneFilter) {
 
 exports.guestOverrides = function (request, response) {
   _mobileOverrides(request, response, `Guest`); // Allows for Guest1/2
+}
+
+exports.workdays = function (request, response) {
+  let wRec = wd.obj();
+  let errStr = "";
+  var wProg = [];
+  var oProg = [];
+  function reload(response) {
+    let sqlstr = "select ID, name from HeatingZones";
+    db.query(sqlstr, function (err, result) {
+      let zones = JSON.parse(JSON.stringify(result));
+      let sqlstr = "select start, temperature from heatingProgrammes where zoneID = ?"
+      sqlstr = sql.format(sqlstr, [wRec.workZoneID]);
+      console.log(sqlstr);
+      db.query(sqlstr, (err, result) => {
+        console.log(result);
+        wProg = JSON.parse(JSON.stringify(result));
+        let sqlstr = "select start, temperature from heatingProgrammes where zoneID = ?"
+        sqlstr = sql.format(sqlstr, [wRec.offZoneID]);
+        console.log(sqlstr);
+        db.query(sqlstr, (err, result) => {
+          console.log(result);
+          oProg = JSON.parse(JSON.stringify(result));
+          response.render("heatingWorkdays",
+            { workdays: wRec, zones: zones, wProg: wProg, oProg: oProg, err: errStr });
+        });
+      });
+    });
+  }
+
+  console.log(request.query)
+  if (request.query.action == "Save") {
+    wRec.Su = request.query.Su == "on";
+    wRec.Mo = request.query.Mo == "on";
+    wRec.Tu = request.query.Tu == "on";
+    wRec.We = request.query.We == "on";
+    wRec.Th = request.query.Th == "on";
+    wRec.Fr = request.query.Fr == "on";
+    wRec.Sa = request.query.Sa == "on";
+
+    console.log(wRec.workZoneID, Number(request.query.workZoneID), typeof (wRec.workZoneID), typeof (request.query.workZoneID));
+
+    if (wRec.workZoneID != Number(request.query.workZoneID)) {
+      if (request.session.loggedin) {
+        wRec.workZoneID = request.query.workZoneID;
+      } else {
+        errStr = `Can't change Work zone, Not logged in. `;
+      }
+    }
+    if (wRec.offZoneID != Number(request.query.offZoneID)) {
+      if (request.session.loggedin) {
+        wRec.offZoneID = request.query.offZoneID;
+      } else {
+        errStr += "Can't change Off zone, Not logged in. "
+      }
+    }
+    wd.save();
+  }
+
+  reload(response);
 }
 
 exports.mobileGroups = function (request, response) {
@@ -473,12 +534,12 @@ function reloadZones(zone, response, render, showAll) {
     + "LEFT JOIN DEVICES DC ON H.ControlDeviceID = DC.DeviceID "
     + "LEFT JOIN SENSORS ST ON H.TemperatureDeviceID = ST.DeviceID AND H.TemperatureSensorID = ST.SensorID "
     + "LEFT JOIN SENSORS SC ON H.ControlDeviceID = SC.DeviceID AND H.ControlSensorID = SC.SensorID ";
-    
-  if (!showAll) 
+
+  if (!showAll)
     sqlstr += " WHERE H.Enabled = 1";
   sqlstr += " ORDER BY H.Name";
 
-    db.query(sqlstr, function (err, result) {
+  db.query(sqlstr, function (err, result) {
     if (err) {
       console.log(err);
       console.log(sqlstr);
@@ -494,7 +555,7 @@ function reloadZones(zone, response, render, showAll) {
       // ?????? processHeating.set
       z.demand = processHeating.zoneDemand(z.ID);
       z.targetTemp = processHeating.zoneTargetTemp(z.ID);
-     //  console.log(`++target ${z.ID} = ${z.targetTemp}`)
+      //  console.log(`++target ${z.ID} = ${z.targetTemp}`)
       z.overrideOn = processHeating.zoneOverrideOn(z.ID);
       z.overrideName = processHeating.zoneOverrideName(z.ID);
     });
@@ -529,12 +590,12 @@ exports.zonesInfo = function (request, response) {
 }
 
 exports.zoneInfoByName = function (request, response) {
-    processHeating.zoneInfoByName(request.body.room, (info) => {
-        response.setHeader('Content-Type', 'application/json');
-        console.log(`CK - Zone info: ${info}`);
-        if (info.err != "OK") response.status(400);
-        response.end(JSON.stringify(info));
-    });
+  processHeating.zoneInfoByName(request.body.room, (info) => {
+    response.setHeader('Content-Type', 'application/json');
+    console.log(`CK - Zone info: ${info}`);
+    if (info.err != "OK") response.status(400);
+    response.end(JSON.stringify(info));
+  });
 }
 
 exports.whyFiring = function (request, response) {
@@ -911,7 +972,7 @@ function getAllDeviceInfo(request, response) {
     return y;
   }
 }
- 
+
 exports.externalSetOverride = function (request, response) {
   // console.log(`externalSetOverride ${JSON.stringify(request.query)}`);
   if ((0 <= request.query.hour && request.query.hour < 24)
@@ -922,9 +983,9 @@ exports.externalSetOverride = function (request, response) {
     var sqlstr = "UPDATE heatingOverrides " +
       "SET start = NOW(), duration = '?:0', temperature = ?, active = ? " +
       `WHERE zoneID = ? AND Name = '${EXTERNAL_NAME}' AND day = 10`;
-    sqlstr = sql.format(sqlstr, [parseInt(request.query.hour), parseInt(request.query.temperature), 
-                          (request.query.hour > 0) ? 1 : 0, parseInt(request.query.zoneID)]);
-     db.query(sqlstr, function (err) {
+    sqlstr = sql.format(sqlstr, [parseInt(request.query.hour), parseInt(request.query.temperature),
+    (request.query.hour > 0) ? 1 : 0, parseInt(request.query.zoneID)]);
+    db.query(sqlstr, function (err) {
       if (err) {
         if (alarmLog.set(2001, err.code, request.query.overrideID)) { // New
           utils.notify("Remote override fail", 'Alarm', request.query.overrideID, err.message);

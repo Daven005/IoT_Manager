@@ -3,7 +3,7 @@ var assert = require('assert');
 var x;
 require('./config').read((cfg) => {
     global.config = cfg;
-    config.database.host = "IOT1"; // Need to be able to read Devices
+    config.database.host = "192.168.1.100"; // Need to be able to read Devices
     var dbs = require('./dbSetup');
     try {
         dbs.init(() => {

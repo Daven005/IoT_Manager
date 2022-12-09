@@ -890,7 +890,7 @@
         "type": "mqtt in",
         "z": "962cb828.613348",
         "name": "",
-        "topic": "/Raw/Hollies4cc8b2/3/#",
+        "topic": "/Raw/Holliesa69ec3/#",
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
         "x": 120,
@@ -932,10 +932,10 @@
         "type": "mqtt in",
         "z": "962cb828.613348",
         "name": "",
-        "topic": "/Raw/+/offline",
+        "topic": "/Raw/+/info",
         "qos": "2",
         "broker": "d9cbc95c.9962d8",
-        "x": 90,
+        "x": 80,
         "y": 220,
         "wires": [
             [
@@ -1024,7 +1024,7 @@
         "y": 31,
         "wires": [
             [
-                "3586bf18.2b8e9"
+                "9df52fca.42519"
             ]
         ]
     },
@@ -1042,7 +1042,7 @@
         "label": "units",
         "format": "{{value}}",
         "min": "0",
-        "max": "2000",
+        "max": "3000",
         "colors": [
             "#00b500",
             "#e6e600",
@@ -1522,7 +1522,7 @@
         "y": 440,
         "wires": [
             [
-                "6798660a.a1a248"
+                "cfc28f02.ce6d2"
             ]
         ]
     },
@@ -1564,7 +1564,7 @@
         "y": 147,
         "wires": [
             [
-                "eeb163da.2f303"
+                "9b800bd0.9460f8"
             ]
         ]
     },
@@ -1582,7 +1582,7 @@
         "label": "units",
         "format": "{{value}}",
         "min": "0",
-        "max": "500",
+        "max": "2000",
         "colors": [
             "#00b500",
             "#e6e600",
@@ -1859,7 +1859,7 @@
         "label": "units",
         "format": "{{value}}",
         "min": "0",
-        "max": "6000",
+        "max": "4000",
         "colors": [
             "#00b500",
             "#e6e600",
@@ -1900,22 +1900,6 @@
         "wires": [
             [
                 "a24b2754.61c468"
-            ]
-        ]
-    },
-    {
-        "id": "6798660a.a1a248",
-        "type": "function",
-        "z": "f919d09c.4026b",
-        "name": "negate",
-        "func": "msg.payload = -msg.payload;\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "x": 371,
-        "y": 440,
-        "wires": [
-            [
-                "cfc28f02.ce6d2"
             ]
         ]
     },
@@ -2580,8 +2564,8 @@
             "#e6e600",
             "#ca3838"
         ],
-        "seg1": "",
-        "seg2": "",
+        "seg1": "-1000",
+        "seg2": "1000",
         "x": 570,
         "y": 660,
         "wires": []
@@ -2623,10 +2607,10 @@
         "type": "mqtt in",
         "z": "962cb828.613348",
         "name": "",
-        "topic": "/Raw/HousePV/#",
+        "topic": "/Raw/Holliesa69ec3/#",
         "qos": "0",
         "broker": "d9cbc95c.9962d8",
-        "x": 120,
+        "x": 140,
         "y": 100,
         "wires": [
             [
@@ -3520,10 +3504,10 @@
         "type": "mqtt in",
         "z": "962cb828.613348",
         "name": "",
-        "topic": "/Raw/Hollies11c554/+/set/output",
+        "topic": "/Raw/Hollies11c554/#",
         "qos": "0",
         "broker": "d9cbc95c.9962d8",
-        "x": 150,
+        "x": 120,
         "y": 160,
         "wires": [
             [
@@ -3536,7 +3520,7 @@
         "type": "debug",
         "z": "962cb828.613348",
         "name": "",
-        "active": false,
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -4338,11 +4322,11 @@
         "type": "mqtt in",
         "z": "962cb828.613348",
         "name": "",
-        "topic": "/App/Garage/modbus/#",
+        "topic": "/App/Utility/#",
         "qos": "0",
         "broker": "d9cbc95c.9962d8",
-        "x": 170,
-        "y": 480,
+        "x": 90,
+        "y": 400,
         "wires": [
             [
                 "f51a3288.51c07"
@@ -4359,8 +4343,8 @@
         "console": false,
         "tostatus": false,
         "complete": "false",
-        "x": 440,
-        "y": 480,
+        "x": 390,
+        "y": 400,
         "wires": []
     },
     {
@@ -4394,5 +4378,106 @@
                 "f8a2c68.25e9638"
             ]
         ]
+    },
+    {
+        "id": "9df52fca.42519",
+        "type": "function",
+        "z": "f919d09c.4026b",
+        "name": "negate",
+        "func": "msg.payload = -msg.payload;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 40,
+        "wires": [
+            [
+                "3586bf18.2b8e9"
+            ]
+        ]
+    },
+    {
+        "id": "9b800bd0.9460f8",
+        "type": "function",
+        "z": "f919d09c.4026b",
+        "name": "negate",
+        "func": "msg.payload = -msg.payload;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 160,
+        "wires": [
+            [
+                "eeb163da.2f303"
+            ]
+        ]
+    },
+    {
+        "id": "d0048ac2.f29768",
+        "type": "inject",
+        "z": "962cb828.613348",
+        "name": "Enq",
+        "topic": "",
+        "payload": "'{\"enq\":\"TLc\"}'",
+        "payloadType": "flow",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 110,
+        "y": 520,
+        "wires": [
+            [
+                "91c2b3c1.7a21b"
+            ]
+        ]
+    },
+    {
+        "id": "a143f3bd.cbb56",
+        "type": "udp in",
+        "z": "962cb828.613348",
+        "name": "",
+        "iface": "",
+        "port": "10999",
+        "ipv": "udp4",
+        "multicast": "false",
+        "group": "",
+        "datatype": "buffer",
+        "x": 130,
+        "y": 620,
+        "wires": [
+            [
+                "6bc591d0.3a9bf"
+            ]
+        ]
+    },
+    {
+        "id": "91c2b3c1.7a21b",
+        "type": "udp out",
+        "z": "962cb828.613348",
+        "name": "",
+        "addr": "192.168.1.255",
+        "iface": "",
+        "port": "9071",
+        "ipv": "udp4",
+        "outport": "10999",
+        "base64": false,
+        "multicast": "false",
+        "x": 370,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "6bc591d0.3a9bf",
+        "type": "debug",
+        "z": "962cb828.613348",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 380,
+        "y": 620,
+        "wires": []
     }
 ]

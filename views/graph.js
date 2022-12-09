@@ -70,18 +70,25 @@ function setupGraph(d, graphLabels, graphTypes, sensorIDs, settings, title) {
                 plotOptions.series[idx].yaxis = 'y6axis';
                 plotOptions.series[idx].canvasOverlay = {
                     show: true,
-                    objects: [ {
-                            dashedHorizontalLine: {
-                                name: 'zero',
-                                y: 0,
-                                lineWidth: 2,
-                                dashPattern: [16, 12],
-                                color: 'rgb(100, 55, 255)',
-                                shadow: false
-                            }
+                    objects: [{
+                        dashedHorizontalLine: {
+                            name: 'zero',
+                            y: 0,
+                            lineWidth: 2,
+                            dashPattern: [16, 12],
+                            color: 'rgb(100, 55, 255)',
+                            shadow: false
                         }
+                    }
                     ]
                 };
+                break;
+            case 'CO2':
+                plotOptions.series[idx].yaxis = 'y7axis';
+                break;
+            case 'HCHO':
+            case 'TVOC':
+                plotOptions.series[idx].yaxis = 'y8axis';
                 break;
             case 'Temp':
             case 'Hum':
@@ -112,7 +119,7 @@ function setupGraph(d, graphLabels, graphTypes, sensorIDs, settings, title) {
                 break;
         }
     }
-    console.log(">>>>>>"+JSON.stringify(plotOptions));
+    console.log(">>>>>>" + JSON.stringify(plotOptions));
     var plot1 = $.jqplot('chart1', graphData, plotOptions);
 }
 

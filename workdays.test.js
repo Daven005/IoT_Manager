@@ -31,7 +31,7 @@ function printZones(cb) {
 function done(w) {
   var wd = w.obj();
   console.log("Done", wd);
-  wd.Su = !wd.Su;
+  wd.Su = !wd.Fr;
   console.log(w.obj());
   wd.We = true;
   w.save(() => {

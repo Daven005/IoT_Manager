@@ -149,11 +149,11 @@ exports.workdays = function (request, response) {
       sqlstr = sql.format(sqlstr, [wRec.workZoneID]);
       console.log(sqlstr);
       db.query(sqlstr, (err, result) => {
-        console.log(result);
+        // console.log(result);
         wProg = JSON.parse(JSON.stringify(result));
         let sqlstr = "select start, temperature from heatingProgrammes where zoneID = ?"
         sqlstr = sql.format(sqlstr, [wRec.offZoneID]);
-        console.log(sqlstr);
+        // console.log(sqlstr);
         db.query(sqlstr, (err, result) => {
           console.log(result);
           oProg = JSON.parse(JSON.stringify(result));
@@ -173,8 +173,6 @@ exports.workdays = function (request, response) {
     wRec.Th = request.query.Th == "on";
     wRec.Fr = request.query.Fr == "on";
     wRec.Sa = request.query.Sa == "on";
-
-    console.log(wRec.workZoneID, Number(request.query.workZoneID), typeof (wRec.workZoneID), typeof (request.query.workZoneID));
 
     if (wRec.workZoneID != Number(request.query.workZoneID)) {
       if (request.session.loggedin) {

@@ -1,0 +1,73 @@
+include ./mobileMenu.pug
+doctype html
+head
+  title Heating Workdays
+  meta(name="viewport" content="width=device-width, initial-scale=1")
+  meta(name="mobile-web-app-capable" content="yes")
+  link(rel='stylesheet' href='/jq/jquery.mobile-1.4.5.min.css')
+  script(src='/jq/jquery-2.2.1.min.js')
+  script(src='/jq/jquery.mobile-1.4.5.min.js')
+
+style.
+  .ui-header  { background: #cc1111 !important; }
+  .inline {float: left}
+  #h1-large { font-size: 1.1em; margin-left: 15% }
+  table td {padding: 10px; margin: 1; border-width: thin; border-color:white; border-style: none; }
+  select { display: inline-block;  }
+  .error { font-size: 1em; color: red;}
+
+body
+  div.ui-responsive-panel(data-role="page" data-theme="b" data-dom-cache="false")
+    div(data-role="header" data-position="fixed")
+      h1#h1-large Heating Workdays
+      a(href="#nav-panel" data-icon="bars" data-iconpos="notext") 
+    div(data-role="main" class="ui-content" data-url="/Heating/workdays")
+      - // console.log(workdays, zones)
+      form(action='/Heating/Workdays',method='get')  
+        table(border="1")
+          tr
+            td Su 
+            td Mo 
+            td Tu 
+            td We 
+            td Th 
+            td Fr 
+            td Sa 
+          tr 
+            td
+              input(type="checkbox", name="Su" checked=(workdays.Su) ? "checked" : undefined)
+            td 
+              input(type="checkbox", name="Mo" checked=(workdays.Mo) ? "checked" : undefined)
+            td 
+              input(type="checkbox", name="Tu" checked=(workdays.Tu) ? "checked" : undefined)
+            td 
+              input(type="checkbox", name="We" checked=(workdays.We) ? "checked" : undefined)
+            td 
+              input(type="checkbox", name="Th" checked=(workdays.Th) ? "checked" : undefined)
+            td 
+              input(type="checkbox", name="Fr" checked=(workdays.Fr) ? "checked" : undefined)
+            td 
+              input(type="checkbox", name="Sa" checked=(workdays.Sa) ? "checked" : undefined)
+
+        fieldset(class="ui-field-contain")
+          label(for="workZoneID") Work-Day Zone
+          select(name="workZoneID")
+            each val in zones
+              option(value=val.ID selected=(workdays.workZoneID==val.ID) ? "selected" : undefined) #{val.name}
+          div.inline 
+            each val in wProg 
+              div #{val.start} => #{val.temperature} 
+
+        fieldset(class="ui-field-contain")
+          label(for="offZoneID") Off-Day Zone
+          select(name="offZoneID")
+            each val in zones
+              option(value=val.ID selected=(workdays.offZoneID==val.ID) ? "selected" : undefined) #{val.name}
+          .inline 
+            each val in oProg 
+              div #{val.start} => #{val.temperature}
+        fieldset(class="ui-field-contain")
+          input(type="submit" name="action" value="Save")
+
+        div.error #{err}
+  +menu

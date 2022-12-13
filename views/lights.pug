@@ -124,7 +124,7 @@ mixin showplaylist()
       table: tbody: tr
         td
           input(type="hidden", name="frames" value="0" size="1")
-        - for (var i = 1; i < fc; i++) {
+        - for (var i = 0; i < fc; i++) {
           td
             input(name="frames" value=locals.playlist.frames[i] size="1")
         - }

@@ -3,7 +3,7 @@ var fs = require('fs');
 var rp = require('request-promise');
 
 function emptyLights() {
-    return { colours: { map: ['0', 'ffff'] }, patterns: [{ frame: 0, start: 0, LED: [] }], playlist: { repeat: 0, time: 0, frames: [0, 0] } };
+    return { colours: { map: ['0', 'ffff'] }, patterns: [{ frame: 0, start: 0, LED: [] }], playlist: { repeat: 0, time: 0, frames: [0] } };
 }
 
 exports.get = function (request, response) {
@@ -44,7 +44,8 @@ exports.get = function (request, response) {
 
 function transmit(type, str) {
     if (lights.transmit == "MQTT") {
-        client.publish('/App/' + type, str);
+        console.log(type, str, typeof type, typeof str);
+        client.publish('/App/' + type, JSON.stringify(str));
     } else {
         if (!lights.target) {
             lights.err = "No target entered";
@@ -226,7 +227,7 @@ exports.playlist = function (request, response) {
         lights.playlist = {};
         lights.playlist.repeat = -1;
         lights.playlist.time = 5000;
-        lights.playlist.frames = [0, 0];
+        lights.playlist.frames = [0];
     }
     console.log(request.body)
     lights.playlist = request.body;
@@ -246,5 +247,6 @@ exports.playlist = function (request, response) {
     } else if (request.body.Action == 'Transmit') {
         transmit('play', request.body);
     }
+    console.log("Frames: ", lights.playlist.frames)
     response.render('lights', lights);
 }

@@ -26,7 +26,7 @@ function processValues(values) {
             }
         }
     } catch (ex) {
-        console.log("Error in processValues ex='%s' values = %j", ex.message, values);
+        console.error("Error in processValues ex='%s' values = %j", ex.message, values);
     }
 }
 
@@ -41,10 +41,10 @@ function processSetMessage(topicParts, payload) { // /App/Set/Device Name/Settin
             client.publish(topic, setting.toString(), { retain: true });
             // NB New info msg will be published which updates settings
         } else {
-            console.log("/App/Set value (%d) out of range", setting);
+            console.error("/App/Set value (%d) out of range", setting);
         }
     } catch (ex) {
-        console.log("Bad /App/Set value %j (%j)", payload, ex);
+        console.error("Bad /App/Set value %j (%j)", payload, ex);
     }
 }
 
@@ -68,7 +68,7 @@ function processAppMessage(topicParts, payload) {
                 values.value = payload;
         }
     } catch (ex) {
-        console.log("Error in processAppMessage %j, payload %j", values, payload);
+        console.error("Error in processAppMessage %j, payload %j", values, payload);
     }
     processValues(values);
 }
@@ -111,10 +111,10 @@ function saveDeviceInfo(values) {
         "INSERT INTO Devices (DeviceID, Location, Name) VALUES(?, ?, ?) " +
         "ON DUPLICATE KEY UPDATE Location=VALUES(Location), Name=VALUES(Name)",
         [values.DeviceID, values.Location, values.Name]);
-    // console.log(`saveDeviceInfo: ${JSON.stringify(values)}`);
+    // console.error(`saveDeviceInfo: ${JSON.stringify(values)}`);
     db.query(sqlstr, function (err, result) {
         if (err) {
-            console.log("saveDeviceInfo error: %j, sql = %s", err, sqlstr);
+            console.error("saveDeviceInfo error: %j, sql = %s", err, sqlstr);
         }
         if (values.Settings) {
             saveDeviceSettings(values.DeviceID, values.Settings);
@@ -127,7 +127,7 @@ function saveDeviceInfo(values) {
             if (r.result == "numberInRange") {
                 checkInsertSensorLog(values.DeviceID, "RSSI", "RSSI", values.RSSI);
             } else {
-                console.log(r.error + " from %s-%s", values.Location, values.Name);
+                console.error(r.error + " from %s-%s", values.Location, values.Name);
             }
             deviceState.setRSSI(values.DeviceID, values.RSSI);
         }
@@ -137,7 +137,7 @@ function saveDeviceInfo(values) {
                 var vcc = values.Vcc / 241; // Convert to voltage
                 checkInsertSensorLog(values.DeviceID, "Vcc", "Vcc", vcc);
             } else {
-                console.log(r.error + " from %s-%s", values.Location, values.Name);
+                console.error(r.error + " from %s-%s", values.Location, values.Name);
             }
         }
         if (values.Attempts) {
@@ -148,7 +148,7 @@ function saveDeviceInfo(values) {
             } else {
                 if (values.Attempts != deviceState.getAttempts(values.DeviceID)) {
                     deviceState.setAttempts(values.DeviceID, values.Attempts);
-                    console.log(r.error + " from %s-%s", values.Location, values.Name);
+                    console.error(r.error + " from %s-%s", values.Location, values.Name);
                 }
             }
         }
@@ -160,7 +160,7 @@ function saveDeviceInfo(values) {
             } else {
                 if (values.ConnectTime != deviceState.getAttempts(values.DeviceID)) {
                     deviceState.setAttempts(values.DeviceID, values.ConnectTime);
-                    console.log(r.error + " from %s-%s", values.Location, values.Name);
+                    console.error(r.error + " from %s-%s", values.Location, values.Name);
                 }
             }
         }
@@ -205,7 +205,7 @@ function processDeviceErrorMessage(values) {
                     utils.notify(`Error: (${deviceName}) err: ${lastError.error} info: ${lastError.info}`, "Error", deviceName);
                 }
             } catch (ex) {
-                console.log("dev err: %j, values %j", result[0], values);
+                console.error("dev err: %j, values %j", result[0], values);
             }
         }
     });
@@ -234,8 +234,8 @@ function processDeviceOffline(deviceID) {
     var sqlstr = sql.format("SELECT Location, Name FROM devices WHERE DeviceID = ?", [deviceID]);
     var query = db.query(sqlstr, function (err, result) {
         if (err) {
-            console.log("processDeviceOffline SQL error: %j", err);
-            console.log('When ' + deviceID + ' reported Offline');
+            console.error("processDeviceOffline SQL error: %j", err);
+            console.error('When ' + deviceID + ' reported Offline');
         } else {
             if (result[0]) {
                 utils.notify('Device Offline: ' + result[0].Name + '-' + result[0].Location + ')', "Info");
@@ -259,13 +259,13 @@ function checkSensor(result, map) { // result is db's sensor info, map is device
     for (idx = 0; idx < map.length; idx++) {
         if (result.SensorID == map[idx].sensorID) {
             if (result.Mapping == idx && result.Name == map[idx].name) return; //OK
-            console.log("Bad map: %s/%s [%d]->%d {(db sensor name)%s->(dev sensor name)%s}",
+            console.error("Bad map: %s/%s [%d]->%d {(db sensor name)%s->(dev sensor name)%s}",
                 result.DeviceID, map[idx].sensorID, idx, map[idx].map, result.Name, map[idx].name);
             return;
         }
     }
-    console.log("Device %s has no mapping for sensor %s", result.DeviceID, result.SensorID);
-    console.log("Received map: %j", map);
+    console.error("Device %s has no mapping for sensor %s", result.DeviceID, result.SensorID);
+    console.error("Received map: %j", map);
 }
 
 function checkMap(deviceID, map) {
@@ -273,8 +273,8 @@ function checkMap(deviceID, map) {
     sqlstr = sql.format(sqlstr, deviceID);
     db.query(sqlstr, function (err, result) {
         if (err) {
-            console.log("checkMap %j", err);
-            console.log(sqlstr);
+            console.error("checkMap %j", err);
+            console.error(sqlstr);
             errorStr = err.message;
             result = [];
         } else {
@@ -417,14 +417,14 @@ function publishAppInfo(DeviceID, SensorID, Value) {
         [DeviceID, SensorID]);
     db.query(sqlstr, function (err, result) {
         if (err) {
-            console.log('Select Location err: ' + err);
+            console.error('Select Location err: ' + err);
         } else {// Closure!!
             try {
                 var topic = '/App/' + result[0].Location + '/' + result[0].DeviceName + '/' + result[0].SensorName + '/' + result[0].Type + '/' + SensorID;
                 client.publish(topic, Value.toString());
                 return result[0].SensorName;
             } catch (ex) {
-                console.log(`Raw sensor error ${ex.message} ${DeviceID}, ${SensorID}, Value ${Value}`);
+                console.error(`Raw sensor error ${ex.message} ${DeviceID}, ${SensorID}, Value ${Value}`);
             }
         }
     });
@@ -437,7 +437,7 @@ function checkTempChangeWarning(deviceId, sensorId, delta) {
         [deviceId, sensorId]);
     db.query(sqlstr, function (err, result) {
         if (err) {
-            console.log(`Select WarnRate err: ${err}`);
+            console.error(`Select WarnRate err: ${err}`);
         } else {
             if (result[0].WarnRate < 0.0) {
                 if (delta < result[0].WarnRate) {
@@ -565,7 +565,7 @@ function processRawSensorMessage(topicParts, payload) {
         values.SensorID = topicParts[3];
         processSensorValues(values, val);
     } catch (ex) {
-        console.log("processRawSensorMessage error: %j. Topic %j, Payload %j", ex.message, topicParts, payload);
+        console.error("processRawSensorMessage error: %j. Topic %j, Payload %j", ex.message, topicParts, payload);
     }
 }
 
@@ -589,7 +589,7 @@ function processDeviceResetMessage(values) {
     var sqlstr = sql.format("SELECT Location, Name FROM devices WHERE DeviceID = ?", [values.DeviceID]);
     var query = db.query(sqlstr, function (err, result) {
         if (err) {
-            console.log("processDeviceResetMessage %j", err);
+            console.error("processDeviceResetMessage %j", err);
             utils.notify('Reset: (' + values.deviceID + ') reason: ' + values.Reason + ' last action: ' + values.LastAction +
                 ' Version: ' + values.Version, "Alarm");
         } else {
@@ -604,7 +604,7 @@ function processDeviceResetMessage(values) {
                 time.publish();
                 weather.publish();
             } catch (ex) {
-                console.log("Reset problem %j values %j result %j", ex.message, values, result);
+                console.error("Reset problem %j values %j result %j", ex.message, values, result);
             }
         }
     });
@@ -637,13 +637,13 @@ function decodeMessage(topic, payload) {
                 || topicParts[3] == 'set' || topicParts[4] == 'set') {
                 // ignore
             } else {
-                console.log('Bad Topic: ' + topic.toString());
+                console.error('Bad Topic: ' + topic.toString());
             }
         } else {
-            console.log('Unknown Topic: ' + topic.toString());
+            console.error('Unknown Topic: ' + topic.toString());
         }
     } catch (ex) {
-        console.log('Decode Message error: %j topic: %j payload: %j', ex.message, topic, payload);
+        console.error('Decode Message error: %j topic: %j payload: %j', ex.message, topic, payload);
     }
 }
 exports.decode = decodeMessage;

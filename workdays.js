@@ -7,7 +7,6 @@ exports.init = function (cb) {
     let r = JSON.parse(JSON.stringify(result[0]));
     state = r;
     checkZones();
-    setTimeout(checkZones, 60 * 60 * 1000); // Then Every hour
     if (cb) cb();
   });
 }
@@ -15,6 +14,7 @@ exports.init = function (cb) {
 exports.checkZones = checkZones;
 
 function checkZones(d = 'now', cb) {
+  setTimeout(checkZones, 60 * 60 * 1000); // Then Every hour
   let day = moment().format("dddd").slice(0, 2);
   if (d != 'now') day = d;
   console.log("CheckZones (work): ", day, state[day]);

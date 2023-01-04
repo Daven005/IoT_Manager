@@ -41,7 +41,7 @@ var dailyGraph = require('./dailyGraph');
 var override = require('./override');
 var logs = require('./logs');
 var menu = require('./menu');
-var lights = require('./lights');
+var lights = require('./lights.test2');
 var manage = require('./manage');
 var heating = require('./heating');
 var signal = require('./signal');
@@ -222,6 +222,7 @@ function setupWeb() {
     app.post("/lights/patterns", lights.postPatterns);
     app.post("/lights/pattern", lights.postPattern);
     app.post("/lights/playlist", lights.playlist);
+    app.post("/lights/setLed", lights.setLed);
 
     app.get('/Manage/Settings', manage.settings);
     app.get("/Manage/Devices", manage.deviceList);

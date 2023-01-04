@@ -1,3 +1,4 @@
+var czTimer = null;
 var state = {};
 var moment = require('moment');
 
@@ -14,10 +15,12 @@ exports.init = function (cb) {
 exports.checkZones = checkZones;
 
 function checkZones(d = 'now', cb) {
-  setTimeout(checkZones, 60 * 60 * 1000); // Then Every hour
+  if (!czTimer) {
+    czTimer = setInterval(checkZones, 60 * 60 * 1000); // Then Every hour
+  }
   let day = moment().format("dddd").slice(0, 2);
   if (d != 'now') day = d;
-  console.log("CheckZones (work): ", day, state[day]);
+  console.log("CheckZones (work): ", day, JSON.stringify(state));
   if (state[day]) { // Is a Work day
     let sqlstr = "update heatingzones set enabled=1 where ID=?"
     sqlstr = sql.format(sqlstr, [state.workZoneID]);
@@ -70,11 +73,8 @@ exports.save = function (cb) {
   db.query(sqlstr, function (err, result) {
     if (err) {
       console.err("Workday update error: ", err.description)
-    } //else {
-    //   console.log("Updated: ", result)
-    // }
-    checkZones('now', () => {if (cb) cb()});
-    if (cb) cb();
+    }
+    checkZones('now', () => { if (cb) cb() });
   });
 }
 

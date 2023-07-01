@@ -286,7 +286,7 @@ DeviceState.prototype.getTemperatureChange = function (deviceId, sensorId) {
   let lr = linearRegression(this.state[deviceId].temperature[sensorId].averages, 
     this.state[deviceId].temperature[sensorId].times);
   let factor = 1000*60*60; // deg/hour
-  console.log(`temp slope = ${deviceId}, ${sensorId}, ${lr.slope*factor}`);
+  // console.log(`temp slope = ${deviceId}, ${sensorId}, ${lr.slope*factor}`);
   return lr.slope*factor;
 }
 

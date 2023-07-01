@@ -5,6 +5,7 @@ var setConfig = require('./config').read(configLoaded);
 
 function configLoaded(cfg) {
     global.config = cfg;
+    global.config.publish = false;
     try {
         var weather = require('./weather');
         weather.load(() => weather.publish());

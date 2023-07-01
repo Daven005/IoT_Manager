@@ -13,7 +13,7 @@ function reload() {
 		error: function(x, error, txt) {
 			var idx;
 			alert(`Reload error: '${txt}'`);
-			for (idx=0; idx<4; idx++) addZone({}, idx);
+			for (idx=0; idx<8; idx++) addZone({}, idx);
 		}
 	});
 }
@@ -122,7 +122,7 @@ function makeSlider(id, start, end) {
 function getSelect(z) {
   var sel = '<select class="outputID">'+
     '<option value="0">OFF</option>'
-  for (var i=1; i<=4; i++) {
+  for (var i=1; i<=8; i++) {
     if (i == z) {
       sel = sel + '<option value="'+i+'" selected>'+i+'</option>';
     } else {
@@ -148,11 +148,11 @@ function updateBtn() {
   $("#panel").children("div").each(function(idx) {
     var zone = {};
     if (!$(this).find(".deleteCb").is(':checked')) {
-		zone.name  = $(this).children(".zoneName").text();
-		zone.start = $(this).children(".zoneSlider").slider("values", 0);
-		zone.end   = $(this).children(".zoneSlider").slider("values", 1);
-		zone.output  = parseInt($(this).find(".outputID").val());
-		zone.checkRain = $(this).find(".rainCb").is(':checked');
+      zone.name  = $(this).children(".zoneName").text();
+      zone.start = $(this).children(".zoneSlider").slider("values", 0);
+      zone.end   = $(this).children(".zoneSlider").slider("values", 1);
+      zone.output  = parseInt($(this).find(".outputID").val());
+      zone.checkRain = $(this).find(".rainCb").is(':checked');
 		settings.push(zone);
 	}
   });

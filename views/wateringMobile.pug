@@ -223,7 +223,7 @@ body
                     div.fieldcontain.colm30.inline(style="vertical-align: top;")
                         span.colm10.inline Zone
                         select.zone.inline(data-mini="true")
-                            each o in  ["Off", "1", '2', '3', '4']
+                            each o in  ["Off", "1", '2', '3', '4', "5", "6", "7", "8"]
                                 - var select = (o == val.zone)
                                 option(value=o selected=select) #{o}
                     button.mode.colm30.inline #{val.mode}

@@ -1,8 +1,8 @@
 fs = require('fs');
 weather = require('./weather');
 //NB moment is global
-var deviceID;
-var currentOutputs = [0, 0, 0, 0, 0];
+var deviceID1, deviceID2;
+var currentOutputs = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 if (config.watering.enabled) setInterval(checkOutputs, 60 * 1000);
 
@@ -14,19 +14,21 @@ function checkOutputs() {
 		return moment().isBetween(moment(startTime, 'DD-MM-YYYY HHmm'), endTime);
 	}
 
-	if (config.debug)
-		deviceID = 'Test01234';
-	else
-		deviceID = deviceState.findDeviceID(config.watering.controllerName, config.watering.controllerLocation);
-	if (!deviceID) return;
+	if (config.debug){
+		deviceID1 = 'Test01234';
+		deviceID2 = 'Test01235';
+  } else {
+		deviceID1 = deviceState.findDeviceID(config.watering.controller1.Name, config.watering.Location);
+		deviceID2 = deviceState.findDeviceID(config.watering.controller2.Name, config.watering.Location);}
+	if (!deviceID1) return;
 
 	fs.readFile('public/settings.json', (err, data) => {
 		try {
 			var programmes = JSON.parse(data);
-			currentOutputs = [0, 0, 0, 0, 0];
+			currentOutputs = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 			programmes.forEach((prog) => {
 				let isActive = false; // NB value transmitted is 0 or 1
-				if (1 <= prog.zone && prog.zone <= 4) {
+				if (1 <= prog.zone && prog.zone <= 8) {
 					switch (prog.mode) {
 					case 'On': isActive = true; break;
 					case 'Off': break;
@@ -49,13 +51,20 @@ function checkOutputs() {
 }
 
 function setOutput(state, chanl) {
-	if (chanl > 0) {
-		var topic = `/Raw/${deviceID}/${chanl}/set/output`;
-		if (config.debug)
-			console.log("%s ==> %s", topic, state.toString());
-		else
-			client.publish(topic, state.toString());
-	}
+  var topic;
+	if (1 <= chanl && chanl <= 4) {
+		topic = `/Raw/${deviceID1}/${chanl}/set/output`; // 1-4
+  } else if (5 <= chanl && chanl <= 8) {
+		topic = `/Raw/${deviceID2}/${chanl-5}/set/output`; // -> 0-3
+  } else {
+    return;
+  }
+  if (config.debug)
+    console.log("%s ==> %s", topic, state.toString());
+  else { 
+    // console.log("%s ==> %s", topic, state.toString())
+    client.publish(topic, state.toString())
+  };
 }
 
 exports.schedule = function (request, response) {

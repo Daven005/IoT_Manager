@@ -14,8 +14,7 @@ function configLoaded(cfg) {
     }
     weather.load(() => {
         tides.load(() => {
-            console.log('done');
-            console.log(`done ${JSON.stringify(tides.get(), null, 2)}`);
+            console.log(`Tides loaded ${JSON.stringify(tides.get(), null, 2)}`);
         });
     });
 }

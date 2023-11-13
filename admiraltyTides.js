@@ -47,7 +47,9 @@ exports.load = function (callback) {
                     dayTides.tides.push({
                         time: dt.format('HH.mm'),
                         height: parseFloat(tide.Height).toFixed(2),
-                        varHeight: ((weather.avgPressure() - weather.getPressure(dayNo)) * 0.01).toFixed(2) // cm/mBar
+                        varHeight: ((weather.avgPressure() - weather.getPressure(dayNo)) * 0.01).toFixed(2), // cm/mBar
+                        pressure: weather.getPressure(dayNo),
+                        day: dayNo
                     })
                 });
             } catch (ex) {
@@ -66,7 +68,12 @@ exports.load = function (callback) {
 }
 
 exports.show = function (request, response) {
+  let d;
+  let w=[];
+  for (d=0; d<7; d++) {
+    w[d] = weather.getPressure(d);
+  }
     response.render("tides", {
-        map: tides
+        map: tides, weather: w
     });
 }

@@ -344,7 +344,7 @@ exports.firingReason = function(onoff, temperature, callback) {
       info.err = 'Heating is on';
     } else {
       info.demand = zones.filter((z) => (z && !z.demand && !z.IsMaster 
-                                    && (zoneCurrentTemp(z.ID) - zoneTargetTemp(z.ID)) < 1))
+                                    && (zoneCurrentTemp(z.ID) - zoneTargetTemp(z.ID)) < 0))
                   .map((z) => {return {'name':z.Name, 
                                        'temperature': zoneCurrentTemp(z.ID), 
                                        'override': zoneOverrideOn(z.ID),

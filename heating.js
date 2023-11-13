@@ -597,9 +597,9 @@ exports.zoneInfoByName = function (request, response) {
 }
 
 exports.whyFiring = function (request, response) {
-  processHeating.firingReason(request.body.onoff, request.body.temp, (info) => {
+  processHeating.firingReason(request.query.onoff, request.query.temp, (info) => {
     response.setHeader('Content-Type', 'application/json');
-    console.log("CK demand: %j", info);
+    // console.log("CK demand: %j", info);
     response.end(JSON.stringify(info));
   });
 }

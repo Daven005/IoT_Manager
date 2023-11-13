@@ -56,6 +56,13 @@ function publish() {
   checkWeatherPublish('/App/Wind/avg', JSON.stringify(wind.Avg));
   checkWeatherPublish('/App/Wind/gust', JSON.stringify(wind.Gust));
   checkWeatherPublish('/App/Rain/today', JSON.stringify(rain.today));
+  // This will get the temperature and wind info into the database
+  checkWeatherPublish('/Raw/Hollies000000/0/info',
+    `{"Type": "Temp", "Value": ${temps}}`);
+  checkWeatherPublish('/Raw/Hollies000000/Wind Average/info',
+    `{"Type": "Speed", "Value": ${wind.Avg}}`);
+  checkWeatherPublish('/Raw/Hollies000000/Wind Max/info',
+    `{"Type": "Speed", "Value": ${wind.Gust}}`);
 }
 
 function checkWeatherPublish(topic, payload) {
@@ -91,20 +98,14 @@ function load(callback) {
       let daily = response.data.daily;
       currentTemp = Math.round(currently.temp);
 
-      // This will get the temperature and wind info into the database
-      checkWeatherPublish('/Raw/Hollies000000/0/info', 
-        `{"Type": "Temp", "Value": ${currently.temp}}`);
-      checkWeatherPublish('/Raw/Hollies000000/Wind Average/info', 
-        `{"Type": "Speed", "Value": ${currently.wind_speed}}`);
-      checkWeatherPublish('/Raw/Hollies000000/Wind Max/info', 
-        `{"Type": "Speed", "Value": ${hourly[0].wind_gust}}`);
-      // checkWeatherPublish('/App/weather/daily', JSON.stringify(data.daily.data));
+      // checkWeatherPublish('/App/weather/daily', JSON.stringify(daily));
       temps = {
         t: [Math.round(hourly[1].temp),
         Math.round(hourly[2].temp),
         Math.round(hourly[3].temp)
         ]
       };
+      publish();
 
       let c = [];
       for (idx = 0; idx < 24; idx++) {
@@ -122,7 +123,7 @@ function load(callback) {
       for (idx = 0; idx <= 6; idx++) {
         pressure[idx] = daily[idx].pressure;
       }
-
+      console.log(`Forecast loaded`);
       if (callback) callback();
     })
 

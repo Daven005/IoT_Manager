@@ -170,16 +170,15 @@ function setupIntervalFunctions() {
         weather.load(() => {
             managePower.powerJob();
             weather.publish(); // Done straight away for Boiler Control
-            setInterval(weather.load, 10 * 60 * 1000);
+            setInterval(weather.load, 3 * 60 * 60 * 1000);
             setInterval(weather.publish, 2 * 60 * 1000 - 4); // Just under 2 minutes
-        });
+            tides.load(() => console.log("Tides loaded"));
+            setInterval(tides.load, 60 * 60 * 1000 - 5); // Every hour
+          });
     });
     sun.load();
     setInterval(sun.load, 15 * 60 * 1000 - 4); // Just under 1 minute
     setInterval(sun.publish, 1 * 60 * 1000 - 4); // Just under 1 minute
-
-    tides.load(() => console.log("Tides loaded"));
-    setInterval(tides.load, 60 * 60 * 1000 - 5); // Every hour
 
     time.publish();
     setInterval(time.publish, 2 * 60 * 1000); // 2 minutes
@@ -275,7 +274,7 @@ function setupWeb() {
     app.post('/hollies/getZoneInfo', heating.zoneInfoByName);
     app.post('/hollies/overrideHeating', heating.voiceOverrides);
     app.get('/hollies/whyFiring', heating.whyFiring);
-    app.post('/hollies/whyFiring', heating.whyFiring);
+    // app.post('/hollies/whyFiring', heating.whyFiring);
     app.get('/hollies/heating/getAllDeviceInfo', heating.getAllDeviceInfo);
     app.get('/hollies/heating/override', heating.externalSetOverride);
 

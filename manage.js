@@ -353,6 +353,8 @@ exports.sensors = function (request, response) {
   }
 }
 
+// *** getDeviceInfo *** invoked from Update command in Names ((/Manaage/Sensors))
+
 exports.getDeviceInfo = function (request, response) {
   response.setHeader('Content-Type', 'application/json');
   var rq = request.query;

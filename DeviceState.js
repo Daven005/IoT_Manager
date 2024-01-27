@@ -235,6 +235,34 @@ DeviceState.prototype.setOutputName = function (device, op, name) {
   this.state[device] = record;
 }
 
+DeviceState.prototype.setLatestLight = function (device, op, value) {
+  var record = this.state[device];
+  if (typeof record == 'undefined') {
+    record = { light: [], lightName: [] }
+    record.light[op] = value;
+  } else {
+    if (typeof record.light == 'undefined') {
+      record.light = [];
+    }
+    record.light[op] = value;
+  }
+  this.state[device] = record;
+}
+
+DeviceState.prototype.setLightName = function (device, op, name) {
+  var record = this.state[device];
+  if (typeof record == 'undefined') {
+    record = { light: [], lightName: [] }
+    record.lightName[op] = name;
+  } else {
+    if (typeof record.lightName == 'undefined') {
+      record.lightName = [];
+    }
+    record.lightName[op] = name;
+  }
+  this.state[device] = record;
+}
+
 DeviceState.prototype.get = function (DeviceID) {
   console.log(this.state[DeviceID]);
   return this.state[DeviceID];
@@ -306,6 +334,24 @@ DeviceState.prototype.getOutputId = function (DeviceID, name) {
   if (typeof this.state[DeviceID] == 'undefined') return undefined;
   if (typeof this.state[DeviceID].outputName == 'undefined') return undefined;
   return this.state[DeviceID].outputName.findIndex(n => n === name);
+}
+
+DeviceState.prototype.getLatestLight = function (deviceId, sensorId) {
+  if (typeof this.state[deviceId] == 'undefined') return undefined;
+  if (typeof this.state[deviceId].light == 'undefined') return undefined;
+  return this.state[deviceId].light[sensorId];
+}
+
+DeviceState.prototype.getLightName = function (DeviceID, sensorId) {
+  if (typeof this.state[DeviceID] == 'undefined') return undefined;
+  if (typeof this.state[DeviceID].lightName == 'undefined') return undefined;
+  return this.state[DeviceID].lightName[sensorId];
+}
+
+DeviceState.prototype.getLightId = function (DeviceID, name) {
+  if (typeof this.state[DeviceID] == 'undefined') return undefined;
+  if (typeof this.state[DeviceID].lightName == 'undefined') return undefined;
+  return this.state[DeviceID].lightName.findIndex(n => n === name);
 }
 
 DeviceState.prototype.getAttempts = function (DeviceID) {

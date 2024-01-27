@@ -2,7 +2,6 @@ mixin colours()
   if (typeof(locals.colours) == 'undefined' || typeof(locals.colours.map) == 'undefined') 
      - locals.colours = {}
      - locals.colours.map = [0,"ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff","ffffff"]
-  - console.log("L: %j", locals)
   form(action='/lights/colours', method='post' enctype='application/json')
     fieldset
       legend= "Colours"
@@ -70,17 +69,17 @@ mixin pattern(frameID)
           - for (var i = ledStart; i < ledStart+25; ++i) 
             td
               - if (typeof(locals.patterns[frameID].LED[i-ledStart]) != 'undefined')
-                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value=patterns[frameID].LED[i-ledStart] size="1" style="background-color: #{'#'+colours.map[patterns[frameID].LED[i-ledStart]]}")
+                input(id=`LED-${frameID}-${i-ledStart}` name="LED" class="led" value=patterns[frameID].LED[i-ledStart] size="1" style="background-color: #{'#'+colours.map[patterns[frameID].LED[i-ledStart]]}")
               - else
-                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value="0" size="1")
+                input(id=`LED-${frameID}-${i-ledStart}` name="LED" class="led" value="0" size="1")
 
         tr
           - for (var i = ledStart+25; i < ledStart+50; ++i) 
             td
               - if (typeof(locals.patterns[frameID].LED[i-ledStart]) != 'undefined')
-                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value=patterns[frameID].LED[i-ledStart] size="1" style="background-color: #{'#'+colours.map[patterns[frameID].LED[i-ledStart]]}")
+                input(id=`LED-${frameID}-${i-ledStart}` name="LED" class="led" value=patterns[frameID].LED[i-ledStart] size="1" style="background-color: #{'#'+colours.map[patterns[frameID].LED[i-ledStart]]}")
               - else
-                input(id="LED-#{frameID}-#{i-ledStart}" name="LED" class="led" value="0" size="1")
+                input(id=`LED-${frameID}-${i-ledStart}` name="LED" class="led" value="0" size="1")
                   
       input(type="submit" name="Action" value="Save")
       input(type="submit" name="Action" value="Transmit")
@@ -122,8 +121,7 @@ mixin showplaylist()
         - else
           input(name="stoptime" value="23" size="4")
       table: tbody: tr
-        td
-          input(type="hidden", name="frames" value="0" size="1")
+        label="Frame List: "
         - for (var i = 0; i < fc; i++) {
           td
             input(name="frames" value=locals.playlist.frames[i] size="1")
@@ -150,11 +148,34 @@ mixin setTarget()
         input(type="radio" name="transmit" value="HTTP")      
     input(type="submit" name="Action" value="Set Target")
 
+mixin setLED_type()
+  if (typeof locals.ledType == undefined)
+    locals.ledType = {ic: 'WS2811', stringLength: 40}
+  - console.log("L: %j", locals.ledType)
+  form(action='/lights/setLed', method='post' enctype='application/json')
+    fieldset
+      legend= "LED Type"
+      div
+      fieldset
+        label(for="IC") IC type: 
+          label WS8211
+            input(type="radio" name="ic" value="WS2811" checked=(locals.ledType.ic == "WS2811") ? "checked" : undefined)
+          label WS8201
+            input(type="radio" name="ic" value="WS2801" checked=(locals.ledType.ic == "WS2801") ? "checked" : undefined)
+        label(for="Length") String Length:
+          input(type="text" name="stringLength" id="stringLength" value=locals.ledType.stringLength)
+      input(type="submit" name="Action" value="Set LED type")
+      input(type="submit" name="Action" value="Save")
+      input(type="submit" name="Action" value="Transmit")
+
 doctype html
 head
   title Lights
   script(src='/views/jscolor.js')
   include header
+  style.
+    .led {border: 1px solid #0;}
+    .ledSelected {border: 3px dashed red;}
   script.
     $(function() {
       $("#test").click( function() {
@@ -173,17 +194,15 @@ head
       })
       $('.led').on('input',function(){
       try {
-        var colour = '#'+document.getElementById('map'+this.value).value;
+        var colour = `#${document.getElementById('map'+this.value).value}`;
         this.style['background-color'] = colour;
       } catch(e) {this.style['background-color'] = '#ffffff';}
       })
       $('.led').focus(function(){
-        this.style['border-color'] = '#ff0000'
+        $('.ledSelected').removeClass('ledSelected').addClass('led')          
+        $(this).removeClass('led')
+        $(this).addClass('ledSelected')
         $('input[name=selectedLED]').val(this.id)
-        
-      })
-      $('.led').blur(function(){
-        this.style['border-color'] = '#ffffff'
       })
       $('.map').on('change',function(){
         try {
@@ -195,7 +214,8 @@ head
             }
           })
         } catch(ex) {alert(ex);}
-    })})
+      })
+    })
 
 body
   #menu
@@ -207,6 +227,7 @@ body
   +colours()
   +patterns()
   +showplaylist()
+  +setLED_type()
   form(action='/lights', method='post' enctype='application/json')
     input(type="text" name="file" value=`${locals.fileName}`)
     input(type="submit" name="Action" value="Save As")

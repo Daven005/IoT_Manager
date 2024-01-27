@@ -290,12 +290,16 @@ function updateScenes(cb) {
 
         // e.g. allScenes {"ID":1, "Name": "Reading", "FadeIn":20, "Duration":0, "FadeOut":0, "FadePrev":false, "NextScene":255, "StartTime":"42:30"},
         function updateScene(tlcName, scene) {
+          try {
             let idx = allScenes.findIndex((sc) => { return sc.tlcName == tlcName && scene.ID == sc.ID });
             if (idx >= 0) {
                 allScenes[idx].Name = scene.Name; // That's all that might have changed that we want
             } else {
-                allScenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
-            }
+               
+            }allScenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
+          } catch(e) {
+            console.error(`updateScene Error ${e}`);
+          }
         }
 
         // e.g. sceneChannels {"SceneID":1,"Channel":{"ID":2,"Max":2,"value":250}}

@@ -43,14 +43,14 @@ script.
     $('#'+val.ID+' .dial .current').html(val.currentTemperature.toFixed(1)+'C');
     if (val.targetTemp) $('#'+val.ID+' .dial .target').html('&rarr;'+val.targetTemp+'C');
     if (val.overrideOn) $('#'+val.ID+' .dial .override').html(val.overrideName);
-    $('#'+val.ID+' .dial').on("swipe",function(event){
+    $('#'+val.ID+' .dial').on("taphold",function(event){
       $.mobile.changePage("/Heating/mobileOverrides?zoneID="+event.currentTarget.parentElement.id);
     });
-    $('#'+val.ID).on("taphold",function(event){
-      $("#header").toggle();
-      $("#nav-panel").toggle();
-      toggleFullScreen();
-    });
+    //- $('#'+val.ID).on("taphold",function(event){
+    //-   $("#header").toggle();
+    //-   $("#nav-panel").toggle();
+    //-   toggleFullScreen();
+    //- });
   }
   function updateAll(map) {
     map.forEach(function(zone) { 
@@ -102,7 +102,7 @@ style.
   }
   .view {width: 98%; margin:0 auto; height: 100%; display: inline-block; text-align: center}
   .view1 {width: 98%; margin:0 auto; background-color: cyan; height: 100%; display: inline-block; text-align: center}
-  .name {width: 100px; text-align: center)
+  .name {width: 100px; text-align: center}
   * {-webkit-user-select: none; user-select: none;  }
 
 body

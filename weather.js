@@ -58,11 +58,13 @@ function publish() {
   checkWeatherPublish('/App/Rain/today', JSON.stringify(rain.today));
   // This will get the temperature and wind info into the database
   checkWeatherPublish('/Raw/Hollies000000/0/info',
-    `{"Type": "Temp", "Value": ${temps}}`);
+    `{"Type": "Temp", "Value": ${currentTemp}}`);
   checkWeatherPublish('/Raw/Hollies000000/Wind Average/info',
     `{"Type": "Speed", "Value": ${wind.Avg}}`);
+  let info;
   checkWeatherPublish('/Raw/Hollies000000/Wind Max/info',
-    `{"Type": "Speed", "Value": ${wind.Gust}}`);
+    info = `{"Type": "Speed", "Value": ${JSON.stringify(wind.Gust)}}`);
+  console.log(`W_max ${info}`);
 }
 
 function checkWeatherPublish(topic, payload) {
@@ -118,7 +120,7 @@ function load(callback) {
       if (rqCloudCB) rqCloudCB(cloud);
 
       wind.Avg = Math.round(currently.wind_speed);
-      wind.Gust = Math.round(currently.wind_gust);
+      wind.Gust = Math.round(hourly[0].wind_gust);
       rain.today = daily[0].rain;
       for (idx = 0; idx <= 6; idx++) {
         pressure[idx] = daily[idx].pressure;

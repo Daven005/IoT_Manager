@@ -22,3 +22,9 @@ body
                                 td.highTide=`${tide.height} (${tide.varHeight})`
                             else
                                 td.lowTide=`${tide.height} (${tide.varHeight})`
+    h3 Pressure
+    table
+        tbody
+          tr
+            each val, idx in weather
+              td=val

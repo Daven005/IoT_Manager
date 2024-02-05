@@ -121,7 +121,7 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
         }
       }
 
-      function getDuration() {
+      function getDuration() { // in milliseconds
         var a = o.duration.split(':');
         return 1000 * (parseInt(a[0]) * 60 * 60 + parseInt(a[1]) * 60); // Ignoring seconds
       }
@@ -134,9 +134,9 @@ function checkZonesHeat(timeNow, dateStr, dow, previousDow, log) {
       }
 
       function checkOverrideAfterEnd() {
-        var start = new Date(dateStr + ' ' + o.start);
+        var start = new Date(dateStr + ' ' + o.start); // YYYY/MM/DD hh:mm
         var duration = getDuration();
-        if (duration >= (24 * 60) * 60 * 1000) return true; // 00:00 or 23:59
+        if ((start.getTime() + duration) >= (24 * 60) * 60 * 1000) return true; // into next day
         return timeNow >= (start.getTime() + duration);
       }
     }

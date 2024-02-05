@@ -66,6 +66,7 @@ function mobileOverrides(request, response) {
 
 function _mobileOverrides(request, response, zoneFilter) {
   var errorStr = "";
+  // console.log(JSON.stringify(request.query))
   function _reload(zone) {
     var sqlstr = "SELECT zoneID, heatingoverrides.ID AS oID, heatingzones.Name AS zoneName, "
       + "heatingoverrides.Name AS groupName, TemperatureMax, TemperatureMin, "
@@ -118,7 +119,7 @@ function _mobileOverrides(request, response, zoneFilter) {
   }
 
   if (request.query.zoneID) {
-    if (request.query.Action == "Set") {
+    if (request.query.Action == "Set" || request.query.Action == "Off") {
       if (zoneFilter) {
         _updateOverride(request); // Allow guest update access
       } else if (login.check(request, response)) {

@@ -14,7 +14,7 @@ function configLoaded(cfg) {
         process.exit(1);
     }
     tlc_if.init(() => {
-        console.log('done');
+        console.log('init done');
         tlc_if.getAreaChannels('Lounge', (result) => {
             console.log(`done ${JSON.stringify(result, null, 2)}`);
         });

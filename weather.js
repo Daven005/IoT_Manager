@@ -1,8 +1,8 @@
 axios = require('axios');
-var apiKey = '01087b9993c21f387771983e655a754f';
+var apiKey = config.weather.apiKey; //'01087b9993c21f387771983e655a754f';
 var url = 'https://api.openweathermap.org/data/3.0/onecall';
-var lati = 50.82656702724442;
-var longi = -1.340523851589267;
+var lati = config.lattitude;
+var longi = config.logitude;
 var data;
 var u = `${url}?lat=${lati}&lon=${longi}&appid=${apiKey}&units=metric&exclude=alerts`;
 

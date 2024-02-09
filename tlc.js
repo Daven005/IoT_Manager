@@ -331,17 +331,16 @@ function reloadAreas(response, window, currentArea) {
   });
 }
 
-function makeSceneList(tlc, scenes) {
-  var sl = "";
-  scenes.forEach(function (s) {
-    if (sl != "") sl += ', ';
-    sl += '("' + tlc + '", "' + s.Name + '")';
-  });
-  return sl;
-}
-
 function areasUpdate(response) {
   function getScenes(_tlc, callback) {
+    function makeSceneList(tlc, scenes) {
+      var sl = "";
+      scenes.forEach(function (s) {
+        if (sl != "") sl += ', ';
+        sl += '("' + tlc + '", "' + s.Name + '")';
+      });
+      return sl;
+    }
 
     function processScenes(scenes) {
       var sqlStr;
@@ -350,8 +349,8 @@ function areasUpdate(response) {
       // console.log("******** processScenes %s - %j", _tlc.Name, scenes);
       if (scenes.error) return callback(scenes.error);
       var sceneList = makeSceneList(_tlc.Name, scenes.data);
-      var sqlStr = "INSERT IGNORE INTO arealights (_tlc, Scene) VALUES " + sceneList
-      // console.log("Scenes %j", sqlStr);
+      var sqlStr = "INSERT IGNORE INTO arealights (TLc, Scene) VALUES " + sceneList
+      console.log("Scenes %j", sqlStr);
       db.query(sqlStr, function (err, result) {
         if (err) return callback(err);
         callback();
@@ -391,12 +390,31 @@ function areasSet(request, response) {
   });
 }
 
+function areasAdd(request, response) {
+  var sqlStr = "UPDATE arealights SET Area = ?, InUse = ? WHERE TLc = ? AND Scene = ?"
+  sqlStr = sql.format(sqlStr, [
+    request.query.areaID,
+    request.query.InUse ? 1 : 0,
+    request.query.TLc,
+    request.query.Scene
+  ]);
+  db.query(sqlStr, function (err, result) {
+    if (err) {
+      console.error(err);
+      errorStr = err.message;
+    }
+    reloadAreas(response, 'areas');
+  });
+}
+
 function areas(request, response) {
   if (login.check(request, response)) {
     if (request.query.update) { // Update Scenes from all TLcs
       areasUpdate(response);
     } else if (request.query.set) {
       areasSet(request, response);
+    } else if (request.query.add) {
+      areasAdd(request, response);
     } else {
       reloadAreas(response, 'areas');
     }

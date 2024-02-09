@@ -14,21 +14,6 @@ var broadcastAddress;
 var refreshCompleteCb;
 var controlState = 'Auto';
 
-exports.init = init;
-exports.send = send;
-exports.rqInfo = rqInfo;
-exports.control = control;
-exports.trigger = trigger;
-exports.setChannel = setChannel;
-exports.showScene = showScene;
-exports.refresh = refresh;
-exports.list = list;
-exports.state = state;
-exports.checkTLcs = checkTLcs;
-exports.updateScenes = updateScenes;
-
-var udpServervar;
-
 function enqTimeoutCb() {
     console.log("### Tlc enqTimeoutCb");
     TLcList.forEach((t) => { // Deal with TLcs going offline
@@ -98,11 +83,12 @@ function broadcast(address, str) {
     udpServer.setBroadcast(true);
     udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, address, (err, bytes) => {
         if (err) {
-            console.log("Broadcast error: %j", err);
+            console.error("Broadcast error: %j", err);
         }
     });
 }
 
+exports.init = init;
 function init(initDone) {
     enqBroadcastCb = initDone;
     udpServer = dgram.createSocket('udp4');
@@ -139,6 +125,7 @@ function init(initDone) {
     });
 }
 
+exports.checkTLcs = checkTLcs;
 function checkTLcs(cb) {
     if (enqBroadcastCb) {
         console.log("checkTLcs, enq in progress");
@@ -149,6 +136,7 @@ function checkTLcs(cb) {
     broadcast(broadcastAddress, '{"enq":"TLc"}');
 }
 
+exports.rqInfo = rqInfo;
 function rqInfo(tlcName, info, cb, param) {
     var options = {
         timeout: 1000,
@@ -171,6 +159,7 @@ function rqInfo(tlcName, info, cb, param) {
     if (param) {
         options.path += '&' + param;
     }
+    // console.log(options.path);
     var req = http.get(options, function (res) {
         var data = '';
         res.on('data', function (chunk) {
@@ -197,7 +186,7 @@ function rqInfo(tlcName, info, cb, param) {
     });
     req.on('error', (e) => {
         console.error("rqInfo error: %j", e);
-        console.log(e.stack);
+        console.error(e.stack);
         cb({ error: true, info: e.message, reqInfo: info, tlc: tlcName });
         if (!enqBroadcastCb) { // No enqBroadcastCb in progress
             checkTLcs(() => {
@@ -223,6 +212,7 @@ function getChannel(tlcName, channelID) {
     return chnl;
 }
 
+exports.updateScenes = updateScenes;
 function updateScenes(cb) {
     let tlcCount = TLcList.length;
     allChannels = [];
@@ -265,24 +255,25 @@ function updateScenes(cb) {
                         channels.push({ id: c.ID, name: c.Name, tlcName: _tlc.Name, areaName: areaNames[c.AreaID], currentValue: channelValues[c.ID] });
                     });
                     Array.prototype.push.apply(allChannels, channels);
+                    // console.log(`----- ${JSON.stringify(allChannels)}`);
                     return getTLcData('scenes');
                 })
                 .then(tlcScenes => {
                     if (tlcScenes.length > 0) {
                         tlcScenes.forEach((scene) => { updateScene(_tlc.Name, scene); });
                     } else {
-                        console.log(`No scenes from ${_tlc.Name}`);
+                        console.error(`No scenes from ${_tlc.Name}`);
                     }
                     return getTLcData('sceneChannels');
                 })
                 .then(tlcSceneChannels => {
                     tlcSceneChannels.forEach(sc => { updateSceneChannels(_tlc.Name, sc); });
-                    console.log(allScenes.length);
+                    // console.log(allScenes.length);
                     if (--tlcCount == 0) {
                         if (cb) cb();
                     }
                 })
-                .catch(e => console.log(e));
+                .catch(e => console.error(e));
         } else {
             console.log(`TLc ${_tlc.Name} is offline`);
             if (cb) cb();
@@ -294,9 +285,8 @@ function updateScenes(cb) {
             let idx = allScenes.findIndex((sc) => { return sc.tlcName == tlcName && scene.ID == sc.ID });
             if (idx >= 0) {
                 allScenes[idx].Name = scene.Name; // That's all that might have changed that we want
-            } else {
-               
-            }allScenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
+            }
+            allScenes.push({ tlcName: tlcName, ID: scene.ID, Name: scene.Name, channels: [] });
           } catch(e) {
             console.error(`updateScene Error ${e}`);
           }
@@ -332,16 +322,17 @@ function updateScenes(cb) {
                         }
                     }
                 } else {
-                    console.log(`(${sceneIdx}) Scene inconsistancy tcl: ${tlcName} no scene for ${JSON.stringify(sceneChannel)}`);
+                    console.error(`(${sceneIdx}) Scene inconsistancy tcl: ${tlcName} no scene for ${JSON.stringify(sceneChannel)}`);
                 }
             } catch (ex) {
-                console.log('Error in updateSceneChannels: ', ex.message)
+                console.error('Error in updateSceneChannels: ', ex.message)
             }
         }
     });
 }
 
-exports.getSceneAreaChannels = function (areaName, sceneName, cb) {
+exports.getSceneAreaChannels = getSceneAreaChannels
+function getSceneAreaChannels(areaName, sceneName, cb) {
     const getTLcData = function (tlcName, url) {
         return new Promise((resolve, reject) => {
             rqInfo(tlcName, url, (result) => {
@@ -354,42 +345,51 @@ exports.getSceneAreaChannels = function (areaName, sceneName, cb) {
         });
     }
 
-    function findValue(channelValues, tlcName, channelID) {
-        channelValues.forEach((tlcValues) => {
-            if (tlcName == tlcValues.tlc) return tlcValues.data[channelID];
-        });
-        return 0;
+  function findValue(channelValues, tlcName, channelID) {
+    var tlcValues = channelValues.find((_tlcValues) => tlcName == _tlcValues.tlc )
+    if (tlcValues) {
+      // console.log(tlcValues);
+      if (channelID < tlcValues.data.length) {
+        return tlcValues.data[channelID];
+      }
     }
+    return 0;
+  }
 
     var allTLcPromises = [];
     var channelInfo = [];
-    TLcList.forEach((_tlc) => { allTLcPromises.push(getTLcData(_tlc.Name, 'channelvalues')); });
+    TLcList.forEach((_tlc) => { 
+      if (_tlc.online) 
+        allTLcPromises.push(getTLcData(_tlc.Name, 'channelvalues')); 
+    });
 
     Promise.all(allTLcPromises)
         .then((results) => {
-            console.log(results);
             allScenes.forEach((scene) => {
                 if (scene.Name == sceneName || sceneName == null) {
-                    scene.channels.forEach((channel) => {
+                  scene.channels.forEach((channel) => {
                         if (channel.areaName == areaName || areaName == null) {
-                            channelInfo.push({
+                          let _value = findValue(results, scene.tlcName, channel.ID);  
+
+                          channelInfo.push({
                                 tlc: scene.tlcName, area: areaName, scene: scene.Name, channel: channel.channelName,
-                                id: channel.ID, value: findValue(results, scene.tlcName, channel.ID),
-                                target: channel.targetValue
+                                id: channel.ID, value: _value, target: channel.targetValue
                             });
                         }
                     });
                 }
             });
+            // console.log(`scene values ===> ${JSON.stringify(channelInfo)}`);
             cb(channelInfo);
         })
         .catch(reason => {
-            console.log(reason)
+            console.error(reason)
             cb(reason);
         });
 }
 
-exports.getAreaChannels = function (areaName, cb) {
+exports.getAreaChannels = getAreaChannels
+function getAreaChannels(areaName, cb) {
 
     const getTLcData = function (tlcName, url) {
         return new Promise((resolve, reject) => {
@@ -408,15 +408,18 @@ exports.getAreaChannels = function (areaName, cb) {
         channelValues.forEach((tlcValues) => {
             if (tlcName == tlcValues.tlc) retVal = tlcValues.data[channelID];
         });
-        if (channelID == 18)
-            console.log(tlcName, channelID);
+        // if (channelID == 18)
+        //     console.log(tlcName, channelID);
         return (retVal < 0) ? 0 : retVal;
     }
 
     var allTLcPromises = [];
     var channelInfo = [];
     // Set up for parallel getting all (3) tlc info
-    TLcList.forEach((_tlc) => { allTLcPromises.push(getTLcData(_tlc.Name, 'channelvalues')); });
+    TLcList.forEach((_tlc) => { 
+      if (_tlc.online)
+        allTLcPromises.push(getTLcData(_tlc.Name, 'channelvalues')); 
+      });
 
     Promise.all(allTLcPromises)
         .then((results) => {
@@ -429,11 +432,12 @@ exports.getAreaChannels = function (areaName, cb) {
             cb(result);
         })
         .catch(reason => {
-            console.log(reason);
+            console.error(reason);
             cb(reason);
         });
 }
 
+exports.control = control;
 function control(state) {
     switch (state) {
         case "Auto":
@@ -443,6 +447,7 @@ function control(state) {
     }
 }
 
+exports.state = state;
 function state() {
     return controlState;
 }
@@ -466,6 +471,7 @@ function isLight(now, cloudCover) {
     return true;
 }
 
+exports.trigger = trigger;
 function trigger(tlcName, area, channel, state, filter) {
     if (filter && state == 'on') { // NB always turn OFF; conditional turn ON
         if (isLight(moment(), weather.getCloud().c[0])) return;
@@ -473,22 +479,26 @@ function trigger(tlcName, area, channel, state, filter) {
     send(tlcName, `{"OSC":["${area}-Fader","${channel}"],"args":[${(state == 'on') ? 255 : 0}]}`);
 }
 
+exports.setChannel = setChannel
 function setChannel(tlcName, area, channel, val) {
     if (val < 0) val = 0;
     if (val > 255) val = 255;
     send(tlcName, `{"OSC":["${area}-Fader","${channel}"],"args":[${val}]}`);
 }
 
+exports.showScene = showScene;
 function showScene(tlcName, scene) {
     send(tlcName, `{"OSC":["Area-Scene","${scene}"],"args":[1]}`);
 };
 
+exports.refresh = refresh;
 function refresh(tlcName, area, channel, cb) {
     console.log("refresh: %j %s-%s", tlcName, area, channel);
     refreshCompleteCb = cb;
     send(tlcName, `{"OSC":["Refresh Fader-${area}","${channel}"],"args":[1]}`);
 };
 
+exports.send = send;
 function send(tlcName, str) {
     var bfr = new Buffer.from(str);
     console.log("Send %j ===> %s", tlcName, str);
@@ -498,11 +508,11 @@ function send(tlcName, str) {
         console.log("%s=>%s %s", tlcName, str, ip);
         udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, ip, function (err, bytes) {
             if (err) {
-                console.log("tlc send error: %j", err);
+                console.error("tlc send error: %j", err);
             }
         });
     } else {
-        console.log("TLc %j is not online", tlcName);
+        console.error("TLc %j is not online", tlcName);
     }
 }
 
@@ -526,6 +536,7 @@ function addTLc(tlcName, ipAddress, version) {
     return newTLc;
 }
 
+exports.list = list;
 function list() {
     return TLcList;
 }

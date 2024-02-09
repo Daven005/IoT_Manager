@@ -1,16 +1,16 @@
 {
 	"folders": [
-        {
-            "path": "."
-        },
-        {
-            "path": "C:\\Users\\User\\Downloads\\jquery.jqplot.1.0.9"
-        },
-        {
-            "name": "220409-201703-wemos_d1_mini32",
-            "path": "C:\\Users\\User\\Documents\\PlatformIO\\Projects\\220409-201703-wemos_d1_mini32"
-        }
-    ],
+    {
+      "path": "."
+    },
+    {
+      "path": "C:\\Users\\User\\Downloads\\jquery.jqplot.1.0.9"
+    },
+    {
+      "name": "Settings",
+      "path": "C:/Users/User/Documents/PlatformIO/Projects/CommonEsp32/lib/Settings"
+    }
+  ],
     "settings": {
         "git.ignoreLimitWarning": true
     }

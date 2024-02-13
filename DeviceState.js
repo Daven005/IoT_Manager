@@ -240,12 +240,15 @@ DeviceState.prototype.setLatestLight = function (device, op, value) {
   if (typeof record == 'undefined') {
     record = { light: [], lightName: [] }
     record.light[op] = value;
+    console.log(`Light not yet set ${device} ${op}`)
   } else {
     if (typeof record.light == 'undefined') {
+      console.log(`Light not yet set ${device} ${op}`)
       record.light = [];
     }
     record.light[op] = value;
   }
+  console.log(`SetLight ${JSON.stringify(record)}`);
   this.state[device] = record;
 }
 
@@ -275,34 +278,60 @@ DeviceState.prototype.getLatestTemperature = function (deviceId, sensorId) {
   return this.state[deviceId].temperature[sensorId].latest;
 }
 
-function linearRegression(y, x) {
-  var lr = {};
-  var n = y.length;
-  var sum_x = 0;
-  var sum_y = 0;
-  var sum_xy = 0;
-  var sum_xx = 0;
-  var sum_yy = 0;
-
-  for (var i = 0; i < n; i++) {
-    sum_x += x[i];
-    sum_y += y[i];
-    sum_xy += (x[i] * y[i]);
-    sum_xx += (x[i] * x[i]);
-    sum_yy += (y[i] * y[i]);
+function linearRegression(y_values, x_values){
+  var regressor = {};
+  
+  //Set variables we'll need to get the slope and intercept; we need to find the equation in the format y = m*x+b where m is the slope and b is the intercept
+  var x_mean = x_values.reduce((a, b) => a + b, 0)/x_values.length;
+  var y_mean = y_values.reduce((a, b) => a + b, 0)/y_values.length;
+  
+  //Equations to solve for slope: 
+  var slope = 0, slope_numerator = 0, slope_denominator = 0;
+  for(i=0; i<x_values.length; i++){
+    slope_numerator += (x_values[i]-x_mean)*(y_values[i]-y_mean);
+    slope_denominator += Math.pow((x_values[i]-x_mean),2)
   }
+  
+  slope = slope_numerator/slope_denominator;
+  // console.log(slope);
+  regressor['slope'] = slope;
+  
+  //Equation to solve for intercept
+  var intercept = y_mean - x_mean*slope;
+  regressor['intercept'] = intercept;
 
-  lr['slope'] = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x);
-  lr['intercept'] = (sum_y - lr.slope * sum_x) / n;
-
-  return lr;
+  //Get y_hat, or predicted values of y based on x_values
+  //Loop through x_values, and run the elements through the lr equation to get predictions
+  var y_hat = [];
+  for(i=0; i<x_values.length; i++){
+    // console.log(x_values[i])
+    y_hat.push(x_values[i]*regressor['slope']+regressor['intercept']);
+  }
+  regressor['y_hat'] = y_hat;
+  
+  
+  //Now to find the r2 score
+  var residual_sum_of_squares = 0, total_sum_of_squares = 0, r2 = 0;
+  
+  for(i=0; i<y_values.length; i++){
+      residual_sum_of_squares+= Math.pow((y_hat[i]-y_values[i]),2);
+      total_sum_of_squares += Math.pow((y_hat[i]-y_mean),2);
+  }
+  
+  r2 = 1- residual_sum_of_squares/total_sum_of_squares;
+  
+  //Add to regressor object
+  regressor['r2'] = r2;
+  // console.log(r2);
+        
+  return regressor;    
 }
 DeviceState.prototype.getAverageTemperature = function (deviceId, sensorId) {
   if (typeof this.state[deviceId] == 'undefined') return undefined;
   if (typeof this.state[deviceId].temperature == 'undefined') return undefined;
   let len = this.state[deviceId].temperature[sensorId].averages.length;
   if (len == 0) return undefined;
-  return this.state[deviceId].temperature[sensorId].averages.reduce((prev, curr) => prev+curr);
+  return this.state[deviceId].temperature[sensorId].averages.reduce((prev, curr) => prev+curr)/len;
 }
 
 DeviceState.prototype.getTemperatureChange = function (deviceId, sensorId) {
@@ -337,8 +366,14 @@ DeviceState.prototype.getOutputId = function (DeviceID, name) {
 }
 
 DeviceState.prototype.getLatestLight = function (deviceId, sensorId) {
-  if (typeof this.state[deviceId] == 'undefined') return undefined;
-  if (typeof this.state[deviceId].light == 'undefined') return undefined;
+  if (typeof this.state[deviceId] == 'undefined') {
+    console.log(`Light device not set ${deviceId} ${sensorId}`)
+    return undefined;
+  }
+  if (typeof this.state[deviceId].light == 'undefined') {
+    console.log(`Light not set ${deviceId} ${sensorId}`)
+    return undefined;
+  }
   return this.state[deviceId].light[sensorId];
 }
 
@@ -366,7 +401,12 @@ DeviceState.prototype.findDeviceID = function (name, location) {
       if (this.state[DeviceID].location == location) return DeviceID;
     }
   };
+  console.error(`Can't find ${DeviceID}`);
   return undefined;
+}
+
+DeviceState.prototype.getRecord = function (deviceID) {
+  return this.state[deviceID];
 }
 
 DeviceState.prototype.deviceList = function () { // List of device Names

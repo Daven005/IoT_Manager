@@ -547,7 +547,7 @@ function processSensorValues(values, val) {
             break;
           case "Light":
             deviceState.setLatestLight(values.DeviceID, values.SensorID, val);
-            // console.log(`Set light ${val}`);
+            console.log(`Set light ${values.DeviceID} ${values.SensorID} ${val}`);
             break;
           default:
             // console.log(`processSensorValues (Other Type) ${JSON.stringify(values)}`);

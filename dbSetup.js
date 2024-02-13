@@ -10,7 +10,7 @@ exports.init = function (callback) {
     global.db = sql.createConnection(db_info);
     db.connect(err => {
         if (err) {
-            console.error(`An error occurred while connecting to the DB ${err.message}`)
+            console.error(`An error occurred while connecting to the DB "${err.message}"`)
             process.exit(1);
         }
         console.log(`DB connected`); // using ${db_info}`);

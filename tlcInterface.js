@@ -101,7 +101,7 @@ function init(initDone) {
         network.get_interfaces_list((err, list) => {
             var i;
             for (i = 0; i < list.length; i++) {
-                console.log(`IFs: ${JSON.stringify(list[i])}`)
+                // console.log(`IFs: ${JSON.stringify(list[i])}`)
                 if (list[i].type == 'Wired') {
                     try {
                         udpServer.bind(port, list[i].ip_address, () => {
@@ -452,8 +452,29 @@ function state() {
     return controlState;
 }
 
-exports.isLight = isLight; // for testing
+function sleep(ms) {
+  return new Promise((res, rej) => {
+    setTimeout(() => { res(); }, ms);
+  });
+}
 
+async function turnOff(list) { // Has to be top level function
+ for (i=0; i<list.length; i++) {
+    showScene(list[i].Name, list[i].OffScene);
+    await sleep(1000);
+  }
+}
+
+exports.allLightsOff = allLightsOff
+function allLightsOff() {
+  var list = [];
+  TLcList.forEach((_tlc) => {
+    if (_tlc.online) { list.push(_tlc); }
+  });
+  turnOff(list);
+}
+
+exports.isLight = isLight; // for testing
 function isLight(now, cloudCover) {
     switch (controlState) {
         case "Auto":
@@ -501,12 +522,12 @@ function refresh(tlcName, area, channel, cb) {
 exports.send = send;
 function send(tlcName, str) {
     var bfr = new Buffer.from(str);
-    console.log("Send %j ===> %s", tlcName, str);
+    // console.log("Send %j ===> %s", tlcName, str);
     var tlcObj = getTLc(tlcName)
     if (tlcObj) {
         var ip = tlcObj.IPaddress.replace(/\.0/g, '.').replace(/\.0/g, '.');
         console.log("%s=>%s %s", tlcName, str, ip);
-        udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, ip, function (err, bytes) {
+        udpServer.send(bfr, 0, bfr.length, config.TLc.udp_port, ip, (err, bytes) => {
             if (err) {
                 console.error("tlc send error: %j", err);
             }

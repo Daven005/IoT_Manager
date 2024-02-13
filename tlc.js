@@ -435,6 +435,11 @@ exports.areaChannels = function (request, response) {
   });
 }
 
+exports.allLightsOff = function (request, response) {
+  tlc_if.allLightsOff();
+  response.render('allLightsOff');
+}
+
 function getLightingChannel(request, response) {
   tlc_if.setChannel(request.query.tlc, request.query.area, request.query.name, request.query.value);
   response.end("OK");

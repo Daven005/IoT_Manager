@@ -294,6 +294,7 @@ function setupWeb() {
                 app.get('/tlc/areaChannels', tlc.areaChannels);
                 app.get('/tlc/info', tlc.info);
                 app.get('/tlc/test', tlc.test);
+                app_mobile.get('/AllLightsOff', tlc.allLightsOff);
                 app.get('/hollies/lightingChannels', tlc.setDesktopLightingChannels);
                 app.post('/hollies/setScene', tlc.setSceneDecode);
                 app_mobile.get('/hollies/lightingChannels', tlc.setMobileLightingChannels);

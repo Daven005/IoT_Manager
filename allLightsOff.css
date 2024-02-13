@@ -1,0 +1,12 @@
+.dial { 
+  font-size: 1.5em; width: 100px; height: 100px; padding: 10px 5px 5px 0; 
+  color: black; text-align: center; 
+  border: 5px solid;
+  border-radius: 10%;
+}
+.background {
+  background-repeat:no-repeat; 
+  background-image:url(lightsOff.jpg); 
+  background-position:center; 
+  background-size:cover;
+}
